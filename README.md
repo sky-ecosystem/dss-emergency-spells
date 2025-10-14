@@ -115,7 +115,6 @@ bespoke spell in record time.
 | ---------------------------- | -------------------------------------------- |
 | `ALLOCATOR-SPARK-A`          | `0x68220D37eA40A60ACDa21cb607085225280dc2DB` |
 | `ETH-A`, `ETH-B`, `ETH-C`    | `0x07bc4A6F65A7965856aFff5af67a702220367d5f` |
-| `LSE-MKR-A`                  | `0xCc6aE0768AA40a272b6CF116b39f3CDb7dA3a928` |
 | `WBTC-A`, `WBTC-B`, `WBTC-C` | `0xC9c4e0C7F769Ec16a39e3fc016e2A4Dc639EAa74` |
 | `WSTETH-A`, `WSTETH-B`       | `0x1a1F368e99F22dED25ECfeA2A87a7590771b6ED0` |
 
