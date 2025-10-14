@@ -117,6 +117,7 @@ bespoke spell in record time.
 | `ALLOCATOR-BLOOM-A`                                                              | `0xd12Aebe605b37391F8741C2C10A32D4Fa6A9D544` |
 | `ALLOCATOR-NOVA-A`                                                               | `0x401702b6B6fEEb4C19658e178B8cAa90d96E94D3` |
 | `ALLOCATOR-OBEX-A`                                                               | `0x2113592be9e40318C87320c36ba1eEAc9522ee3e` |
+| `ALLOCATOR-SPARK-A`, `ALLOCATOR-BLOOM-A`, `ALLOCATOR-NOVA-A`, `ALLOCATOR-OBEX-A` | `0xc7530BdE59c81Da966CcE63D8D43D001fB493100` |
 | `ETH-A`, `ETH-B`, `ETH-C`                                                        | `0x07bc4A6F65A7965856aFff5af67a702220367d5f` |
 | `WBTC-A`, `WBTC-B`, `WBTC-C`                                                     | `0xC9c4e0C7F769Ec16a39e3fc016e2A4Dc639EAa74` |
 | `WSTETH-A`, `WSTETH-B`                                                           | `0x1a1F368e99F22dED25ECfeA2A87a7590771b6ED0` |
