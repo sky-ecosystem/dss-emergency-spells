@@ -60,7 +60,7 @@ contract StUsdsLineWipeSpellTest is DssTest {
         assertTrue(spell.done(), "after: spell not done");
     }
 
-    function testRevertLineWipeWhenItDoesNotHaveTheHat() public {
+    function testRevertHaltRateWhenItDoesNotHaveTheHat() public {
         stdstore.target(chief).sig("hat()").checked_write(address(0));
 
         uint256 pBad = stUsdsRateSetter.bad();

@@ -37,7 +37,7 @@ contract StUsdsHaltRateSpell is DssEmergencySpell {
 
     event HaltRateSetter(address indexed rateSetter);
 
-    function description() external view returns (string memory) {
+    function description() external pure returns (string memory) {
         return string(abi.encodePacked("Emergency Spell | Halt Rate Setter"));
     }
 

@@ -51,7 +51,7 @@ contract StUsdsDissBudSpellTest is DssTest {
         vm.makePersistent(chief);
     }
 
-    function testLineWipeOnSchedule() public {
+    function testDissRateSetterOnSchedule() public {
         uint256 pBud = stUsdsRateSetter.buds(bud);
         assertEq(pBud, 1, "before: stUsdsRateSetter bud already dissed");
 
@@ -64,7 +64,7 @@ contract StUsdsDissBudSpellTest is DssTest {
         assertTrue(spell.done(), "after: spell not done");
     }
 
-    function testRevertLineWipeWhenItDoesNotHaveTheHat() public {
+    function testRevertDissRateSetterWhenItDoesNotHaveTheHat() public {
         stdstore.target(chief).sig("hat()").checked_write(address(0));
 
         uint256 pBud = stUsdsRateSetter.buds(bud);
