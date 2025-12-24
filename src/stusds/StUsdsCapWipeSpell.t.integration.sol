@@ -20,15 +20,16 @@ import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
 import {StUsdsCapWipeSpell} from "./StUsdsCapWipeSpell.sol";
 
 interface StUsdsMomLike {
-    function zeroCap(address rateSetter) external;
 }
 
 interface StUsdsRateSetterLike {
+    function deny(address usr) external;
     function maxCap() external view returns (uint256);
 }
 
 interface StUsdsLike {
     function cap() external view returns (uint256);
+    function deny(address) external;
 }
 
 contract StUsdsCapWipeSpellTest is DssTest {
@@ -92,6 +93,30 @@ contract StUsdsCapWipeSpellTest is DssTest {
         uint256 maxCap = stUsdsRateSetter.maxCap();
         assertGt(maxCap, 0, "after: maxCap wiped unexpectedly");
         assertFalse(spell.done(), "after: spell done unexpectedly");
+    }
+
+    function testDoneWhenStUsdsMomIsNotWardInStUsds() public {
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.prank(pauseProxy);
+        stUsds.deny(address(stUsdsMom));
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenStUsdsRateSetterIsNotWardInStUsds() public {
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.prank(pauseProxy);
+        stUsds.deny(address(stUsdsRateSetter));
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenStUsdsMomIsNotWardInStUsdsRateSetter() public {
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.prank(pauseProxy);
+        stUsdsRateSetter.deny(address(stUsdsMom));
+
+        assertTrue(spell.done(), "spell not done");
     }
 
     event ZeroCap(address indexed rateSetter);

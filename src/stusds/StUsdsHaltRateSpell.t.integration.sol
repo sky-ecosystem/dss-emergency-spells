@@ -22,7 +22,14 @@ import {StUsdsHaltRateSpell} from "./StUsdsHaltRateSpell.sol";
 
 interface StUsdsRateSetterLike {
     function bad() external view returns (uint8);
+    function deny(address usr) external;
 }
+
+interface StUsdsLike {
+    function deny(address) external;
+}
+
+interface StUsdsMomLike {}
 
 contract StUsdsLineWipeSpellTest is DssTest {
     using stdStorage for StdStorage;
@@ -31,6 +38,8 @@ contract StUsdsLineWipeSpellTest is DssTest {
     DssInstance dss;
     address chief;
     StUsdsRateSetterLike stUsdsRateSetter;
+    StUsdsLike stUsds;
+    StUsdsMomLike stUsdsMom;
     StUsdsHaltRateSpell spell;
 
     function setUp() public {
@@ -40,6 +49,8 @@ contract StUsdsLineWipeSpellTest is DssTest {
         MCD.giveAdminAccess(dss);
         chief = dss.chainlog.getAddress("MCD_ADM");
         stUsdsRateSetter = StUsdsRateSetterLike(dss.chainlog.getAddress("STUSDS_RATE_SETTER"));
+        stUsdsMom = StUsdsMomLike(dss.chainlog.getAddress("STUSDS_MOM"));
+        stUsds = StUsdsLike(dss.chainlog.getAddress("STUSDS"));
         spell = new StUsdsHaltRateSpell();
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
@@ -73,6 +84,30 @@ contract StUsdsLineWipeSpellTest is DssTest {
         uint256 bad = stUsdsRateSetter.bad();
         assertEq(bad, 0, "after: stUsdsRateSetter bad set unexpectedly");
         assertFalse(spell.done(), "after: spell done unexpectedly");
+    }
+
+    function testDoneWhenStUsdsMomIsNotWardInStUsds() public {
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.prank(pauseProxy);
+        stUsds.deny(address(stUsdsMom));
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenStUsdsRateSetterIsNotWardInStUsds() public {
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.prank(pauseProxy);
+        stUsds.deny(address(stUsdsRateSetter));
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenStUsdsMomIsNotWardInStUsdsRateSetter() public {
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.prank(pauseProxy);
+        stUsdsRateSetter.deny(address(stUsdsMom));
+
+        assertTrue(spell.done(), "spell not done");
     }
     
     event HaltRateSetter(address indexed rateSetter);

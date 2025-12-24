@@ -22,7 +22,14 @@ import {StUsdsDissBudSpell,StUsdsDissBudFactory} from "./StUsdsDissBudSpell.sol"
 
 interface StUsdsRateSetterLike {
     function buds(address) external view returns (uint256);
+    function deny(address usr) external;
 }
+
+interface StUsdsLike {
+    function deny(address) external;
+}
+
+interface StUsdsMomLike {}
 
 contract StUsdsDissBudSpellTest is DssTest {
     using stdStorage for StdStorage;
@@ -32,6 +39,8 @@ contract StUsdsDissBudSpellTest is DssTest {
     address chief;
     StUsdsRateSetterLike stUsdsRateSetter;
     StUsdsDissBudFactory factory;
+    StUsdsLike stUsds;
+    StUsdsMomLike stUsdsMom;
     DssEmergencySpellLike spell;
     address bud = 0xBB865F94B8A92E57f79fCc89Dfd4dcf0D3fDEA16;
 
@@ -42,6 +51,8 @@ contract StUsdsDissBudSpellTest is DssTest {
         MCD.giveAdminAccess(dss);
         chief = dss.chainlog.getAddress("MCD_ADM");
         stUsdsRateSetter = StUsdsRateSetterLike(dss.chainlog.getAddress("STUSDS_RATE_SETTER"));
+        stUsds = StUsdsLike(dss.chainlog.getAddress("STUSDS"));
+        stUsdsMom = StUsdsMomLike(dss.chainlog.getAddress("STUSDS_MOM"));
 
         factory = new StUsdsDissBudFactory();
         spell = DssEmergencySpellLike(factory.deploy(bud));
@@ -78,6 +89,30 @@ contract StUsdsDissBudSpellTest is DssTest {
         uint256 aBud = stUsdsRateSetter.buds(bud);
         assertEq(aBud, 1, "after: stUsdsRateSetter bud dissed unexpectedly");
         assertFalse(spell.done(), "after: spell done unexpectedly");
+    }
+
+    function testDoneWhenStUsdsMomIsNotWardInStUsds() public {
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.prank(pauseProxy);
+        stUsds.deny(address(stUsdsMom));
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenStUsdsRateSetterIsNotWardInStUsds() public {
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.prank(pauseProxy);
+        stUsds.deny(address(stUsdsRateSetter));
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenStUsdsMomIsNotWardInStUsdsRateSetter() public {
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.prank(pauseProxy);
+        stUsdsRateSetter.deny(address(stUsdsMom));
+
+        assertTrue(spell.done(), "spell not done");
     }
     
     event DissRateSetterBud(address indexed rateSetter, address bud);
