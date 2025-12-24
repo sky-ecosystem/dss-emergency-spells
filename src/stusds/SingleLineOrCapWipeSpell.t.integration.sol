@@ -21,6 +21,7 @@ import {DssEmergencySpellLike} from "../DssEmergencySpell.sol";
 import {SingleLineOrCapWipeFactory, Flow} from "./SingleLineOrCapWipeSpell.sol";
 
 interface StUsdsRateSetterLike {
+    function deny(address usr) external;
     function maxLine() external view returns (uint256);
     function maxCap() external view returns (uint256);
 }
@@ -93,6 +94,18 @@ contract SingleLinePsmHaltSpellTest is DssTest {
         _checkDoneWhenStUsdsRateSetterIsNotWardInStUsds(Flow.BOTH);
     }
 
+        function testDoneWhenStUsdsMomIsNotWardInStUsdsRateSetterLine() public {
+        _checkDoneWhenStUsdsMomIsNotWardInStUsdsRateSetter(Flow.LINE);
+    }
+
+    function testDoneWhenStUsdsMomIsNotWardInStUsdsRateSetterCap() public {
+        _checkDoneWhenStUsdsMomIsNotWardInStUsdsRateSetter(Flow.CAP);
+    }
+
+    function testDoneWhenStUsdsMomIsNotWardInStUsdsRateSetterBoth() public {
+        _checkDoneWhenStUsdsMomIsNotWardInStUsdsRateSetter(Flow.BOTH);
+    }
+
     function testRevertSpellWhenItDoesNotHaveTheHatLine() public {
         _checkRevertSpellWhenItDoesNotHaveTheHat(Flow.LINE);
     }
@@ -162,6 +175,16 @@ contract SingleLinePsmHaltSpellTest is DssTest {
         address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
         vm.prank(pauseProxy);
         stUsds.deny(address(stUsdsRateSetter));
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function _checkDoneWhenStUsdsMomIsNotWardInStUsdsRateSetter(Flow flow) internal {
+        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(stUsdsRateSetter), address(stUsdsMom), address(stUsds), flow));
+
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.prank(pauseProxy);
+        stUsdsRateSetter.deny(address(stUsdsMom));
 
         assertTrue(spell.done(), "spell not done");
     }
