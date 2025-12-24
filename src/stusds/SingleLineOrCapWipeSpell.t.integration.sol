@@ -18,7 +18,7 @@ pragma solidity ^0.8.16;
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
 import {DssEmergencySpellLike} from "../DssEmergencySpell.sol";
-import {SingleLiteOrCapWipeFactory, Flow} from "./SingleLiteOrCapWipeSpell.sol";
+import {SingleLineOrCapWipeFactory, Flow} from "./SingleLineOrCapWipeSpell.sol";
 
 interface StUsdsRateSetterLike {
     function maxLine() external view returns (uint256);
@@ -34,7 +34,7 @@ interface StUsdsLike {
 
 interface StUsdsMomLike {}
 
-contract SingleLitePsmHaltSpellTest is DssTest {
+contract SingleLinePsmHaltSpellTest is DssTest {
     using stdStorage for StdStorage;
 
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
@@ -43,7 +43,7 @@ contract SingleLitePsmHaltSpellTest is DssTest {
     StUsdsMomLike stUsdsMom;
     StUsdsLike stUsds;
     StUsdsRateSetterLike stUsdsRateSetter;
-    SingleLiteOrCapWipeFactory factory;
+    SingleLineOrCapWipeFactory factory;
 
     function setUp() public {
         vm.createSelectFork("mainnet");
@@ -54,7 +54,7 @@ contract SingleLitePsmHaltSpellTest is DssTest {
         stUsdsMom = StUsdsMomLike(dss.chainlog.getAddress("STUSDS_MOM"));
         stUsds = StUsdsLike(dss.chainlog.getAddress("STUSDS"));
         stUsdsRateSetter = StUsdsRateSetterLike(dss.chainlog.getAddress("STUSDS_RATE_SETTER"));
-        factory = new SingleLiteOrCapWipeFactory();
+        factory = new SingleLineOrCapWipeFactory();
     }
 
     function testPsmHaltOnScheduleLine() public {

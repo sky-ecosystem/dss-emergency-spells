@@ -2,11 +2,12 @@
 
 ## ToDo
 
+
 - [ ] Agree if all the wards checks are necessary in `done()`:
     * [ ] stUsds -> stUsdsMom;
     * [ ] stUsds -> stUsdsRateSetter;
     * [ ] stUsdsRateSetter -> stUsdsMom;
-- [ ] decide if use the LitePsmHalt approach for line and cap to 0 or if it's better to go with single contracts per each parameter;
+- [ ] decide if use the `SingleLineOrCapWipeSpell.sol` (`SingleLitePsmHaltSpell.sol` approach) for line and cap to 0 or if it's better to go with single contracts per each parameter (`StUsdsLineWipeSpell.sol` and `StUsdsCapWipeSpell.sol`);
     * SingleSpell has more clear events name for instance;
 - [ ] check if it is preferred to initialize the contracts (stUsds, stUsdsMom and stUsdsRateSetter) from outside - in the constructor - or should be directly fetched from the chainlog from the spell itself;
   - [ ] STUSDS;

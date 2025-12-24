@@ -46,7 +46,7 @@ interface StUsdsLike {
 /// @custom:reviewers []
 /// @custom:auditors []
 /// @custom:bounties []
-contract SingleLiteOrCapWipeSpell is DssEmergencySpell {
+contract SingleLineOrCapWipeSpell is DssEmergencySpell {
     StUsdsMomLike public immutable stUsdsMom;
     StUsdsLike public immutable stUsds;
     StUsdsRateSetterLike public immutable stUsdsRateSetter;
@@ -135,11 +135,11 @@ contract SingleLiteOrCapWipeSpell is DssEmergencySpell {
     }
 }
 
-contract SingleLiteOrCapWipeFactory {
+contract SingleLineOrCapWipeFactory {
     event Deploy(address stUsdsRateSetter, Flow indexed flow, address spell);
 
     function deploy(address stUsdsRateSetter, address stUsdsMom, address stUsds, Flow flow) external returns (address spell) {
-        spell = address(new SingleLiteOrCapWipeSpell(stUsdsRateSetter, stUsdsMom, stUsds, flow));
+        spell = address(new SingleLineOrCapWipeSpell(stUsdsRateSetter, stUsdsMom, stUsds, flow));
         emit Deploy(stUsdsRateSetter, flow, spell);
     }
 }
