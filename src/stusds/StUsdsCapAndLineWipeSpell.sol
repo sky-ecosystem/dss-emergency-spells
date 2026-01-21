@@ -18,37 +18,44 @@ pragma solidity ^0.8.16;
 import {DssEmergencySpell} from "../DssEmergencySpell.sol";
 
 interface StUsdsMomLike {
-    function haltRateSetter(address rateSetter) external;
+    function zeroCap(address rateSetter) external;
+    function zeroLine(address rateSetter) external;
 }
 
 interface StUsdsRateSetterLike {
-    function bad() external view returns (uint8);
+    function maxCap() external view returns (uint256);
+    function maxLine() external view returns (uint256);
     function wards(address) external view returns (uint256);
 }
 
 interface StUsdsLike {
+    function cap() external view returns (uint256);
+    function line() external view returns (uint256);
     function wards(address) external view returns (uint256);
 }
 
-contract StUsdsHaltRateSpell is DssEmergencySpell {
+contract StUsdsCapWipeSpell is DssEmergencySpell {
     StUsdsMomLike public immutable stUsdsMom = StUsdsMomLike(_log.getAddress("STUSDS_MOM"));
-    StUsdsRateSetterLike public immutable stUsdsRateSetter = StUsdsRateSetterLike(_log.getAddress("STUSDS_RATE_SETTER"));
     StUsdsLike public immutable stUsds = StUsdsLike(_log.getAddress("STUSDS"));
+    StUsdsRateSetterLike public immutable stUsdsRateSetter = StUsdsRateSetterLike(_log.getAddress("STUSDS_RATE_SETTER"));
 
-    event HaltRateSetter(address indexed rateSetter);
+    event ZeroCap(address indexed rateSetter);
+    event ZeroLine(address indexed rateSetter);
 
     function description() external pure returns (string memory) {
-        return string(abi.encodePacked("Emergency Spell | Halt Rate Setter"));
+        return string(abi.encodePacked("Emergency Spell | Cap Wipe: stUSDS"));
     }
 
     function _emergencyActions() internal override {
-        stUsdsMom.haltRateSetter(address(stUsdsRateSetter));
-        emit HaltRateSetter(address(stUsdsRateSetter));
+        stUsdsMom.zeroCap(address(stUsdsRateSetter));
+        emit ZeroCap(address(stUsdsRateSetter));
+        stUsdsMom.zeroLine(address(stUsdsRateSetter));
+        emit ZeroLine(address(stUsdsRateSetter));
     }
 
     /**
      * @notice Returns whether the spell is done or not.
-     * @dev Checks if the bad has been set to 1 for the stUsdsRateSetter.
+     * @dev Checks if the cap has been wiped from stUSDS and if the max cap has been wiped from the rate setter.
      *      The spell would revert if any of the following conditions holds:
      *          1. stUsdsRateSetter is not ward on stUsds;
      *          2. stUsdsMom is not ward on stUsds;
@@ -86,10 +93,29 @@ contract StUsdsHaltRateSpell is DssEmergencySpell {
             return true;
         }
 
-        try stUsdsRateSetter.bad() returns (uint8 bad) {
-            return bad == 1;
+        uint256 maxCap = try stUsds.cap() {
+            try stUsdsRateSetter.maxCap() returns (uint256 maxCap) {} catch {
+                // If the call failed, it means the contract is most likely not a RateSetter instance.
+                return true;
+            }
         } catch {
-            // If the call failed, it means the contract is most likely not a RateSetter instance.
+            // If the call failed, it means the contract is most likely not a StUsds instance.
+            return true;
+        }
+
+        try stUsds.line() returns (uint256 line) {
+            try stUsdsRateSetter.maxLine() returns (uint256 maxLine) {
+                try stUsds.cap() returns (uint256 cap) {
+                    try stUsdsRateSetter.maxCap() returns (uint256 maxLine) {
+                    return line == 0 && maxLine == 0 && cap == 0 && maxCap == 0;
+                }
+
+            } catch {
+                // If the call failed, it means the contract is most likely not a RateSetter instance.
+                return true;
+            }
+        } catch {
+            // If the call failed, it means the contract is most likely not a StUsds instance.
             return true;
         }
     }

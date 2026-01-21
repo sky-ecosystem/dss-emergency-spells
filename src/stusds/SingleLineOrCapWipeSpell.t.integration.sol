@@ -33,15 +33,13 @@ interface StUsdsLike {
     function wards(address) external view returns (uint256);
 }
 
-interface StUsdsMomLike {}
-
 contract SingleLinePsmHaltSpellTest is DssTest {
     using stdStorage for StdStorage;
 
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
     DssInstance dss;
     address chief;
-    StUsdsMomLike stUsdsMom;
+    address stUsdsMom;
     StUsdsLike stUsds;
     StUsdsRateSetterLike stUsdsRateSetter;
     SingleLineOrCapWipeFactory factory;
@@ -52,7 +50,7 @@ contract SingleLinePsmHaltSpellTest is DssTest {
         dss = MCD.loadFromChainlog(CHAINLOG);
         MCD.giveAdminAccess(dss);
         chief = dss.chainlog.getAddress("MCD_ADM");
-        stUsdsMom = StUsdsMomLike(dss.chainlog.getAddress("STUSDS_MOM"));
+        stUsdsMom = dss.chainlog.getAddress("STUSDS_MOM");
         stUsds = StUsdsLike(dss.chainlog.getAddress("STUSDS"));
         stUsdsRateSetter = StUsdsRateSetterLike(dss.chainlog.getAddress("STUSDS_RATE_SETTER"));
         factory = new SingleLineOrCapWipeFactory();
@@ -119,7 +117,7 @@ contract SingleLinePsmHaltSpellTest is DssTest {
     }
 
     function _checkPsmHaltOnSchedule(Flow flow) internal {
-        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(stUsdsRateSetter), address(stUsdsMom), address(stUsds), flow));
+        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(stUsdsRateSetter), stUsdsMom, address(stUsds), flow));
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
         vm.makePersistent(chief);
 
@@ -160,17 +158,17 @@ contract SingleLinePsmHaltSpellTest is DssTest {
     }
 
     function _checkDoneWhenStUsdsMomIsNotWardInStUsds(Flow flow) internal {
-        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(stUsdsRateSetter), address(stUsdsMom), address(stUsds), flow));
+        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(stUsdsRateSetter), stUsdsMom, address(stUsds), flow));
 
         address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
         vm.prank(pauseProxy);
-        stUsds.deny(address(stUsdsMom));
+        stUsds.deny(stUsdsMom);
 
         assertTrue(spell.done(), "spell not done");
     }
 
     function _checkDoneWhenStUsdsRateSetterIsNotWardInStUsds(Flow flow) internal {
-        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(stUsdsRateSetter), address(stUsdsMom), address(stUsds), flow));
+        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(stUsdsRateSetter), stUsdsMom, address(stUsds), flow));
 
         address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
         vm.prank(pauseProxy);
@@ -180,17 +178,17 @@ contract SingleLinePsmHaltSpellTest is DssTest {
     }
 
     function _checkDoneWhenStUsdsMomIsNotWardInStUsdsRateSetter(Flow flow) internal {
-        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(stUsdsRateSetter), address(stUsdsMom), address(stUsds), flow));
+        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(stUsdsRateSetter), stUsdsMom, address(stUsds), flow));
 
         address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
         vm.prank(pauseProxy);
-        stUsdsRateSetter.deny(address(stUsdsMom));
+        stUsdsRateSetter.deny(stUsdsMom);
 
         assertTrue(spell.done(), "spell not done");
     }
 
     function _checkRevertSpellWhenItDoesNotHaveTheHat(Flow flow) internal {
-        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(stUsdsRateSetter), address(stUsdsMom), address(stUsds), flow));
+        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(stUsdsRateSetter), stUsdsMom, address(stUsds), flow));
 
         uint256 line = stUsds.line();
         uint256 cap = stUsds.cap();

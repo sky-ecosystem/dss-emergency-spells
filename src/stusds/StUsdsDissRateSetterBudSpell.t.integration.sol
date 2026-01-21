@@ -18,10 +18,10 @@ pragma solidity ^0.8.16;
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
 import {DssEmergencySpellLike} from "../DssEmergencySpell.sol";
-import {StUsdsHaltRateSpell} from "./StUsdsHaltRateSpell.sol";
+import {StUsdsDissRateSetterBudSpell,StUsdsDissRateSetterBudFactory} from "./StUsdsDissRateSetterBudSpell.sol";
 
 interface StUsdsRateSetterLike {
-    function bad() external view returns (uint8);
+    function buds(address) external view returns (uint256);
     function deny(address usr) external;
 }
 
@@ -29,18 +29,19 @@ interface StUsdsLike {
     function deny(address) external;
 }
 
-interface StUsdsMomLike {}
 
-contract StUsdsLineWipeSpellTest is DssTest {
+contract StUsdsDissBudSpellTest is DssTest {
     using stdStorage for StdStorage;
 
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
     DssInstance dss;
     address chief;
     StUsdsRateSetterLike stUsdsRateSetter;
+    StUsdsDissRateSetterBudFactory factory;
     StUsdsLike stUsds;
-    StUsdsMomLike stUsdsMom;
-    StUsdsHaltRateSpell spell;
+    address stUsdsMom;
+    DssEmergencySpellLike spell;
+    address bud = 0xBB865F94B8A92E57f79fCc89Dfd4dcf0D3fDEA16;
 
     function setUp() public {
         vm.createSelectFork("mainnet");
@@ -49,47 +50,50 @@ contract StUsdsLineWipeSpellTest is DssTest {
         MCD.giveAdminAccess(dss);
         chief = dss.chainlog.getAddress("MCD_ADM");
         stUsdsRateSetter = StUsdsRateSetterLike(dss.chainlog.getAddress("STUSDS_RATE_SETTER"));
-        stUsdsMom = StUsdsMomLike(dss.chainlog.getAddress("STUSDS_MOM"));
         stUsds = StUsdsLike(dss.chainlog.getAddress("STUSDS"));
-        spell = new StUsdsHaltRateSpell();
+        stUsdsMom = dss.chainlog.getAddress("STUSDS_MOM");
+
+        factory = new StUsdsDissRateSetterBudFactory();
+        spell = DssEmergencySpellLike(factory.deploy(bud));
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
 
         vm.makePersistent(chief);
     }
 
-    function testHaltRateOnSchedule() public {
-        uint256 pBad = stUsdsRateSetter.bad();
-        assertEq(pBad, 0, "before: stUsdsRateSetter bad already set");
+    function testDissRateSetterOnSchedule() public {
+        uint256 pBud = stUsdsRateSetter.buds(bud);
+        assertEq(pBud, 1, "before: stUsdsRateSetter bud already dissed");
 
         vm.expectEmit(true, true, true, false);
-        emit HaltRateSetter(address(stUsdsRateSetter));
+        emit DissRateSetterBud(address(stUsdsRateSetter),bud);
         spell.schedule();
 
-        uint256 bad = stUsdsRateSetter.bad();
-        assertEq(bad, 1, "after: stUsdsRateSetter bad not set");
+        uint256 aBud = stUsdsRateSetter.buds(bud);
+        assertEq(aBud, 0, "after: stUsdsRateSetter bud not dissed");
         assertTrue(spell.done(), "after: spell not done");
     }
 
-    function testRevertHaltRateWhenItDoesNotHaveTheHat() public {
+    function testRevertDissRateSetterWhenItDoesNotHaveTheHat() public {
         stdstore.target(chief).sig("hat()").checked_write(address(0));
 
-        uint256 pBad = stUsdsRateSetter.bad();
-        assertEq(pBad, 0, "before: stUsdsRateSetter bad already set");
+        uint256 pBud = stUsdsRateSetter.buds(bud);
+        assertEq(pBud, 1, "before: stUsdsRateSetter bud already dissed");
+
         assertFalse(spell.done(), "before: spell already done");
 
         vm.expectRevert();
         spell.schedule();
 
-        uint256 bad = stUsdsRateSetter.bad();
-        assertEq(bad, 0, "after: stUsdsRateSetter bad set unexpectedly");
+        uint256 aBud = stUsdsRateSetter.buds(bud);
+        assertEq(aBud, 1, "after: stUsdsRateSetter bud dissed unexpectedly");
         assertFalse(spell.done(), "after: spell done unexpectedly");
     }
 
     function testDoneWhenStUsdsMomIsNotWardInStUsds() public {
         address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
         vm.prank(pauseProxy);
-        stUsds.deny(address(stUsdsMom));
+        stUsds.deny(stUsdsMom);
 
         assertTrue(spell.done(), "spell not done");
     }
@@ -105,10 +109,10 @@ contract StUsdsLineWipeSpellTest is DssTest {
     function testDoneWhenStUsdsMomIsNotWardInStUsdsRateSetter() public {
         address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
         vm.prank(pauseProxy);
-        stUsdsRateSetter.deny(address(stUsdsMom));
+        stUsdsRateSetter.deny(stUsdsMom);
 
         assertTrue(spell.done(), "spell not done");
     }
     
-    event HaltRateSetter(address indexed rateSetter);
+    event DissRateSetterBud(address indexed rateSetter, address bud);
 }

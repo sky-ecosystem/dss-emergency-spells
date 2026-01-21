@@ -18,11 +18,11 @@ pragma solidity ^0.8.16;
 import {DssEmergencySpell} from "../DssEmergencySpell.sol";
 
 interface StUsdsMomLike {
-    function dissRateSetterBud(address rateSetter, address bud) external;
+    function haltRateSetter(address rateSetter) external;
 }
 
 interface StUsdsRateSetterLike {
-    function buds(address) external view returns (uint256);
+    function bad() external view returns (uint8);
     function wards(address) external view returns (uint256);
 }
 
@@ -30,31 +30,25 @@ interface StUsdsLike {
     function wards(address) external view returns (uint256);
 }
 
-contract StUsdsDissBudSpell is DssEmergencySpell {
+contract StUsdsHaltRateSetterSpell is DssEmergencySpell {
     StUsdsMomLike public immutable stUsdsMom = StUsdsMomLike(_log.getAddress("STUSDS_MOM"));
     StUsdsRateSetterLike public immutable stUsdsRateSetter = StUsdsRateSetterLike(_log.getAddress("STUSDS_RATE_SETTER"));
     StUsdsLike public immutable stUsds = StUsdsLike(_log.getAddress("STUSDS"));
 
-    address public immutable bud;
+    event HaltRateSetter(address indexed rateSetter);
 
-    event DissRateSetterBud(address indexed rateSetter, address bud);
-
-    constructor(address _bud) {
-        bud = _bud;
-    }
-
-    function description() external view returns (string memory) {
-        return string(abi.encodePacked("Emergency Spell | Diss Rate Setter Bud: ", bud));
+    function description() external pure returns (string memory) {
+        return string(abi.encodePacked("Emergency Spell | Halt Rate Setter"));
     }
 
     function _emergencyActions() internal override {
-        stUsdsMom.dissRateSetterBud(address(stUsdsRateSetter), bud);
-        emit DissRateSetterBud(address(stUsdsRateSetter), bud);
+        stUsdsMom.haltRateSetter(address(stUsdsRateSetter));
+        emit HaltRateSetter(address(stUsdsRateSetter));
     }
 
     /**
      * @notice Returns whether the spell is done or not.
-     * @dev Checks if the bud has been dissed from the rate setter.
+     * @dev Checks if the bad has been set to 1 for the stUsdsRateSetter.
      *      The spell would revert if any of the following conditions holds:
      *          1. stUsdsRateSetter is not ward on stUsds;
      *          2. stUsdsMom is not ward on stUsds;
@@ -62,7 +56,7 @@ contract StUsdsDissBudSpell is DssEmergencySpell {
      *      In such cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
-         try stUsds.wards(address(stUsdsRateSetter)) returns (uint256 ward) {
+        try stUsds.wards(address(stUsdsRateSetter)) returns (uint256 ward) {
             // Ignore StUsds instances that have not relied on StUsdsRateSetter.
             if (ward == 0) {
                 return true;
@@ -92,20 +86,11 @@ contract StUsdsDissBudSpell is DssEmergencySpell {
             return true;
         }
 
-        try stUsdsRateSetter.buds(bud) returns (uint256 pBud) {
-            return pBud == 0;
+        try stUsdsRateSetter.bad() returns (uint8 bad) {
+            return bad == 1;
         } catch {
             // If the call failed, it means the contract is most likely not a RateSetter instance.
             return true;
         }
-    }
-}
-
-contract StUsdsDissBudFactory {
-    event Deploy(address indexed bud, address spell);
-
-    function deploy(address bud) external returns (address spell) {
-        spell = address(new StUsdsDissBudSpell(bud));
-        emit Deploy(bud, spell);
     }
 }

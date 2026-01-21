@@ -19,9 +19,6 @@ import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
 import {StUsdsCapWipeSpell} from "./StUsdsCapWipeSpell.sol";
 
-interface StUsdsMomLike {
-}
-
 interface StUsdsRateSetterLike {
     function deny(address usr) external;
     function maxCap() external view returns (uint256);
@@ -38,7 +35,7 @@ contract StUsdsCapWipeSpellTest is DssTest {
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
     DssInstance dss;
     address chief;
-    StUsdsMomLike stUsdsMom;
+    address stUsdsMom;
     StUsdsLike stUsds;
     StUsdsRateSetterLike stUsdsRateSetter;
     StUsdsCapWipeSpell spell;
@@ -49,7 +46,7 @@ contract StUsdsCapWipeSpellTest is DssTest {
         dss = MCD.loadFromChainlog(CHAINLOG);
         MCD.giveAdminAccess(dss);
         chief = dss.chainlog.getAddress("MCD_ADM");
-        stUsdsMom = StUsdsMomLike(dss.chainlog.getAddress("STUSDS_MOM"));
+        stUsdsMom = dss.chainlog.getAddress("STUSDS_MOM");
         stUsds = StUsdsLike(dss.chainlog.getAddress("STUSDS"));
         stUsdsRateSetter = StUsdsRateSetterLike(dss.chainlog.getAddress("STUSDS_RATE_SETTER"));
         spell = new StUsdsCapWipeSpell();
@@ -98,7 +95,7 @@ contract StUsdsCapWipeSpellTest is DssTest {
     function testDoneWhenStUsdsMomIsNotWardInStUsds() public {
         address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
         vm.prank(pauseProxy);
-        stUsds.deny(address(stUsdsMom));
+        stUsds.deny(stUsdsMom);
 
         assertTrue(spell.done(), "spell not done");
     }
@@ -114,7 +111,7 @@ contract StUsdsCapWipeSpellTest is DssTest {
     function testDoneWhenStUsdsMomIsNotWardInStUsdsRateSetter() public {
         address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
         vm.prank(pauseProxy);
-        stUsdsRateSetter.deny(address(stUsdsMom));
+        stUsdsRateSetter.deny(stUsdsMom);
 
         assertTrue(spell.done(), "spell not done");
     }

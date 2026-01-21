@@ -30,7 +30,6 @@ interface StUsdsLike {
     function line() external view returns (uint256);
 }
 
-interface StUsdsMomLike {}
 
 contract StUsdsLineWipeSpellTest is DssTest {
     using stdStorage for StdStorage;
@@ -40,7 +39,7 @@ contract StUsdsLineWipeSpellTest is DssTest {
     address chief;
     StUsdsLike stUsds;
     StUsdsRateSetterLike stUsdsRateSetter;
-    StUsdsMomLike stUsdsMom;
+    address stUsdsMom;
 
     StUsdsLineWipeSpell spell;
 
@@ -52,7 +51,7 @@ contract StUsdsLineWipeSpellTest is DssTest {
         chief = dss.chainlog.getAddress("MCD_ADM");
         stUsds = StUsdsLike(dss.chainlog.getAddress("STUSDS"));
         stUsdsRateSetter = StUsdsRateSetterLike(dss.chainlog.getAddress("STUSDS_RATE_SETTER"));
-        stUsdsMom = StUsdsMomLike(dss.chainlog.getAddress("STUSDS_MOM"));
+        stUsdsMom = dss.chainlog.getAddress("STUSDS_MOM");
         spell = new StUsdsLineWipeSpell();
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
@@ -99,7 +98,7 @@ contract StUsdsLineWipeSpellTest is DssTest {
     function testDoneWhenStUsdsMomIsNotWardInStUsds() public {
         address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
         vm.prank(pauseProxy);
-        stUsds.deny(address(stUsdsMom));
+        stUsds.deny(stUsdsMom);
 
         assertTrue(spell.done(), "spell not done");
     }
@@ -115,7 +114,7 @@ contract StUsdsLineWipeSpellTest is DssTest {
     function testDoneWhenStUsdsMomIsNotWardInStUsdsRateSetter() public {
         address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
         vm.prank(pauseProxy);
-        stUsdsRateSetter.deny(address(stUsdsMom));
+        stUsdsRateSetter.deny(stUsdsMom);
 
         assertTrue(spell.done(), "spell not done");
     }

@@ -18,9 +18,9 @@ pragma solidity ^0.8.16;
 import {DssEmergencySpell} from "../DssEmergencySpell.sol";
 
 enum Flow {
-    CAP, // Zeros only the cap
-    LINE, // Zeros only the line
-    BOTH // Zeros both
+    CAP, // Set to Zero only the cap
+    LINE, // Set to Zero only the line
+    BOTH // Set to Zero both cap and line
 }
 
 interface StUsdsMomLike {
@@ -52,7 +52,8 @@ contract SingleLineOrCapWipeSpell is DssEmergencySpell {
     StUsdsRateSetterLike public immutable stUsdsRateSetter;
     Flow public immutable flow;
 
-    event ZeroCapOrLine(Flow what);
+    event ZeroCap();
+    event ZeroLine();
 
     constructor(address _stUsdsRateSetter, address _stUsdsMom, address _stUsds, Flow _flow) {
         stUsdsRateSetter = StUsdsRateSetterLike(_stUsdsRateSetter);
@@ -76,13 +77,14 @@ contract SingleLineOrCapWipeSpell is DssEmergencySpell {
      * @notice zero cap; or zero line; or both; on stUSDS and stUSDSRateSetter.
      */
     function _emergencyActions() internal override {
-        if (flow == Flow.LINE || flow == Flow.BOTH) {
+        if (flow != Flow.CAP) {
             stUsdsMom.zeroLine(address(stUsdsRateSetter));
+            emit ZeroLine();
         } 
-        if (flow == Flow.CAP || flow == Flow.BOTH) {
+        if (flow != Flow.LINE) {
             stUsdsMom.zeroCap(address(stUsdsRateSetter));
+            emit ZeroCap();
         } 
-        emit ZeroCapOrLine(flow);
     }
 
     /**
