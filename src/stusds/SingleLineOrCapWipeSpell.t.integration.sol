@@ -136,8 +136,14 @@ contract SingleLinePsmHaltSpellTest is DssTest {
         }
         assertFalse(spell.done(), "before: spell already done");
 
-        vm.expectEmit(true, true, true, false, address(spell));
-        emit ZeroCapOrLine(flow);
+        if (flow == Flow.LINE || flow == Flow.BOTH) {
+            vm.expectEmit(true, true, true, false, address(spell));
+            emit ZeroLine();
+        }
+        if (flow == Flow.CAP || flow == Flow.BOTH) {
+            vm.expectEmit(true, true, true, false, address(spell));
+            emit ZeroCap();
+        }
 
         spell.schedule();
 
@@ -224,5 +230,6 @@ contract SingleLinePsmHaltSpellTest is DssTest {
         assertFalse(spell.done(), "after: spell done unexpectedly");
     }
 
-    event ZeroCapOrLine(Flow what);
+    event ZeroLine();
+    event ZeroCap();
 }
