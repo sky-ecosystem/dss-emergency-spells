@@ -18,3 +18,7 @@ docs/
 
 # Genhtml report
 *.html
+*.png
+cmd_line
+*.css
+lcov.info

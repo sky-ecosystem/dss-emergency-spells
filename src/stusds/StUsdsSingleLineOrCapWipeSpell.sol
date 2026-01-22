@@ -41,24 +41,21 @@ interface StUsdsLike {
 }
 
 /// @title stUSDS Zero Line and Cap Emergency Spell
-/// @notice Will zero: cap and line on STUSDS; maxCap and maxLine on STUSDS_RATE_SETTER can zero only cap, only line, or both.
+/// @notice Will set to zero: cap or/and line on STUSDS; maxCap or/and maxLine on STUSDS_RATE_SETTER. Can set to zero only cap, only line, or both.
 /// @custom:authors [Riccardo]
 /// @custom:reviewers []
 /// @custom:auditors []
 /// @custom:bounties []
-contract SingleLineOrCapWipeSpell is DssEmergencySpell {
-    StUsdsMomLike public immutable stUsdsMom;
-    StUsdsLike public immutable stUsds;
-    StUsdsRateSetterLike public immutable stUsdsRateSetter;
+contract StUsdsSingleLineOrCapWipeSpell is DssEmergencySpell {
+    StUsdsMomLike public immutable stUsdsMom = StUsdsMomLike(_log.getAddress("STUSDS_MOM"));
+    StUsdsRateSetterLike public immutable stUsdsRateSetter = StUsdsRateSetterLike(_log.getAddress("STUSDS_RATE_SETTER"));
+    StUsdsLike public immutable stUsds = StUsdsLike(_log.getAddress("STUSDS"));
     Flow public immutable flow;
 
     event ZeroCap();
     event ZeroLine();
 
-    constructor(address _stUsdsRateSetter, address _stUsdsMom, address _stUsds, Flow _flow) {
-        stUsdsRateSetter = StUsdsRateSetterLike(_stUsdsRateSetter);
-        stUsds = StUsdsLike(_stUsds);
-        stUsdsMom = StUsdsMomLike(_stUsdsMom);
+    constructor(Flow _flow) {
         flow = _flow;
     }
 
@@ -74,7 +71,7 @@ contract SingleLineOrCapWipeSpell is DssEmergencySpell {
     }
 
     /**
-     * @notice zero cap; or zero line; or both; on stUSDS and stUSDSRateSetter.
+     * @notice Set to zero the `cap`; or set to zero the `line`; or both; on stUSDS and stUSDSRateSetter.
      */
     function _emergencyActions() internal override {
         if (flow != Flow.CAP) {
@@ -137,11 +134,11 @@ contract SingleLineOrCapWipeSpell is DssEmergencySpell {
     }
 }
 
-contract SingleLineOrCapWipeFactory {
-    event Deploy(address stUsdsRateSetter, Flow indexed flow, address spell);
+contract StUsdsSingleLineOrCapWipeFactory {
+    event Deploy(Flow indexed flow, address spell);
 
-    function deploy(address stUsdsRateSetter, address stUsdsMom, address stUsds, Flow flow) external returns (address spell) {
-        spell = address(new SingleLineOrCapWipeSpell(stUsdsRateSetter, stUsdsMom, stUsds, flow));
-        emit Deploy(stUsdsRateSetter, flow, spell);
+    function deploy(Flow flow) external returns (address spell) {
+        spell = address(new StUsdsSingleLineOrCapWipeSpell(flow));
+        emit Deploy(flow, spell);
     }
 }

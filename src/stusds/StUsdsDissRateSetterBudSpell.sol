@@ -31,9 +31,11 @@ interface StUsdsLike {
 }
 
 contract StUsdsDissRateSetterBudSpell is DssEmergencySpell {
+    string public constant override description = "Emergency Spell | stUSDS | Diss Rate Setter Bud";
+
+    StUsdsLike public immutable stUsds = StUsdsLike(_log.getAddress("STUSDS"));
     StUsdsMomLike public immutable stUsdsMom = StUsdsMomLike(_log.getAddress("STUSDS_MOM"));
     StUsdsRateSetterLike public immutable stUsdsRateSetter = StUsdsRateSetterLike(_log.getAddress("STUSDS_RATE_SETTER"));
-    StUsdsLike public immutable stUsds = StUsdsLike(_log.getAddress("STUSDS"));
 
     address public immutable bud;
 
@@ -41,10 +43,6 @@ contract StUsdsDissRateSetterBudSpell is DssEmergencySpell {
 
     constructor(address _bud) {
         bud = _bud;
-    }
-
-    function description() external view returns (string memory) {
-        return string(abi.encodePacked("Emergency Spell | Diss Rate Setter Bud: ", bud));
     }
 
     function _emergencyActions() internal override {

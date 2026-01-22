@@ -31,15 +31,13 @@ interface StUsdsLike {
 }
 
 contract StUsdsHaltRateSetterSpell is DssEmergencySpell {
+    string public constant override description = "Emergency Spell | stUSDS | Halt Rate Setter";
+
+    StUsdsLike public immutable stUsds = StUsdsLike(_log.getAddress("STUSDS"));
     StUsdsMomLike public immutable stUsdsMom = StUsdsMomLike(_log.getAddress("STUSDS_MOM"));
     StUsdsRateSetterLike public immutable stUsdsRateSetter = StUsdsRateSetterLike(_log.getAddress("STUSDS_RATE_SETTER"));
-    StUsdsLike public immutable stUsds = StUsdsLike(_log.getAddress("STUSDS"));
 
     event HaltRateSetter(address indexed rateSetter);
-
-    function description() external pure returns (string memory) {
-        return string(abi.encodePacked("Emergency Spell | Halt Rate Setter"));
-    }
 
     function _emergencyActions() internal override {
         stUsdsMom.haltRateSetter(address(stUsdsRateSetter));

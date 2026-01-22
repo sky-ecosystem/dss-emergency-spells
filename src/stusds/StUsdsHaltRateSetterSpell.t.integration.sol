@@ -23,23 +23,24 @@ import {StUsdsHaltRateSetterSpell} from "./StUsdsHaltRateSetterSpell.sol";
 interface StUsdsRateSetterLike {
     function bad() external view returns (uint8);
     function deny(address usr) external;
+    function wards(address) external view returns (uint256);
 }
 
 interface StUsdsLike {
     function deny(address) external;
+    function wards(address) external view returns (uint256);
 }
 
-
-contract StUsdsLineWipeSpellTest is DssTest {
+contract StUsdsHaltRateSetterSpellTest is DssTest {
     using stdStorage for StdStorage;
 
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
-    DssInstance dss;
     address chief;
-    StUsdsRateSetterLike stUsdsRateSetter;
-    StUsdsLike stUsds;
     address stUsdsMom;
+    DssInstance dss;
     StUsdsHaltRateSetterSpell spell;
+    StUsdsLike stUsds;
+    StUsdsRateSetterLike stUsdsRateSetter;
 
     function setUp() public {
         vm.createSelectFork("mainnet");
@@ -47,9 +48,11 @@ contract StUsdsLineWipeSpellTest is DssTest {
         dss = MCD.loadFromChainlog(CHAINLOG);
         MCD.giveAdminAccess(dss);
         chief = dss.chainlog.getAddress("MCD_ADM");
-        stUsdsRateSetter = StUsdsRateSetterLike(dss.chainlog.getAddress("STUSDS_RATE_SETTER"));
-        stUsdsMom = dss.chainlog.getAddress("STUSDS_MOM");
         stUsds = StUsdsLike(dss.chainlog.getAddress("STUSDS"));
+        stUsdsMom = dss.chainlog.getAddress("STUSDS_MOM");
+        stUsdsRateSetter = StUsdsRateSetterLike(dss.chainlog.getAddress("STUSDS_RATE_SETTER"));
+      
+
         spell = new StUsdsHaltRateSetterSpell();
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
@@ -58,16 +61,20 @@ contract StUsdsLineWipeSpellTest is DssTest {
     }
 
     function testHaltRateOnSchedule() public {
-        uint256 pBad = stUsdsRateSetter.bad();
+        uint8 pBad = stUsdsRateSetter.bad();
         assertEq(pBad, 0, "before: stUsdsRateSetter bad already set");
 
         vm.expectEmit(true, true, true, false);
         emit HaltRateSetter(address(stUsdsRateSetter));
         spell.schedule();
 
-        uint256 bad = stUsdsRateSetter.bad();
+        uint8 bad = stUsdsRateSetter.bad();
         assertEq(bad, 1, "after: stUsdsRateSetter bad not set");
         assertTrue(spell.done(), "after: spell not done");
+    }
+
+    function testDescription() public view {
+        assertEq(spell.description(), "Emergency Spell | stUSDS | Halt Rate Setter");    
     }
 
     function testRevertHaltRateWhenItDoesNotHaveTheHat() public {
@@ -105,6 +112,50 @@ contract StUsdsLineWipeSpellTest is DssTest {
         address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
         vm.prank(pauseProxy);
         stUsdsRateSetter.deny(stUsdsMom);
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenStUsdsToRateSetterWardReverts() public {
+        // Mock stUsds.wards(stUsdsRateSetter) to revert                                                                                                                                            
+        vm.mockCallRevert(                                                                                                                                                          
+            address(spell.stUsds()),                                                                                                                                                
+            abi.encodeWithSelector(StUsdsLike.wards.selector, address(spell.stUsdsRateSetter())),                                                                                   
+            "revert"                                                                                                                                                                
+        );    
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenStUsdsToMomWardReverts() public {
+        // Mock stUsds.wards(stUsdsMom) to revert                                                                                                                                            
+        vm.mockCallRevert(                                                                                                                                                          
+            address(spell.stUsds()),                                                                                                                                                
+            abi.encodeWithSelector(StUsdsLike.wards.selector, address(spell.stUsdsMom())),                                                                                   
+            "revert"                                                                                                                                                                
+        );    
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenRateSetterToMomWardReverts() public {
+        // Mock stUsdsRateSetter.wards() to revert                                                                                                                                            
+        vm.mockCallRevert(                                                                                                                                                          
+            address(spell.stUsdsRateSetter()),                                                                                                                                                
+            abi.encodeWithSelector(StUsdsRateSetterLike.wards.selector, address(spell.stUsdsMom())),                                                                                   
+            "revert"                                                                                                                                                                
+        );    
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenRateSetterBadReverts() public {
+        // Mock stUsdsRateSetter.bad() to revert                                                                                                                                            
+        vm.mockCallRevert(                                                                                                                                                          
+            address(spell.stUsdsRateSetter()),                                                                                                                                                
+            abi.encodeWithSelector(StUsdsRateSetterLike.bad.selector),                                                                                   
+            "revert"                                                                                                                                                                
+        );    
 
         assertTrue(spell.done(), "spell not done");
     }

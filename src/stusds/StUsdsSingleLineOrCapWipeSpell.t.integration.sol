@@ -18,31 +18,32 @@ pragma solidity ^0.8.16;
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
 import {DssEmergencySpellLike} from "../DssEmergencySpell.sol";
-import {SingleLineOrCapWipeFactory, Flow} from "./SingleLineOrCapWipeSpell.sol";
+import {StUsdsSingleLineOrCapWipeSpell, StUsdsSingleLineOrCapWipeFactory, Flow} from "./StUsdsSingleLineOrCapWipeSpell.sol";
 
 interface StUsdsRateSetterLike {
     function deny(address usr) external;
-    function maxLine() external view returns (uint256);
     function maxCap() external view returns (uint256);
-}
-
-interface StUsdsLike {
-    function deny(address) external;
-    function line() external view returns (uint256);
-    function cap() external view returns (uint256);
+    function maxLine() external view returns (uint256);
     function wards(address) external view returns (uint256);
 }
 
-contract SingleLinePsmHaltSpellTest is DssTest {
+interface StUsdsLike {
+    function cap() external view returns (uint256);
+    function deny(address) external;
+    function line() external view returns (uint256);
+    function wards(address) external view returns (uint256);
+}
+
+contract SingleLineOrCapWipeSpellTest is DssTest {
     using stdStorage for StdStorage;
 
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
-    DssInstance dss;
     address chief;
     address stUsdsMom;
+    DssInstance dss;
     StUsdsLike stUsds;
     StUsdsRateSetterLike stUsdsRateSetter;
-    SingleLineOrCapWipeFactory factory;
+    StUsdsSingleLineOrCapWipeFactory factory;
 
     function setUp() public {
         vm.createSelectFork("mainnet");
@@ -50,23 +51,27 @@ contract SingleLinePsmHaltSpellTest is DssTest {
         dss = MCD.loadFromChainlog(CHAINLOG);
         MCD.giveAdminAccess(dss);
         chief = dss.chainlog.getAddress("MCD_ADM");
-        stUsdsMom = dss.chainlog.getAddress("STUSDS_MOM");
-        stUsds = StUsdsLike(dss.chainlog.getAddress("STUSDS"));
         stUsdsRateSetter = StUsdsRateSetterLike(dss.chainlog.getAddress("STUSDS_RATE_SETTER"));
-        factory = new SingleLineOrCapWipeFactory();
+        stUsds = StUsdsLike(dss.chainlog.getAddress("STUSDS"));
+        stUsdsMom = dss.chainlog.getAddress("STUSDS_MOM");
+        factory = new StUsdsSingleLineOrCapWipeFactory();
     }
 
-    function testPsmHaltOnScheduleLine() public {
-        _checkPsmHaltOnSchedule(Flow.LINE);
+    // WIPE 
+
+    function testStUsdsWipeOnScheduleLine() public {
+        _checkLineOrCapWipeOnSchedule(Flow.LINE);
     }
 
-    function testPsmHaltOnScheduleCap() public {
-        _checkPsmHaltOnSchedule(Flow.CAP);
+    function testStUsdsWipeOnScheduleCap() public {
+        _checkLineOrCapWipeOnSchedule(Flow.CAP);
     }
 
-    function testPsmHaltOnScheduleBoth() public {
-        _checkPsmHaltOnSchedule(Flow.BOTH);
+    function testStUsdsWipeOnScheduleBoth() public {
+        _checkLineOrCapWipeOnSchedule(Flow.BOTH);
     }
+
+    // MOM is not ward is StUsds
 
     function testDoneWhenStUsdsMomIsNotWardInStUsdsLine() public {
         _checkDoneWhenStUsdsMomIsNotWardInStUsds(Flow.LINE);
@@ -80,6 +85,8 @@ contract SingleLinePsmHaltSpellTest is DssTest {
         _checkDoneWhenStUsdsMomIsNotWardInStUsds(Flow.BOTH);
     }
 
+    // Rate Setter is not ward is StUsds
+
     function testDoneWhenStUsdsRateSetterIsNotWardInStUsdsLine() public {
         _checkDoneWhenStUsdsRateSetterIsNotWardInStUsds(Flow.LINE);
     }
@@ -92,7 +99,9 @@ contract SingleLinePsmHaltSpellTest is DssTest {
         _checkDoneWhenStUsdsRateSetterIsNotWardInStUsds(Flow.BOTH);
     }
 
-        function testDoneWhenStUsdsMomIsNotWardInStUsdsRateSetterLine() public {
+    // MOM is not ward is Rate Setter
+
+    function testDoneWhenStUsdsMomIsNotWardInStUsdsRateSetterLine() public {
         _checkDoneWhenStUsdsMomIsNotWardInStUsdsRateSetter(Flow.LINE);
     }
 
@@ -103,6 +112,8 @@ contract SingleLinePsmHaltSpellTest is DssTest {
     function testDoneWhenStUsdsMomIsNotWardInStUsdsRateSetterBoth() public {
         _checkDoneWhenStUsdsMomIsNotWardInStUsdsRateSetter(Flow.BOTH);
     }
+
+    // Revert with no Hat
 
     function testRevertSpellWhenItDoesNotHaveTheHatLine() public {
         _checkRevertSpellWhenItDoesNotHaveTheHat(Flow.LINE);
@@ -116,15 +127,78 @@ contract SingleLinePsmHaltSpellTest is DssTest {
         _checkRevertSpellWhenItDoesNotHaveTheHat(Flow.BOTH);
     }
 
-    function _checkPsmHaltOnSchedule(Flow flow) internal {
-        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(stUsdsRateSetter), stUsdsMom, address(stUsds), flow));
+    // Description
+
+    function testDescriptionCap() public {
+        _checkDescription(Flow.CAP);
+    }
+
+    function testDescriptionLine() public {
+        _checkDescription(Flow.LINE);
+    }
+
+    function testDescriptionBoth() public {
+        _checkDescription(Flow.BOTH);
+    }
+
+    // Revert wards
+
+    function testDoneWhenStUsdsToRateSetterWardReverts() public {
+        StUsdsSingleLineOrCapWipeSpell spell = StUsdsSingleLineOrCapWipeSpell(factory.deploy(Flow.LINE));
+        // Mock stUsds.wards(stUsdsRateSetter) to revert                                                                                                                                            
+        vm.mockCallRevert(                                                                                                                                                          
+            address(spell.stUsds()),                                                                                                                                                
+            abi.encodeWithSelector(StUsdsLike.wards.selector, address(spell.stUsdsRateSetter())),                                                                                   
+            "revert"                                                                                                                                                                
+        );    
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenStUsdsToMomWardReverts() public {
+        StUsdsSingleLineOrCapWipeSpell spell = StUsdsSingleLineOrCapWipeSpell(factory.deploy(Flow.LINE));
+        // Mock stUsds.wards(stUsdsMom) to revert                                                                                                                                            
+        vm.mockCallRevert(                                                                                                                                                          
+            address(spell.stUsds()),                                                                                                                                                
+            abi.encodeWithSelector(StUsdsLike.wards.selector, address(spell.stUsdsMom())),                                                                                   
+            "revert"                                                                                                                                                                
+        );    
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenRateSetterToMomWardReverts() public {
+        StUsdsSingleLineOrCapWipeSpell spell = StUsdsSingleLineOrCapWipeSpell(factory.deploy(Flow.LINE));
+        // Mock stUsdsRateSetter.wards() to revert                                                                                                                                            
+        vm.mockCallRevert(                                                                                                                                                          
+            address(spell.stUsdsRateSetter()),                                                                                                                                                
+            abi.encodeWithSelector(StUsdsRateSetterLike.wards.selector, address(spell.stUsdsMom())),                                                                                   
+            "revert"                                                                                                                                                                
+        );    
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    // HELPERS
+
+    function _checkDescription(Flow flow) internal {
+        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(flow));
+        stdstore.target(chief).sig("hat()").checked_write(address(spell));    
+        string memory description = spell.description();
+        if (flow == Flow.LINE) assertEq(description, "Emergency Spell | stUSDS | halt: LINE");
+        else if (flow == Flow.CAP) assertEq(description, "Emergency Spell | stUSDS | halt: CAP");
+        else assertEq(description, "Emergency Spell | stUSDS | halt: BOTH");
+    }
+
+    function _checkLineOrCapWipeOnSchedule(Flow flow) internal {
+        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(flow));
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
         vm.makePersistent(chief);
 
-        uint256 line = stUsds.line();
         uint256 cap = stUsds.cap();
-        uint256 maxLine = stUsdsRateSetter.maxLine();
+        uint256 line = stUsds.line();
         uint256 maxCap = stUsdsRateSetter.maxCap();
+        uint256 maxLine = stUsdsRateSetter.maxLine();
         
         if (flow == Flow.LINE || flow == Flow.BOTH) {
             assertNotEq(line, 0, "before: STUSDS line already zeroed");
@@ -147,10 +221,10 @@ contract SingleLinePsmHaltSpellTest is DssTest {
 
         spell.schedule();
 
-        uint256 postLine = stUsds.line();
         uint256 postCap = stUsds.cap();
-        uint256 postMaxLine = stUsdsRateSetter.maxLine();
+        uint256 postLine = stUsds.line();
         uint256 postMaxCap = stUsdsRateSetter.maxCap();
+        uint256 postMaxLine = stUsdsRateSetter.maxLine();
 
         if (flow == Flow.LINE || flow == Flow.BOTH) {
             assertEq(postLine, 0, "after: STUSDS line non zeroed unexpectedly");
@@ -164,7 +238,7 @@ contract SingleLinePsmHaltSpellTest is DssTest {
     }
 
     function _checkDoneWhenStUsdsMomIsNotWardInStUsds(Flow flow) internal {
-        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(stUsdsRateSetter), stUsdsMom, address(stUsds), flow));
+        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(flow));
 
         address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
         vm.prank(pauseProxy);
@@ -174,7 +248,7 @@ contract SingleLinePsmHaltSpellTest is DssTest {
     }
 
     function _checkDoneWhenStUsdsRateSetterIsNotWardInStUsds(Flow flow) internal {
-        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(stUsdsRateSetter), stUsdsMom, address(stUsds), flow));
+        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(flow));
 
         address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
         vm.prank(pauseProxy);
@@ -184,7 +258,7 @@ contract SingleLinePsmHaltSpellTest is DssTest {
     }
 
     function _checkDoneWhenStUsdsMomIsNotWardInStUsdsRateSetter(Flow flow) internal {
-        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(stUsdsRateSetter), stUsdsMom, address(stUsds), flow));
+        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(flow));
 
         address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
         vm.prank(pauseProxy);
@@ -194,12 +268,12 @@ contract SingleLinePsmHaltSpellTest is DssTest {
     }
 
     function _checkRevertSpellWhenItDoesNotHaveTheHat(Flow flow) internal {
-        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(stUsdsRateSetter), stUsdsMom, address(stUsds), flow));
+        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(flow));
 
-        uint256 line = stUsds.line();
         uint256 cap = stUsds.cap();
-        uint256 maxLine = stUsdsRateSetter.maxLine();
+        uint256 line = stUsds.line();
         uint256 maxCap = stUsdsRateSetter.maxCap();
+        uint256 maxLine = stUsdsRateSetter.maxLine();
 
         if (flow == Flow.LINE || flow == Flow.BOTH) {
             assertNotEq(line, 0, "before: STUSDS line already zeroed");
@@ -214,10 +288,10 @@ contract SingleLinePsmHaltSpellTest is DssTest {
         vm.expectRevert();
         spell.schedule();
 
-        uint256 postLine = stUsds.line();
         uint256 postCap = stUsds.cap();
-        uint256 postMaxLine = stUsdsRateSetter.maxLine();
+        uint256 postLine = stUsds.line();
         uint256 postMaxCap = stUsdsRateSetter.maxCap();
+        uint256 postMaxLine = stUsdsRateSetter.maxLine();
 
         if (flow == Flow.LINE || flow == Flow.BOTH) {
             assertEq(postLine, line, "after: STUSDS line zeroed unexpectedly");
@@ -230,6 +304,6 @@ contract SingleLinePsmHaltSpellTest is DssTest {
         assertFalse(spell.done(), "after: spell done unexpectedly");
     }
 
-    event ZeroLine();
     event ZeroCap();
+    event ZeroLine();
 }
