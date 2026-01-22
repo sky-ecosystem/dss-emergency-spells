@@ -21,8 +21,7 @@ Single Contract to halt the StUsdsRateSetter, by calling the `bad()` method.
 
 ## ToDo
 
-- [ ] agree on `try/catch` in testing
-- [ ] the return "" is untested on the LineOrCap wipe
-- [ ] there are some untested descriptions all over the repo. 
-- [ ]      // todo: decided that done would be using this new design, so it's not just "done" but more a "can this be run", so we need to comply?
-     // todo: the name is bad, canBeExected? 
+- [ ] agree on `try/catch` and `done()`;
+- [ ] the return "" is untested on the LineOrCap wipe spell;
+- [ ] there are some untested descriptions and catches all over the repo, decide if we want to address them here; 
+- [ ] decide if `done` name should be changed, since it does not perform a real "done" check.
