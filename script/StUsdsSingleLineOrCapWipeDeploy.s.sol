@@ -20,10 +20,6 @@ import {stdJson} from "forge-std/StdJson.sol";
 import {ScriptTools} from "dss-test/ScriptTools.sol";
 import {StUsdsSingleLineOrCapWipeFactory, Flow} from "src/stusds/StUsdsSingleLineOrCapWipeSpell.sol";
 
-interface LitePsmLike {
-    function ilk() external view returns (bytes32);
-}
-
 contract StUsdsSingleLineOrCapWipeDeployScript is Script {
     using stdJson for string;
     using ScriptTools for string;

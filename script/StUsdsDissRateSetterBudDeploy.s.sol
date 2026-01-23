@@ -20,8 +20,7 @@ import {stdJson} from "forge-std/StdJson.sol";
 import {ScriptTools} from "dss-test/ScriptTools.sol";
 import {StUsdsDissRateSetterBudFactory} from "src/stusds/StUsdsDissRateSetterBudSpell.sol";
 
-
-contract SingleOsmStopDeployScript is Script {
+contract StUsdsDissRateSetterBudDeployScript is Script {
     using stdJson for string;
     using ScriptTools for string;
 
