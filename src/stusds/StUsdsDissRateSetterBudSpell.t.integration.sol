@@ -18,7 +18,7 @@ pragma solidity ^0.8.16;
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
 import {DssEmergencySpellLike} from "../DssEmergencySpell.sol";
-import {StUsdsDissRateSetterBudSpell,StUsdsDissRateSetterBudFactory} from "./StUsdsDissRateSetterBudSpell.sol";
+import {StUsdsDissRateSetterBudSpell, StUsdsDissRateSetterBudFactory} from "./StUsdsDissRateSetterBudSpell.sol";
 
 interface StUsdsRateSetterLike {
     function buds(address) external view returns (uint256);
@@ -54,7 +54,7 @@ contract StUsdsDissRateSetterBudSpellTest is DssTest {
         stUsdsMom = dss.chainlog.getAddress("STUSDS_MOM");
         stUsdsRateSetter = StUsdsRateSetterLike(dss.chainlog.getAddress("STUSDS_RATE_SETTER"));
         // The current single bud set
-        bud = 0xBB865F94B8A92E57f79fCc89Dfd4dcf0D3fDEA16; 
+        bud = 0xBB865F94B8A92E57f79fCc89Dfd4dcf0D3fDEA16;
         factory = new StUsdsDissRateSetterBudFactory();
 
         spell = DssEmergencySpellLike(factory.deploy(bud));
@@ -69,7 +69,7 @@ contract StUsdsDissRateSetterBudSpellTest is DssTest {
         assertEq(pBud, 1, "before: stUsdsRateSetter bud already dissed");
 
         vm.expectEmit(true, true, true, false);
-        emit DissRateSetterBud(address(stUsdsRateSetter),bud);
+        emit DissRateSetterBud(address(stUsdsRateSetter), bud);
         spell.schedule();
 
         uint256 aBud = stUsdsRateSetter.buds(bud);
@@ -78,7 +78,7 @@ contract StUsdsDissRateSetterBudSpellTest is DssTest {
     }
 
     function testDescription() public view {
-        assertEq(spell.description(), "Emergency Spell | stUSDS | Diss Rate Setter Bud");    
+        assertEq(spell.description(), "Emergency Spell | stUSDS | Diss Rate Setter Bud");
     }
 
     function testRevertDissRateSetterWhenItDoesNotHaveTheHat() public {
@@ -125,36 +125,36 @@ contract StUsdsDissRateSetterBudSpellTest is DssTest {
 
     function testDoneWhenStUsdsToRateSetterWardReverts() public {
         StUsdsDissRateSetterBudSpell spellRevert = StUsdsDissRateSetterBudSpell(factory.deploy(bud));
-        // Mock stUsds.wards(stUsdsRateSetter) to revert                                                                                                                                            
-        vm.mockCallRevert(                                                                                                                                                          
-            address(spellRevert.stUsds()),                                                                                                                                                
-            abi.encodeWithSelector(StUsdsLike.wards.selector, address(spellRevert.stUsdsRateSetter())),                                                                                   
-            "revert"                                                                                                                                                                
-        );    
+        // Mock stUsds.wards(stUsdsRateSetter) to revert
+        vm.mockCallRevert(
+            address(spellRevert.stUsds()),
+            abi.encodeWithSelector(StUsdsLike.wards.selector, address(spellRevert.stUsdsRateSetter())),
+            "revert"
+        );
 
         assertTrue(spellRevert.done(), "spell not done");
     }
 
     function testDoneWhenStUsdsToMomWardReverts() public {
         StUsdsDissRateSetterBudSpell spellRevert = StUsdsDissRateSetterBudSpell(factory.deploy(bud));
-        // Mock stUsds.wards(stUsdsMom) to revert                                                                                                                                            
-        vm.mockCallRevert(                                                                                                                                                          
-            address(spellRevert.stUsds()),                                                                                                                                                
-            abi.encodeWithSelector(StUsdsLike.wards.selector, address(spellRevert.stUsdsMom())),                                                                                   
-            "revert"                                                                                                                                                                
-        );    
+        // Mock stUsds.wards(stUsdsMom) to revert
+        vm.mockCallRevert(
+            address(spellRevert.stUsds()),
+            abi.encodeWithSelector(StUsdsLike.wards.selector, address(spellRevert.stUsdsMom())),
+            "revert"
+        );
 
         assertTrue(spellRevert.done(), "spell not done");
     }
 
     function testDoneWhenRateSetterToMomWardReverts() public {
         StUsdsDissRateSetterBudSpell spellRevert = StUsdsDissRateSetterBudSpell(factory.deploy(bud));
-        // Mock stUsdsRateSetter.wards() to revert                                                                                                                                            
-        vm.mockCallRevert(                                                                                                                                                          
-            address(spellRevert.stUsdsRateSetter()),                                                                                                                                                
-            abi.encodeWithSelector(StUsdsRateSetterLike.wards.selector, address(spellRevert.stUsdsMom())),                                                                                   
-            "revert"                                                                                                                                                                
-        );    
+        // Mock stUsdsRateSetter.wards() to revert
+        vm.mockCallRevert(
+            address(spellRevert.stUsdsRateSetter()),
+            abi.encodeWithSelector(StUsdsRateSetterLike.wards.selector, address(spellRevert.stUsdsMom())),
+            "revert"
+        );
 
         assertTrue(spellRevert.done(), "spell not done");
     }
@@ -163,15 +163,15 @@ contract StUsdsDissRateSetterBudSpellTest is DssTest {
 
     function testDoneWhenRateSetterBudsReverts() public {
         StUsdsDissRateSetterBudSpell spellRevert = StUsdsDissRateSetterBudSpell(factory.deploy(bud));
-        // Mock stUsdsRateSetter.wards() to revert                                                                                                                                            
-        vm.mockCallRevert(                                                                                                                                                          
-            address(spellRevert.stUsdsRateSetter()),                                                                                                                                                
-            abi.encodeWithSelector(StUsdsRateSetterLike.buds.selector, address(bud)),                                                                                   
-            "revert"                                                                                                                                                                
-        );    
+        // Mock stUsdsRateSetter.wards() to revert
+        vm.mockCallRevert(
+            address(spellRevert.stUsdsRateSetter()),
+            abi.encodeWithSelector(StUsdsRateSetterLike.buds.selector, address(bud)),
+            "revert"
+        );
 
         assertTrue(spellRevert.done(), "spell not done");
     }
-    
+
     event DissRateSetterBud(address indexed rateSetter, address bud);
 }

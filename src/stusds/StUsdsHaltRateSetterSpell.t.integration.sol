@@ -51,7 +51,6 @@ contract StUsdsHaltRateSetterSpellTest is DssTest {
         stUsds = StUsdsLike(dss.chainlog.getAddress("STUSDS"));
         stUsdsMom = dss.chainlog.getAddress("STUSDS_MOM");
         stUsdsRateSetter = StUsdsRateSetterLike(dss.chainlog.getAddress("STUSDS_RATE_SETTER"));
-      
 
         spell = new StUsdsHaltRateSetterSpell();
 
@@ -74,7 +73,7 @@ contract StUsdsHaltRateSetterSpellTest is DssTest {
     }
 
     function testDescription() public view {
-        assertEq(spell.description(), "Emergency Spell | stUSDS | Halt Rate Setter");    
+        assertEq(spell.description(), "Emergency Spell | stUSDS | Halt Rate Setter");
     }
 
     function testRevertHaltRateWhenItDoesNotHaveTheHat() public {
@@ -117,48 +116,46 @@ contract StUsdsHaltRateSetterSpellTest is DssTest {
     }
 
     function testDoneWhenStUsdsToRateSetterWardReverts() public {
-        // Mock stUsds.wards(stUsdsRateSetter) to revert                                                                                                                                            
-        vm.mockCallRevert(                                                                                                                                                          
-            address(spell.stUsds()),                                                                                                                                                
-            abi.encodeWithSelector(StUsdsLike.wards.selector, address(spell.stUsdsRateSetter())),                                                                                   
-            "revert"                                                                                                                                                                
-        );    
+        // Mock stUsds.wards(stUsdsRateSetter) to revert
+        vm.mockCallRevert(
+            address(spell.stUsds()),
+            abi.encodeWithSelector(StUsdsLike.wards.selector, address(spell.stUsdsRateSetter())),
+            "revert"
+        );
 
         assertTrue(spell.done(), "spell not done");
     }
 
     function testDoneWhenStUsdsToMomWardReverts() public {
-        // Mock stUsds.wards(stUsdsMom) to revert                                                                                                                                            
-        vm.mockCallRevert(                                                                                                                                                          
-            address(spell.stUsds()),                                                                                                                                                
-            abi.encodeWithSelector(StUsdsLike.wards.selector, address(spell.stUsdsMom())),                                                                                   
-            "revert"                                                                                                                                                                
-        );    
+        // Mock stUsds.wards(stUsdsMom) to revert
+        vm.mockCallRevert(
+            address(spell.stUsds()),
+            abi.encodeWithSelector(StUsdsLike.wards.selector, address(spell.stUsdsMom())),
+            "revert"
+        );
 
         assertTrue(spell.done(), "spell not done");
     }
 
     function testDoneWhenRateSetterToMomWardReverts() public {
-        // Mock stUsdsRateSetter.wards() to revert                                                                                                                                            
-        vm.mockCallRevert(                                                                                                                                                          
-            address(spell.stUsdsRateSetter()),                                                                                                                                                
-            abi.encodeWithSelector(StUsdsRateSetterLike.wards.selector, address(spell.stUsdsMom())),                                                                                   
-            "revert"                                                                                                                                                                
-        );    
+        // Mock stUsdsRateSetter.wards() to revert
+        vm.mockCallRevert(
+            address(spell.stUsdsRateSetter()),
+            abi.encodeWithSelector(StUsdsRateSetterLike.wards.selector, address(spell.stUsdsMom())),
+            "revert"
+        );
 
         assertTrue(spell.done(), "spell not done");
     }
 
     function testDoneWhenRateSetterBadReverts() public {
-        // Mock stUsdsRateSetter.bad() to revert                                                                                                                                            
-        vm.mockCallRevert(                                                                                                                                                          
-            address(spell.stUsdsRateSetter()),                                                                                                                                                
-            abi.encodeWithSelector(StUsdsRateSetterLike.bad.selector),                                                                                   
-            "revert"                                                                                                                                                                
-        );    
+        // Mock stUsdsRateSetter.bad() to revert
+        vm.mockCallRevert(
+            address(spell.stUsdsRateSetter()), abi.encodeWithSelector(StUsdsRateSetterLike.bad.selector), "revert"
+        );
 
         assertTrue(spell.done(), "spell not done");
     }
-    
+
     event HaltRateSetter(address indexed rateSetter);
 }

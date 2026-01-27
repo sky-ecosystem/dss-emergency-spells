@@ -39,7 +39,7 @@ contract StUsdsSingleLineOrCapWipeDeployScript is Script {
         ScriptTools.exportContract(NAME, "STUSDS_LINE", fab.deploy(Flow.LINE));
         ScriptTools.exportContract(NAME, "STUSDS_BUY", fab.deploy(Flow.CAP));
         ScriptTools.exportContract(NAME, "STUSDS_BOTH", fab.deploy(Flow.BOTH));
-    
+
         vm.stopBroadcast();
     }
 }

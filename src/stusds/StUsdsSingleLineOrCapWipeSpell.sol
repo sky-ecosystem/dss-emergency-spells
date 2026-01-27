@@ -48,7 +48,8 @@ interface StUsdsLike {
 /// @custom:bounties []
 contract StUsdsSingleLineOrCapWipeSpell is DssEmergencySpell {
     StUsdsMomLike public immutable stUsdsMom = StUsdsMomLike(_log.getAddress("STUSDS_MOM"));
-    StUsdsRateSetterLike public immutable stUsdsRateSetter = StUsdsRateSetterLike(_log.getAddress("STUSDS_RATE_SETTER"));
+    StUsdsRateSetterLike public immutable stUsdsRateSetter =
+        StUsdsRateSetterLike(_log.getAddress("STUSDS_RATE_SETTER"));
     StUsdsLike public immutable stUsds = StUsdsLike(_log.getAddress("STUSDS"));
     Flow public immutable flow;
 
@@ -77,11 +78,11 @@ contract StUsdsSingleLineOrCapWipeSpell is DssEmergencySpell {
         if (flow != Flow.CAP) {
             stUsdsMom.zeroLine(address(stUsdsRateSetter));
             emit ZeroLine();
-        } 
+        }
         if (flow != Flow.LINE) {
             stUsdsMom.zeroCap(address(stUsdsRateSetter));
             emit ZeroCap();
-        } 
+        }
     }
 
     /**
@@ -122,7 +123,7 @@ contract StUsdsSingleLineOrCapWipeSpell is DssEmergencySpell {
             // If the call failed, it means the contract is most likely not a RateSetter instance.
             return true;
         }
-        
+
         if (flow == Flow.LINE) {
             return stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0;
         }
@@ -130,7 +131,8 @@ contract StUsdsSingleLineOrCapWipeSpell is DssEmergencySpell {
             return stUsds.cap() == 0 && stUsdsRateSetter.maxCap() == 0;
         }
 
-        return stUsds.cap() == 0 && stUsdsRateSetter.maxCap() == 0 && stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0;
+        return
+            stUsds.cap() == 0 && stUsdsRateSetter.maxCap() == 0 && stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0;
     }
 }
 

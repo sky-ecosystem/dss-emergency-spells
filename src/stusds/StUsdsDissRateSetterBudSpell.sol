@@ -35,7 +35,8 @@ contract StUsdsDissRateSetterBudSpell is DssEmergencySpell {
 
     StUsdsLike public immutable stUsds = StUsdsLike(_log.getAddress("STUSDS"));
     StUsdsMomLike public immutable stUsdsMom = StUsdsMomLike(_log.getAddress("STUSDS_MOM"));
-    StUsdsRateSetterLike public immutable stUsdsRateSetter = StUsdsRateSetterLike(_log.getAddress("STUSDS_RATE_SETTER"));
+    StUsdsRateSetterLike public immutable stUsdsRateSetter =
+        StUsdsRateSetterLike(_log.getAddress("STUSDS_RATE_SETTER"));
 
     address public immutable bud;
 
@@ -60,7 +61,7 @@ contract StUsdsDissRateSetterBudSpell is DssEmergencySpell {
      *      In such cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
-         try stUsds.wards(address(stUsdsRateSetter)) returns (uint256 ward) {
+        try stUsds.wards(address(stUsdsRateSetter)) returns (uint256 ward) {
             // Ignore StUsds instances that have not relied on StUsdsRateSetter.
             if (ward == 0) {
                 return true;

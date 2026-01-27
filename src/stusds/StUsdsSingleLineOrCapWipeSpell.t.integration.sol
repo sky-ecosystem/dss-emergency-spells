@@ -18,7 +18,11 @@ pragma solidity ^0.8.16;
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
 import {DssEmergencySpellLike} from "../DssEmergencySpell.sol";
-import {StUsdsSingleLineOrCapWipeSpell, StUsdsSingleLineOrCapWipeFactory, Flow} from "./StUsdsSingleLineOrCapWipeSpell.sol";
+import {
+    StUsdsSingleLineOrCapWipeSpell,
+    StUsdsSingleLineOrCapWipeFactory,
+    Flow
+} from "./StUsdsSingleLineOrCapWipeSpell.sol";
 
 interface StUsdsRateSetterLike {
     function deny(address usr) external;
@@ -57,7 +61,7 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         factory = new StUsdsSingleLineOrCapWipeFactory();
     }
 
-    // WIPE 
+    // WIPE
 
     function testStUsdsWipeOnScheduleLine() public {
         _checkLineOrCapWipeOnSchedule(Flow.LINE);
@@ -145,36 +149,36 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
 
     function testDoneWhenStUsdsToRateSetterWardReverts() public {
         StUsdsSingleLineOrCapWipeSpell spell = StUsdsSingleLineOrCapWipeSpell(factory.deploy(Flow.LINE));
-        // Mock stUsds.wards(stUsdsRateSetter) to revert                                                                                                                                            
-        vm.mockCallRevert(                                                                                                                                                          
-            address(spell.stUsds()),                                                                                                                                                
-            abi.encodeWithSelector(StUsdsLike.wards.selector, address(spell.stUsdsRateSetter())),                                                                                   
-            "revert"                                                                                                                                                                
-        );    
+        // Mock stUsds.wards(stUsdsRateSetter) to revert
+        vm.mockCallRevert(
+            address(spell.stUsds()),
+            abi.encodeWithSelector(StUsdsLike.wards.selector, address(spell.stUsdsRateSetter())),
+            "revert"
+        );
 
         assertTrue(spell.done(), "spell not done");
     }
 
     function testDoneWhenStUsdsToMomWardReverts() public {
         StUsdsSingleLineOrCapWipeSpell spell = StUsdsSingleLineOrCapWipeSpell(factory.deploy(Flow.LINE));
-        // Mock stUsds.wards(stUsdsMom) to revert                                                                                                                                            
-        vm.mockCallRevert(                                                                                                                                                          
-            address(spell.stUsds()),                                                                                                                                                
-            abi.encodeWithSelector(StUsdsLike.wards.selector, address(spell.stUsdsMom())),                                                                                   
-            "revert"                                                                                                                                                                
-        );    
+        // Mock stUsds.wards(stUsdsMom) to revert
+        vm.mockCallRevert(
+            address(spell.stUsds()),
+            abi.encodeWithSelector(StUsdsLike.wards.selector, address(spell.stUsdsMom())),
+            "revert"
+        );
 
         assertTrue(spell.done(), "spell not done");
     }
 
     function testDoneWhenRateSetterToMomWardReverts() public {
         StUsdsSingleLineOrCapWipeSpell spell = StUsdsSingleLineOrCapWipeSpell(factory.deploy(Flow.LINE));
-        // Mock stUsdsRateSetter.wards() to revert                                                                                                                                            
-        vm.mockCallRevert(                                                                                                                                                          
-            address(spell.stUsdsRateSetter()),                                                                                                                                                
-            abi.encodeWithSelector(StUsdsRateSetterLike.wards.selector, address(spell.stUsdsMom())),                                                                                   
-            "revert"                                                                                                                                                                
-        );    
+        // Mock stUsdsRateSetter.wards() to revert
+        vm.mockCallRevert(
+            address(spell.stUsdsRateSetter()),
+            abi.encodeWithSelector(StUsdsRateSetterLike.wards.selector, address(spell.stUsdsMom())),
+            "revert"
+        );
 
         assertTrue(spell.done(), "spell not done");
     }
@@ -183,7 +187,7 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
 
     function _checkDescription(Flow flow) internal {
         DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(flow));
-        stdstore.target(chief).sig("hat()").checked_write(address(spell));    
+        stdstore.target(chief).sig("hat()").checked_write(address(spell));
         string memory description = spell.description();
         if (flow == Flow.LINE) assertEq(description, "Emergency Spell | stUSDS | halt: LINE");
         else if (flow == Flow.CAP) assertEq(description, "Emergency Spell | stUSDS | halt: CAP");
@@ -199,7 +203,7 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         uint256 line = stUsds.line();
         uint256 maxCap = stUsdsRateSetter.maxCap();
         uint256 maxLine = stUsdsRateSetter.maxLine();
-        
+
         if (flow == Flow.LINE || flow == Flow.BOTH) {
             assertNotEq(line, 0, "before: STUSDS line already zeroed");
             assertNotEq(maxLine, 0, "before: STUSDS_RATE_SETTER maxLine already zeroed");
