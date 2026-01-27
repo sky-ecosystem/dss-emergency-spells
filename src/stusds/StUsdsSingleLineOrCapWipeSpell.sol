@@ -75,11 +75,11 @@ contract StUsdsSingleLineOrCapWipeSpell is DssEmergencySpell {
      * @notice Set to zero the `cap`; or set to zero the `line`; or both; on stUSDS and stUSDSRateSetter.
      */
     function _emergencyActions() internal override {
-        if (param != Param.CAP) {
+        if (param == Param.LINE || param == Param.BOTH) {
             stUsdsMom.zeroLine(address(stUsdsRateSetter));
             emit ZeroLine();
         }
-        if (param != Param.LINE) {
+        if (param == Param.CAP || param == Param.BOTH) {
             stUsdsMom.zeroCap(address(stUsdsRateSetter));
             emit ZeroCap();
         }
