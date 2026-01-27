@@ -28,20 +28,19 @@ contract StUsdsDissRateSetterBudDeployScript is Script {
     string config;
 
     StUsdsDissRateSetterBudFactory fab;
-    string[] budStrs;
+    address[] buds;
 
     function run() external {
         config = ScriptTools.loadConfig();
 
         fab = StUsdsDissRateSetterBudFactory(config.readAddress(".factory", "FOUNDRY_FACTORY"));
-        budStrs = config.readStringArray(".buds", "FOUNDRY_BUDS");
+        buds = config.readAddressArray(".buds", "FOUNDRY_BUDS");
 
         vm.startBroadcast();
-
-        for (uint256 i = 0; i < budStrs.length; i++) {
-            address bud = vm.parseAddress(budStrs[i]);
+        for (uint256 i = 0; i < buds.length; i++) {
+            address bud = buds[i];
             address spell = fab.deploy(bud);
-            ScriptTools.exportContract(NAME, budStrs[i], spell);
+            ScriptTools.exportContract(NAME, vm.toString(bud), spell);
         }
         vm.stopBroadcast();
     }
