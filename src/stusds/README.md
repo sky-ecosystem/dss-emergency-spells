@@ -17,7 +17,7 @@ Contract that can be used to deploy 3 different spells:
 
 ### HaltRateSetterBudFactory
 
-Single Contract to halt the StUsdsRateSetter, by calling the `bad()` method.
+Single Contract to halt the StUsdsRateSetter, by calling the `file("bad", 1)` method.
 
 ## ToDo
 

@@ -26,6 +26,8 @@ jobs:
       - name: Show Forge version
         run: |
           forge --version
+          forge build --sizes
+        id: build
 
       - name: Run Forge tests
         run: |
