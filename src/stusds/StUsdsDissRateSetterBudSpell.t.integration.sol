@@ -53,8 +53,11 @@ contract StUsdsDissRateSetterBudSpellTest is DssTest {
         stUsds = StUsdsLike(dss.chainlog.getAddress("STUSDS"));
         stUsdsMom = dss.chainlog.getAddress("STUSDS_MOM");
         stUsdsRateSetter = StUsdsRateSetterLike(dss.chainlog.getAddress("STUSDS_RATE_SETTER"));
-        // The current single bud set
-        bud = 0xBB865F94B8A92E57f79fCc89Dfd4dcf0D3fDEA16;
+        
+        bud = makeAddr("bud");
+        // Add bud to rate setter
+        stdstore.target(address(stUsdsRateSetter)).sig("buds(address)").with_key(bud).checked_write(uint256(1));
+
         factory = new StUsdsDissRateSetterBudFactory();
 
         spell = DssEmergencySpellLike(factory.deploy(bud));
