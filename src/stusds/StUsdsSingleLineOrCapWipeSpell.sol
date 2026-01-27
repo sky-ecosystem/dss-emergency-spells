@@ -17,7 +17,7 @@ pragma solidity ^0.8.16;
 
 import {DssEmergencySpell} from "../DssEmergencySpell.sol";
 
-enum Flow {
+enum Param {
     CAP, // Set to Zero only the cap
     LINE, // Set to Zero only the line
     BOTH // Set to Zero both cap and line
@@ -51,35 +51,35 @@ contract StUsdsSingleLineOrCapWipeSpell is DssEmergencySpell {
     StUsdsRateSetterLike public immutable stUsdsRateSetter =
         StUsdsRateSetterLike(_log.getAddress("STUSDS_RATE_SETTER"));
     StUsdsLike public immutable stUsds = StUsdsLike(_log.getAddress("STUSDS"));
-    Flow public immutable flow;
+    Param public immutable param;
 
     event ZeroCap();
     event ZeroLine();
 
-    constructor(Flow _flow) {
-        flow = _flow;
+    constructor(Param _param) {
+        param = _param;
     }
 
-    function _flowToString(Flow _flow) internal pure returns (string memory) {
-        if (_flow == Flow.CAP) return "CAP";
-        if (_flow == Flow.LINE) return "LINE";
-        if (_flow == Flow.BOTH) return "BOTH";
+    function _paramToString(Param _param) internal pure returns (string memory) {
+        if (_param == Param.CAP) return "CAP";
+        if (_param == Param.LINE) return "LINE";
+        if (_param == Param.BOTH) return "BOTH";
         return "";
     }
 
     function description() external view returns (string memory) {
-        return string(abi.encodePacked("Emergency Spell | stUSDS | halt: ", _flowToString(flow)));
+        return string(abi.encodePacked("Emergency Spell | stUSDS | halt: ", _paramToString(param)));
     }
 
     /**
      * @notice Set to zero the `cap`; or set to zero the `line`; or both; on stUSDS and stUSDSRateSetter.
      */
     function _emergencyActions() internal override {
-        if (flow != Flow.CAP) {
+        if (param != Param.CAP) {
             stUsdsMom.zeroLine(address(stUsdsRateSetter));
             emit ZeroLine();
         }
-        if (flow != Flow.LINE) {
+        if (param != Param.LINE) {
             stUsdsMom.zeroCap(address(stUsdsRateSetter));
             emit ZeroCap();
         }
@@ -124,10 +124,10 @@ contract StUsdsSingleLineOrCapWipeSpell is DssEmergencySpell {
             return true;
         }
 
-        if (flow == Flow.LINE) {
+        if (param == Param.LINE) {
             return stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0;
         }
-        if (flow == Flow.CAP) {
+        if (param == Param.CAP) {
             return stUsds.cap() == 0 && stUsdsRateSetter.maxCap() == 0;
         }
 
@@ -137,10 +137,10 @@ contract StUsdsSingleLineOrCapWipeSpell is DssEmergencySpell {
 }
 
 contract StUsdsSingleLineOrCapWipeFactory {
-    event Deploy(Flow indexed flow, address spell);
+    event Deploy(Param indexed param, address spell);
 
-    function deploy(Flow flow) external returns (address spell) {
-        spell = address(new StUsdsSingleLineOrCapWipeSpell(flow));
-        emit Deploy(flow, spell);
+    function deploy(Param param) external returns (address spell) {
+        spell = address(new StUsdsSingleLineOrCapWipeSpell(param));
+        emit Deploy(param, spell);
     }
 }
