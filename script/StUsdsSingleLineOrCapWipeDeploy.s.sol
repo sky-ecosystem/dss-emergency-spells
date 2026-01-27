@@ -18,7 +18,7 @@ pragma solidity ^0.8.16;
 import {Script} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {ScriptTools} from "dss-test/ScriptTools.sol";
-import {StUsdsSingleLineOrCapWipeFactory, Flow} from "src/stusds/StUsdsSingleLineOrCapWipeSpell.sol";
+import {StUsdsSingleLineOrCapWipeFactory, Param} from "src/stusds/StUsdsSingleLineOrCapWipeSpell.sol";
 
 contract StUsdsSingleLineOrCapWipeDeployScript is Script {
     using stdJson for string;
@@ -36,9 +36,9 @@ contract StUsdsSingleLineOrCapWipeDeployScript is Script {
 
         vm.startBroadcast();
 
-        ScriptTools.exportContract(NAME, "STUSDS_LINE", fab.deploy(Flow.LINE));
-        ScriptTools.exportContract(NAME, "STUSDS_BUY", fab.deploy(Flow.CAP));
-        ScriptTools.exportContract(NAME, "STUSDS_BOTH", fab.deploy(Flow.BOTH));
+        ScriptTools.exportContract(NAME, "STUSDS_LINE", fab.deploy(Param.LINE));
+        ScriptTools.exportContract(NAME, "STUSDS_CAP", fab.deploy(Param.CAP));
+        ScriptTools.exportContract(NAME, "STUSDS_BOTH", fab.deploy(Param.BOTH));
 
         vm.stopBroadcast();
     }

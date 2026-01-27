@@ -24,7 +24,7 @@ contract StUsdsDissRateSetterBudDeployScript is Script {
     using stdJson for string;
     using ScriptTools for string;
 
-    string constant NAME = "stusds-diss-rate-bud-setter-deploy";
+    string constant NAME = "stusds-diss-rate-setter-bud-deploy";
     string config;
 
     StUsdsDissRateSetterBudFactory fab;
