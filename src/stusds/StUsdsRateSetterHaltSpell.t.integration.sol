@@ -38,6 +38,8 @@ contract StUsdsRateSetterHaltSpellTest is DssTest {
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
     address chief;
     address stUsdsMom;
+    address pauseProxy;
+
     DssInstance dss;
     StUsdsRateSetterHaltSpell spell;
     StUsdsLike stUsds;
@@ -52,14 +54,13 @@ contract StUsdsRateSetterHaltSpellTest is DssTest {
         stUsds = StUsdsLike(dss.chainlog.getAddress("STUSDS"));
         stUsdsMom = dss.chainlog.getAddress("STUSDS_MOM");
         stUsdsRateSetter = StUsdsRateSetterLike(dss.chainlog.getAddress("STUSDS_RATE_SETTER"));
+        pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
 
         spell = new StUsdsRateSetterHaltSpell();
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
 
-        address ward = makeAddr("ward");
-        stdstore.target(address(stUsdsRateSetter)).sig("wards(address)").with_key(ward).checked_write(uint256(1));
-        vm.prank(ward);
+        vm.prank(pauseProxy);
         stUsdsRateSetter.file("bad", 0);
 
         vm.makePersistent(chief);
@@ -85,20 +86,19 @@ contract StUsdsRateSetterHaltSpellTest is DssTest {
     function testRevertHaltRateWhenItDoesNotHaveTheHat() public {
         stdstore.target(chief).sig("hat()").checked_write(address(0));
 
-        uint256 pBad = stUsdsRateSetter.bad();
+        uint8 pBad = stUsdsRateSetter.bad();
         assertEq(pBad, 0, "before: stUsdsRateSetter bad already set");
         assertFalse(spell.done(), "before: spell already done");
 
         vm.expectRevert();
         spell.schedule();
 
-        uint256 bad = stUsdsRateSetter.bad();
+        uint8 bad = stUsdsRateSetter.bad();
         assertEq(bad, 0, "after: stUsdsRateSetter bad set unexpectedly");
         assertFalse(spell.done(), "after: spell done unexpectedly");
     }
 
     function testDoneWhenStUsdsMomIsNotWardInStUsds() public {
-        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
         vm.prank(pauseProxy);
         stUsds.deny(stUsdsMom);
 
@@ -106,7 +106,6 @@ contract StUsdsRateSetterHaltSpellTest is DssTest {
     }
 
     function testDoneWhenStUsdsRateSetterIsNotWardInStUsds() public {
-        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
         vm.prank(pauseProxy);
         stUsds.deny(address(stUsdsRateSetter));
 
@@ -114,7 +113,6 @@ contract StUsdsRateSetterHaltSpellTest is DssTest {
     }
 
     function testDoneWhenStUsdsMomIsNotWardInStUsdsRateSetter() public {
-        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
         vm.prank(pauseProxy);
         stUsdsRateSetter.deny(stUsdsMom);
 
