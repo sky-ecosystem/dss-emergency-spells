@@ -18,21 +18,21 @@ pragma solidity ^0.8.16;
 import {Script} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {ScriptTools} from "dss-test/ScriptTools.sol";
-import {StUsdsSingleLineOrCapWipeFactory, Param} from "src/stusds/StUsdsSingleLineOrCapWipeSpell.sol";
+import {StUsdsWipeParamFactory, Param} from "src/stusds/StUsdsWipeParamSpell.sol";
 
-contract StUsdsSingleLineOrCapWipeDeployScript is Script {
+contract StUsdsWipeParamDeployScript is Script {
     using stdJson for string;
     using ScriptTools for string;
 
-    string constant NAME = "single-stusds-line-or-cap-wipe-deploy";
+    string constant NAME = "stusds-wipe-param-deploy";
     string config;
 
-    StUsdsSingleLineOrCapWipeFactory fab;
+    StUsdsWipeParamFactory fab;
 
     function run() external {
         config = ScriptTools.loadConfig();
 
-        fab = StUsdsSingleLineOrCapWipeFactory(config.readAddress(".factory", "FOUNDRY_FACTORY"));
+        fab = StUsdsWipeParamFactory(config.readAddress(".factory", "FOUNDRY_FACTORY"));
 
         vm.startBroadcast();
 

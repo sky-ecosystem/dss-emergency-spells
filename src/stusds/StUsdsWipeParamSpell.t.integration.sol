@@ -18,11 +18,7 @@ pragma solidity ^0.8.16;
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
 import {DssEmergencySpellLike} from "../DssEmergencySpell.sol";
-import {
-    StUsdsSingleLineOrCapWipeSpell,
-    StUsdsSingleLineOrCapWipeFactory,
-    Param
-} from "./StUsdsSingleLineOrCapWipeSpell.sol";
+import {StUsdsWipeParamSpell, StUsdsWipeParamFactory, Param} from "./StUsdsWipeParamSpell.sol";
 
 interface StUsdsRateSetterLike {
     function deny(address usr) external;
@@ -47,7 +43,7 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
     DssInstance dss;
     StUsdsLike stUsds;
     StUsdsRateSetterLike stUsdsRateSetter;
-    StUsdsSingleLineOrCapWipeFactory factory;
+    StUsdsWipeParamFactory factory;
 
     function setUp() public {
         vm.createSelectFork("mainnet");
@@ -58,7 +54,7 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         stUsdsRateSetter = StUsdsRateSetterLike(dss.chainlog.getAddress("STUSDS_RATE_SETTER"));
         stUsds = StUsdsLike(dss.chainlog.getAddress("STUSDS"));
         stUsdsMom = dss.chainlog.getAddress("STUSDS_MOM");
-        factory = new StUsdsSingleLineOrCapWipeFactory();
+        factory = new StUsdsWipeParamFactory();
     }
 
     // WIPE
@@ -148,7 +144,7 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
     // Revert wards
 
     function testDoneWhenStUsdsToRateSetterWardReverts() public {
-        StUsdsSingleLineOrCapWipeSpell spell = StUsdsSingleLineOrCapWipeSpell(factory.deploy(Param.LINE));
+        StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(Param.LINE));
         // Mock stUsds.wards(stUsdsRateSetter) to revert
         vm.mockCallRevert(
             address(spell.stUsds()),
@@ -160,7 +156,7 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
     }
 
     function testDoneWhenStUsdsToMomWardReverts() public {
-        StUsdsSingleLineOrCapWipeSpell spell = StUsdsSingleLineOrCapWipeSpell(factory.deploy(Param.LINE));
+        StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(Param.LINE));
         // Mock stUsds.wards(stUsdsMom) to revert
         vm.mockCallRevert(
             address(spell.stUsds()),
@@ -172,7 +168,7 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
     }
 
     function testDoneWhenRateSetterToMomWardReverts() public {
-        StUsdsSingleLineOrCapWipeSpell spell = StUsdsSingleLineOrCapWipeSpell(factory.deploy(Param.LINE));
+        StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(Param.LINE));
         // Mock stUsdsRateSetter.wards() to revert
         vm.mockCallRevert(
             address(spell.stUsdsRateSetter()),

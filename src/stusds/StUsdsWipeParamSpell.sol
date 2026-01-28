@@ -46,7 +46,7 @@ interface StUsdsLike {
 /// @custom:reviewers []
 /// @custom:auditors []
 /// @custom:bounties []
-contract StUsdsSingleLineOrCapWipeSpell is DssEmergencySpell {
+contract StUsdsWipeParamSpell is DssEmergencySpell {
     StUsdsMomLike public immutable stUsdsMom = StUsdsMomLike(_log.getAddress("STUSDS_MOM"));
     StUsdsRateSetterLike public immutable stUsdsRateSetter =
         StUsdsRateSetterLike(_log.getAddress("STUSDS_RATE_SETTER"));
@@ -136,11 +136,11 @@ contract StUsdsSingleLineOrCapWipeSpell is DssEmergencySpell {
     }
 }
 
-contract StUsdsSingleLineOrCapWipeFactory {
+contract StUsdsWipeParamFactory {
     event Deploy(Param indexed param, address spell);
 
     function deploy(Param param) external returns (address spell) {
-        spell = address(new StUsdsSingleLineOrCapWipeSpell(param));
+        spell = address(new StUsdsWipeParamSpell(param));
         emit Deploy(param, spell);
     }
 }
