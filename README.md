@@ -229,15 +229,15 @@ Disables the smart burn engine.
 
 Disables the SP-BEAM (Stability Parameter Bounded External Access Module) module, preventing direct rate changes by the module (rates can still be updated through the Spell process).
 
-### Halt Rate Setter `STUSDS`
+### Halt Rate Setter `stUSDS`
 
 Disables the STUSDS Rate Setter module, preventing it from directly updating the stUSDS rate, by setting the Circuit breaker flag `bad` param to `1`.
 
-### Diss Rate Setter Bud `STUSDS`
+### Diss Rate Setter Bud `stUSDS`
 
 Disables `bud` _facilitator_ authorization for the STUSDS Rate Setter module on the target rate-setting endpoint, removing its permission to call privileged update functions.
 
-### Wipe Line or Cap `STUSDS`
+### Wipe Line or Cap `stUSDS`
 
 No further debt can be generated from STUSDS when `line` is wiped.
 
