@@ -30,7 +30,7 @@ interface StUsdsLike {
     function wards(address) external view returns (uint256);
 }
 
-contract StUsdsDissRateSetterBudSpell is DssEmergencySpell {
+contract StUsdsRateSetterDissBudSpell is DssEmergencySpell {
     string public constant override description = "Emergency Spell | stUSDS | Diss Rate Setter Bud";
 
     StUsdsLike public immutable stUsds = StUsdsLike(_log.getAddress("STUSDS"));
@@ -100,11 +100,11 @@ contract StUsdsDissRateSetterBudSpell is DssEmergencySpell {
     }
 }
 
-contract StUsdsDissRateSetterBudFactory {
+contract StUsdsRateSetterDissBudFactory {
     event Deploy(address indexed bud, address spell);
 
     function deploy(address bud) external returns (address spell) {
-        spell = address(new StUsdsDissRateSetterBudSpell(bud));
+        spell = address(new StUsdsRateSetterDissBudSpell(bud));
         emit Deploy(bud, spell);
     }
 }

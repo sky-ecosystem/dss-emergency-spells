@@ -18,7 +18,7 @@ pragma solidity ^0.8.16;
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
 import {DssEmergencySpellLike} from "../DssEmergencySpell.sol";
-import {StUsdsDissRateSetterBudSpell, StUsdsDissRateSetterBudFactory} from "./StUsdsDissRateSetterBudSpell.sol";
+import {StUsdsRateSetterDissBudSpell, StUsdsRateSetterDissBudFactory} from "./StUsdsRateSetterDissBudSpell.sol";
 
 interface StUsdsRateSetterLike {
     function buds(address) external view returns (uint256);
@@ -31,7 +31,7 @@ interface StUsdsLike {
     function wards(address) external view returns (uint256);
 }
 
-contract StUsdsDissRateSetterBudSpellTest is DssTest {
+contract StUsdsRateSetterDissBudSpellTest is DssTest {
     using stdStorage for StdStorage;
 
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
@@ -41,7 +41,7 @@ contract StUsdsDissRateSetterBudSpellTest is DssTest {
     DssInstance dss;
     DssEmergencySpellLike spell;
     StUsdsRateSetterLike stUsdsRateSetter;
-    StUsdsDissRateSetterBudFactory factory;
+    StUsdsRateSetterDissBudFactory factory;
     StUsdsLike stUsds;
 
     function setUp() public {
@@ -53,12 +53,12 @@ contract StUsdsDissRateSetterBudSpellTest is DssTest {
         stUsds = StUsdsLike(dss.chainlog.getAddress("STUSDS"));
         stUsdsMom = dss.chainlog.getAddress("STUSDS_MOM");
         stUsdsRateSetter = StUsdsRateSetterLike(dss.chainlog.getAddress("STUSDS_RATE_SETTER"));
-        
+
         bud = makeAddr("bud");
         // Add bud to rate setter
         stdstore.target(address(stUsdsRateSetter)).sig("buds(address)").with_key(bud).checked_write(uint256(1));
 
-        factory = new StUsdsDissRateSetterBudFactory();
+        factory = new StUsdsRateSetterDissBudFactory();
 
         spell = DssEmergencySpellLike(factory.deploy(bud));
 
@@ -127,7 +127,7 @@ contract StUsdsDissRateSetterBudSpellTest is DssTest {
     // Revert wards
 
     function testDoneWhenStUsdsToRateSetterWardReverts() public {
-        StUsdsDissRateSetterBudSpell spellRevert = StUsdsDissRateSetterBudSpell(factory.deploy(bud));
+        StUsdsRateSetterDissBudSpell spellRevert = StUsdsRateSetterDissBudSpell(factory.deploy(bud));
         // Mock stUsds.wards(stUsdsRateSetter) to revert
         vm.mockCallRevert(
             address(spellRevert.stUsds()),
@@ -139,7 +139,7 @@ contract StUsdsDissRateSetterBudSpellTest is DssTest {
     }
 
     function testDoneWhenStUsdsToMomWardReverts() public {
-        StUsdsDissRateSetterBudSpell spellRevert = StUsdsDissRateSetterBudSpell(factory.deploy(bud));
+        StUsdsRateSetterDissBudSpell spellRevert = StUsdsRateSetterDissBudSpell(factory.deploy(bud));
         // Mock stUsds.wards(stUsdsMom) to revert
         vm.mockCallRevert(
             address(spellRevert.stUsds()),
@@ -151,7 +151,7 @@ contract StUsdsDissRateSetterBudSpellTest is DssTest {
     }
 
     function testDoneWhenRateSetterToMomWardReverts() public {
-        StUsdsDissRateSetterBudSpell spellRevert = StUsdsDissRateSetterBudSpell(factory.deploy(bud));
+        StUsdsRateSetterDissBudSpell spellRevert = StUsdsRateSetterDissBudSpell(factory.deploy(bud));
         // Mock stUsdsRateSetter.wards() to revert
         vm.mockCallRevert(
             address(spellRevert.stUsdsRateSetter()),
@@ -165,7 +165,7 @@ contract StUsdsDissRateSetterBudSpellTest is DssTest {
     // Revert buds
 
     function testDoneWhenRateSetterBudsReverts() public {
-        StUsdsDissRateSetterBudSpell spellRevert = StUsdsDissRateSetterBudSpell(factory.deploy(bud));
+        StUsdsRateSetterDissBudSpell spellRevert = StUsdsRateSetterDissBudSpell(factory.deploy(bud));
         // Mock stUsdsRateSetter.wards() to revert
         vm.mockCallRevert(
             address(spellRevert.stUsdsRateSetter()),

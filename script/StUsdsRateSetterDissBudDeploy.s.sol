@@ -18,20 +18,30 @@ pragma solidity ^0.8.16;
 import {Script} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {ScriptTools} from "dss-test/ScriptTools.sol";
-import {StUsdsHaltRateSetterSpell} from "src/stusds/StUsdsHaltRateSetterSpell.sol";
+import {StUsdsRateSetterDissBudFactory} from "src/stusds/StUsdsRateSetterDissBudSpell.sol";
 
-contract StUsdsHaltRateSetterDeployScript is Script {
+contract StUsdsRateSetterDissBudDeployScript is Script {
     using stdJson for string;
     using ScriptTools for string;
 
-    string constant NAME = "stusds-halt-rate-setter-deploy";
+    string constant NAME = "stusds-rate-setter-diss-bud-deploy";
+    string config;
+
+    StUsdsRateSetterDissBudFactory fab;
+    address[] buds;
 
     function run() external {
+        config = ScriptTools.loadConfig();
+
+        fab = StUsdsRateSetterDissBudFactory(config.readAddress(".factory", "FOUNDRY_FACTORY"));
+        buds = config.readAddressArray(".buds", "FOUNDRY_BUDS");
+
         vm.startBroadcast();
-
-        address spell = address(new StUsdsHaltRateSetterSpell());
-        ScriptTools.exportContract(NAME, "spell", spell);
-
+        for (uint256 i = 0; i < buds.length; i++) {
+            address bud = buds[i];
+            address spell = fab.deploy(bud);
+            ScriptTools.exportContract(NAME, vm.toString(bud), spell);
+        }
         vm.stopBroadcast();
     }
 }

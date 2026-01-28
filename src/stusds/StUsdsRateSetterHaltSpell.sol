@@ -30,7 +30,7 @@ interface StUsdsLike {
     function wards(address) external view returns (uint256);
 }
 
-contract StUsdsHaltRateSetterSpell is DssEmergencySpell {
+contract StUsdsRateSetterHaltSpell is DssEmergencySpell {
     string public constant override description = "Emergency Spell | stUSDS | Halt Rate Setter";
 
     StUsdsLike public immutable stUsds = StUsdsLike(_log.getAddress("STUSDS"));

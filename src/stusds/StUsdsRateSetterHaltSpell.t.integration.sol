@@ -18,12 +18,13 @@ pragma solidity ^0.8.16;
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
 import {DssEmergencySpellLike} from "../DssEmergencySpell.sol";
-import {StUsdsHaltRateSetterSpell} from "./StUsdsHaltRateSetterSpell.sol";
+import {StUsdsRateSetterHaltSpell} from "./StUsdsRateSetterHaltSpell.sol";
 
 interface StUsdsRateSetterLike {
     function bad() external view returns (uint8);
     function deny(address usr) external;
     function wards(address) external view returns (uint256);
+    function file(bytes32 what, uint256 data) external;
 }
 
 interface StUsdsLike {
@@ -31,14 +32,14 @@ interface StUsdsLike {
     function wards(address) external view returns (uint256);
 }
 
-contract StUsdsHaltRateSetterSpellTest is DssTest {
+contract StUsdsRateSetterHaltSpellTest is DssTest {
     using stdStorage for StdStorage;
 
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
     address chief;
     address stUsdsMom;
     DssInstance dss;
-    StUsdsHaltRateSetterSpell spell;
+    StUsdsRateSetterHaltSpell spell;
     StUsdsLike stUsds;
     StUsdsRateSetterLike stUsdsRateSetter;
 
@@ -52,7 +53,7 @@ contract StUsdsHaltRateSetterSpellTest is DssTest {
         stUsdsMom = dss.chainlog.getAddress("STUSDS_MOM");
         stUsdsRateSetter = StUsdsRateSetterLike(dss.chainlog.getAddress("STUSDS_RATE_SETTER"));
 
-        spell = new StUsdsHaltRateSetterSpell();
+        spell = new StUsdsRateSetterHaltSpell();
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
 
