@@ -22,6 +22,7 @@ import {StUsdsWipeParamSpell, StUsdsWipeParamFactory, Param} from "./StUsdsWipeP
 
 interface StUsdsRateSetterLike {
     function deny(address usr) external;
+    function file(bytes32 what, uint256 data) external;
     function maxCap() external view returns (uint256);
     function maxLine() external view returns (uint256);
     function wards(address) external view returns (uint256);
@@ -30,6 +31,7 @@ interface StUsdsRateSetterLike {
 interface StUsdsLike {
     function cap() external view returns (uint256);
     function deny(address) external;
+    function file(bytes32 what, uint256 data) external;
     function line() external view returns (uint256);
     function wards(address) external view returns (uint256);
 }
@@ -55,6 +57,14 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         stUsds = StUsdsLike(dss.chainlog.getAddress("STUSDS"));
         stUsdsMom = dss.chainlog.getAddress("STUSDS_MOM");
         factory = new StUsdsWipeParamFactory();
+
+        stdstore.target(address(stUsds)).sig("line()").checked_write(uint256(1_000_000 * 1e18));
+        stdstore.target(address(stUsds)).sig("cap()").checked_write(uint256(1_000_000 * 1e18));
+
+        stdstore.target(address(stUsdsRateSetter)).sig("maxLine()").checked_write(uint256(1_000_000 * 1e18));
+        stdstore.target(address(stUsdsRateSetter)).sig("maxCap()").checked_write(uint256(1_000_000 * 1e18));
+
+        vm.makePersistent(chief);
     }
 
     // WIPE
