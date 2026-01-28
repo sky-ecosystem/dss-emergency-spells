@@ -40,7 +40,7 @@ interface StUsdsLike {
     function wards(address) external view returns (uint256);
 }
 
-/// @title stUSDS Zero Line and Cap Emergency Spell
+/// @title stUSDS Wipe Param Emergency Spell
 /// @notice Will set to zero: cap or/and line on STUSDS; maxCap or/and maxLine on STUSDS_RATE_SETTER. Can set to zero only cap, only line, or both.
 /// @custom:authors [Riccardo]
 /// @custom:reviewers []
