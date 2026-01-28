@@ -57,6 +57,11 @@ contract StUsdsRateSetterHaltSpellTest is DssTest {
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
 
+        address ward = makeAddr("ward");
+        stdstore.target(address(stUsdsRateSetter)).sig("wards(address)").with_key(ward).checked_write(uint256(1));
+        vm.prank(ward);
+        stUsdsRateSetter.file("bad", 0);
+
         vm.makePersistent(chief);
     }
 
