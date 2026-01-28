@@ -12,18 +12,21 @@ env:
   ETH_RPC_URL: ${{ secrets.ETH_RPC_URL }}
 
 jobs:
-  tests:
+  check:
+    strategy:
+      fail-fast: true
+
+    name: Foundry project
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository and submodules
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
-      - name: Show Forge version
+      - name: Run Forge build
         run: |
           forge --version
           forge build --sizes
