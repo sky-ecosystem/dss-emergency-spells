@@ -162,6 +162,25 @@ bespoke spell in record time.
 | `WSTETH-A`  | `0xC8F4544334B9ACBcd6DDE5c2283d53b48ad762BC` |
 | `WSTETH-B`  | `0xD1ce9F89c7f1e6Ec698bc840676efbFfC1373daa` |
 
+#### `StUsdsRateSetterDissBudSpell`
+| Ilk         | Address                                      |
+| ----------- | -------------------------------------------- |
+| `STUSDS`     | `<TBD>` |
+
+#### `StUsdsRateSetterHaltSpell`
+
+| Ilk         | Address                                      |
+| ----------- | -------------------------------------------- |
+| `STUSDS`     | `<TBD>` |
+
+#### `StUsdsWipeParamSpell`
+
+| Ilk                    | Flow   | Address                                      |
+| ---------------------- | ----   | ------------------------------------------   |
+| `STUSDS`      | `BOTH` | `<TBD>` |
+| `STUSDS`      | `CAP`  | `<TBD>` |
+| `STUSDS`      | `LINE` | `<TBD>` |
+
 ## Implemented Actions
 
 | Description        | Single-ilk         | Grouped            | Multi-ilk / Global |
@@ -173,6 +192,9 @@ bespoke spell in record time.
 | Halt `LitePSM`     | :white_check_mark: | :x:                | :x:                |
 | Stop `Splitter`    | :x:                | :x:                | :white_check_mark: |
 | Halt `SP-BEAM`     | :x:                | :x:                | :white_check_mark: |
+| Wipe Line or Cap `STUSDS`| :x:                | :x:                | :x:                  |
+| Rate Setter Halt `STUSDS`| :x:                | :x:                | :x:                  |
+| Rate Setter Diss Bud `STUSDS`| :x:            | :x:            |:x:                  |
 
 ### Wipe `line`
 
@@ -206,6 +228,21 @@ Disables the smart burn engine.
 ### Halt `SP-BEAM`
 
 Disables the SP-BEAM (Stability Parameter Bounded External Access Module) module, preventing direct rate changes by the module (rates can still be updated through the Spell process).
+
+### Halt Rate Setter `STUSDS`
+
+Disables the STUSDS Rate Setter module, preventing it from directly updating the stUSDS rate, by setting the Circuit breaker flag `bad` param to `1`.
+
+### Diss Rate Setter Bud `STUSDS`
+
+Disables `bud` _facilitator_ authorization for the STUSDS Rate Setter module on the target rate-setting endpoint, removing its permission to call privileged update functions.
+
+### Wipe Line or Cap `STUSDS`
+
+No further debt can be generated from STUSDS when `line` is wiped.
+
+No further supply can be minted from STUSDS when `cap` is wiped.
+
 
 ## Design
 
