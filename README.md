@@ -166,6 +166,7 @@ bespoke spell in record time.
 | `WSTETH-B`  | `0xD1ce9F89c7f1e6Ec698bc840676efbFfC1373daa` |
 
 #### `StUsdsRateSetterDissBudSpell`
+
 | Ilk         | Address                                      |
 | ----------- | -------------------------------------------- |
 | `stUSDS`     | `<TBD>` |
@@ -246,7 +247,6 @@ No further debt can be generated from stUSDS when `line` is wiped.
 
 No further supply can be minted from stUSDS when `cap` is wiped.
 
-
 ## Design
 
 ### Overview
@@ -297,7 +297,6 @@ Some types of emergency spells may come in 3 flavors:
 
 Furthermore, this repo provides on-chain factories for single ilk emergency spells to make it easier to deploy for new
 ilks.
-
 
 ### About storage variables in `DssGroupedEmergencySpell`
 
