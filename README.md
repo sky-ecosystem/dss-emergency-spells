@@ -165,21 +165,21 @@ bespoke spell in record time.
 #### `StUsdsRateSetterDissBudSpell`
 | Ilk         | Address                                      |
 | ----------- | -------------------------------------------- |
-| `STUSDS`     | `<TBD>` |
+| `stUSDS`     | `<TBD>` |
 
 #### `StUsdsRateSetterHaltSpell`
 
 | Ilk         | Address                                      |
 | ----------- | -------------------------------------------- |
-| `STUSDS`     | `<TBD>` |
+| `stUSDS`     | `<TBD>` |
 
 #### `StUsdsWipeParamSpell`
 
 | Ilk                    | Flow   | Address                                      |
 | ---------------------- | ----   | ------------------------------------------   |
-| `STUSDS`      | `BOTH` | `<TBD>` |
-| `STUSDS`      | `CAP`  | `<TBD>` |
-| `STUSDS`      | `LINE` | `<TBD>` |
+| `stUSDS`      | `BOTH` | `<TBD>` |
+| `stUSDS`      | `CAP`  | `<TBD>` |
+| `stUSDS`      | `LINE` | `<TBD>` |
 
 ## Implemented Actions
 
@@ -192,9 +192,9 @@ bespoke spell in record time.
 | Halt `LitePSM`     | :white_check_mark: | :x:                | :x:                |
 | Stop `Splitter`    | :x:                | :x:                | :white_check_mark: |
 | Halt `SP-BEAM`     | :x:                | :x:                | :white_check_mark: |
-| Wipe Line or Cap `STUSDS`| :x:                | :x:                | :white_check_mark:                  |
-| Rate Setter Halt `STUSDS`| :x:                | :x:                | :white_check_mark:                  |
-| Rate Setter Diss Bud `STUSDS`| :x:            | :x:            | :white_check_mark:                  |
+| Wipe Line or Cap `stUSDS`| :x:                | :x:                | :white_check_mark:                  |
+| Rate Setter Halt `stUSDS`| :x:                | :x:                | :white_check_mark:                  |
+| Rate Setter Diss Bud `stUSDS`| :x:            | :x:            | :white_check_mark:                  |
 
 ### Wipe `line`
 
@@ -231,17 +231,17 @@ Disables the SP-BEAM (Stability Parameter Bounded External Access Module) module
 
 ### Halt Rate Setter `stUSDS`
 
-Disables the STUSDS Rate Setter module, preventing it from directly updating the stUSDS rate, by setting the Circuit breaker flag `bad` param to `1`.
+Disables the stUSDS Rate Setter module, preventing it from directly updating the stUSDS rate, by setting the Circuit breaker flag `bad` param to `1`.
 
 ### Diss Rate Setter Bud `stUSDS`
 
-Disables `bud` _facilitator_ authorization for the STUSDS Rate Setter module on the target rate-setting endpoint, removing its permission to call privileged update functions.
+Disables `bud` _facilitator_ authorization for the stUSDS Rate Setter module on the target rate-setting endpoint, removing its permission to call privileged update functions.
 
 ### Wipe Line or Cap `stUSDS`
 
-No further debt can be generated from STUSDS when `line` is wiped.
+No further debt can be generated from stUSDS when `line` is wiped.
 
-No further supply can be minted from STUSDS when `cap` is wiped.
+No further supply can be minted from stUSDS when `cap` is wiped.
 
 
 ## Design
