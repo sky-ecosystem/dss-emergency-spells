@@ -17,7 +17,6 @@ pragma solidity ^0.8.16;
 
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
-import {DssEmergencySpellLike} from "../DssEmergencySpell.sol";
 import {StUsdsRateSetterHaltSpell} from "./StUsdsRateSetterHaltSpell.sol";
 
 interface StUsdsRateSetterLike {
