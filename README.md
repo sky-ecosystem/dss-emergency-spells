@@ -192,9 +192,9 @@ bespoke spell in record time.
 | Halt `LitePSM`     | :white_check_mark: | :x:                | :x:                |
 | Stop `Splitter`    | :x:                | :x:                | :white_check_mark: |
 | Halt `SP-BEAM`     | :x:                | :x:                | :white_check_mark: |
-| Wipe Line or Cap `STUSDS`| :x:                | :x:                | :x:                  |
-| Rate Setter Halt `STUSDS`| :x:                | :x:                | :x:                  |
-| Rate Setter Diss Bud `STUSDS`| :x:            | :x:            |:x:                  |
+| Wipe Line or Cap `STUSDS`| :x:                | :x:                | :white_check_mark:                  |
+| Rate Setter Halt `STUSDS`| :x:                | :x:                | :white_check_mark:                  |
+| Rate Setter Diss Bud `STUSDS`| :x:            | :x:            | :white_check_mark:                  |
 
 ### Wipe `line`
 
