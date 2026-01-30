@@ -89,8 +89,9 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
      * @notice Returns whether the spell is done or not.
      * @dev Checks if the line or cap have been zeroed on the stUSDS.
      *      The spell would revert if any of the following conditions holds:
-     *          1. stUsdsMom is not a ward of stUsds
-     *          2. stUsdsRateSetter is not a ward of stUsds
+     *          1. stUsdsMom is not a ward of stUsds;
+     *          2. stUsdsRateSetter is not a ward of stUsds;
+     *          3. stUsdsMom is not a ward of stUsdsRateSetter.
      *      In both cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
