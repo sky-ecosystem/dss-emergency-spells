@@ -25,14 +25,15 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
 
       - name: Run Forge build
         run: |
           forge --version
           forge build --sizes
         id: build
+
+      - name: Check Forge formatting
+        run: forge fmt --check
 
       - name: Run Forge tests
         run: |
