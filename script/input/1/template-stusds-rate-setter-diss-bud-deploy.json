@@ -1,0 +1,4 @@
+{
+  "factory": "address: the address of the on-chain spell factory",
+  "buds": ["<address-bud-1>", "<address-bud-2>"]
+}

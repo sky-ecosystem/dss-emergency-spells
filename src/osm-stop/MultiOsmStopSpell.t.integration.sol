@@ -161,15 +161,12 @@ contract MultiOsmStopSpellTest is DssTest {
         // Not an OSM
         address medianEth = OsmLike(ilkReg.pip("ETH-A")).src();
         // Overwrite OSMMom so it uses the wrong contract.
-        stdstore.target(address(osmMom)).sig("osms(bytes32)").with_key("ETH-A").checked_write(
-            bytes32(uint256(uint160(medianEth)))
-        );
-        stdstore.target(address(osmMom)).sig("osms(bytes32)").with_key("ETH-B").checked_write(
-            bytes32(uint256(uint160(medianEth)))
-        );
-        stdstore.target(address(osmMom)).sig("osms(bytes32)").with_key("ETH-C").checked_write(
-            bytes32(uint256(uint160(medianEth)))
-        );
+        stdstore.target(address(osmMom)).sig("osms(bytes32)").with_key("ETH-A")
+            .checked_write(bytes32(uint256(uint160(medianEth))));
+        stdstore.target(address(osmMom)).sig("osms(bytes32)").with_key("ETH-B")
+            .checked_write(bytes32(uint256(uint160(medianEth))));
+        stdstore.target(address(osmMom)).sig("osms(bytes32)").with_key("ETH-C")
+            .checked_write(bytes32(uint256(uint160(medianEth))));
         // De-auth OsmMom to force the error:
         stdstore.target(medianEth).sig("wards(address)").with_key(address(osmMom)).checked_write(bytes32(uint256(1)));
         // Updates the list of ilks to be ignored.
