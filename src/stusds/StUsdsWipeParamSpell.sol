@@ -92,7 +92,7 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
      *          1. stUsdsMom is not a ward of stUsds;
      *          2. stUsdsRateSetter is not a ward of stUsds;
      *          3. stUsdsMom is not a ward of stUsdsRateSetter.
-     *      In both cases, it returns `true`, meaning no further action can be taken at the moment.
+     *      In such cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
         try stUsds.wards(address(stUsdsMom)) returns (uint256 ward) {
