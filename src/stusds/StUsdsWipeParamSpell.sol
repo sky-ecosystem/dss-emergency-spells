@@ -106,7 +106,7 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
         }
 
         try stUsds.wards(address(stUsdsRateSetter)) returns (uint256 ward) {
-            // Ignore StUsds instances that have not relied on StUsdsMom.
+            // Ignore StUsds instances that have not relied on stUsdsRateSetter.
             if (ward == 0) {
                 return true;
             }
