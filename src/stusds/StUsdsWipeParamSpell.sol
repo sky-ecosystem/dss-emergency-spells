@@ -68,7 +68,7 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
     }
 
     function description() external view returns (string memory) {
-        return string(abi.encodePacked("Emergency Spell | stUSDS | wipe: ", _paramToString(param)));
+        return string(abi.encodePacked("Emergency Spell | stUSDS | wipe param: ", _paramToString(param)));
     }
 
     /**

@@ -195,9 +195,9 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(param));
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
         string memory description = spell.description();
-        if (param == Param.LINE) assertEq(description, "Emergency Spell | stUSDS | wipe: LINE");
-        else if (param == Param.CAP) assertEq(description, "Emergency Spell | stUSDS | wipe: CAP");
-        else assertEq(description, "Emergency Spell | stUSDS | wipe: BOTH");
+        if (param == Param.LINE) assertEq(description, "Emergency Spell | stUSDS | wipe param: LINE");
+        else if (param == Param.CAP) assertEq(description, "Emergency Spell | stUSDS | wipe param: CAP");
+        else assertEq(description, "Emergency Spell | stUSDS | wipe param: BOTH");
     }
 
     function _checkLineOrCapWipeOnSchedule(Param param) internal {
