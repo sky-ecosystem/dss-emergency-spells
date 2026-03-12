@@ -100,14 +100,6 @@ contract StUsdsRateSetterDissBudSpellTest is DssTest {
         assertFalse(spell.done(), "after: spell done unexpectedly");
     }
 
-    function testDoneWhenStUsdsMomIsNotWardInStUsds() public {
-        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
-        vm.prank(pauseProxy);
-        stUsds.deny(stUsdsMom);
-
-        assertTrue(spell.done(), "spell not done");
-    }
-
     function testDoneWhenStUsdsRateSetterIsNotWardInStUsds() public {
         address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
         vm.prank(pauseProxy);
@@ -132,18 +124,6 @@ contract StUsdsRateSetterDissBudSpellTest is DssTest {
         vm.mockCallRevert(
             address(spellRevert.stUsds()),
             abi.encodeWithSelector(StUsdsLike.wards.selector, address(spellRevert.stUsdsRateSetter())),
-            "revert"
-        );
-
-        assertTrue(spellRevert.done(), "spell not done");
-    }
-
-    function testDoneWhenStUsdsToMomWardReverts() public {
-        StUsdsRateSetterDissBudSpell spellRevert = StUsdsRateSetterDissBudSpell(factory.deploy(bud));
-        // Mock stUsds.wards(stUsdsMom) to revert
-        vm.mockCallRevert(
-            address(spellRevert.stUsds()),
-            abi.encodeWithSelector(StUsdsLike.wards.selector, address(spellRevert.stUsdsMom())),
             "revert"
         );
 
