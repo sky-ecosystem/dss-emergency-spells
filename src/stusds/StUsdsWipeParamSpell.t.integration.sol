@@ -32,8 +32,13 @@ interface StUsdsLike {
     function cap() external view returns (uint256);
     function deny(address) external;
     function file(bytes32 what, uint256 data) external;
+    function ilk() external view returns (bytes32);
     function line() external view returns (uint256);
     function wards(address) external view returns (uint256);
+}
+
+interface VatLike {
+    function ilks(bytes32 ilk) external view returns (uint256 Art, uint256 rate, uint256 spot, uint256 line, uint256 dust);
 }
 
 contract SingleLineOrCapWipeSpellTest is DssTest {
@@ -42,10 +47,12 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
     address chief;
     address stUsdsMom;
+    bytes32 stUsdsIlk;
     DssInstance dss;
     StUsdsLike stUsds;
     StUsdsRateSetterLike stUsdsRateSetter;
     StUsdsWipeParamFactory factory;
+    VatLike vat;
 
     function setUp() public {
         vm.createSelectFork("mainnet");
@@ -57,6 +64,9 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         stUsds = StUsdsLike(dss.chainlog.getAddress("STUSDS"));
         stUsdsMom = dss.chainlog.getAddress("STUSDS_MOM");
         factory = new StUsdsWipeParamFactory();
+        vat = VatLike(dss.chainlog.getAddress("MCD_VAT"));
+
+        stUsdsIlk = StUsdsLike(stUsds).ilk();
 
         stdstore.target(address(stUsds)).sig("line()").checked_write(uint256(1_000_000 * 1e18));
         stdstore.target(address(stUsds)).sig("cap()").checked_write(uint256(1_000_000 * 1e18));
@@ -183,10 +193,12 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         uint256 line = stUsds.line();
         uint256 maxCap = stUsdsRateSetter.maxCap();
         uint256 maxLine = stUsdsRateSetter.maxLine();
+        (, , , uint256 vatLine, ) = vat.ilks(stUsdsIlk);
 
         if (param == Param.LINE || param == Param.BOTH) {
             assertNotEq(line, 0, "before: STUSDS line already zeroed");
             assertNotEq(maxLine, 0, "before: STUSDS_RATE_SETTER maxLine already zeroed");
+            assertNotEq(vatLine, 0, "before: MCD_VAT ilk line already zeroed");
         }
         if (param == Param.CAP || param == Param.BOTH) {
             assertNotEq(cap, 0, "before: STUSDS cap already zeroed");
@@ -195,6 +207,8 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         assertFalse(spell.done(), "before: spell already done");
 
         if (param == Param.LINE || param == Param.BOTH) {
+            vm.expectEmit(false, false, false, false, address(stUsds));
+            emit Drip(0, 0);
             vm.expectEmit(true, true, true, false, address(spell));
             emit ZeroLine();
         }
@@ -209,10 +223,12 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         uint256 postLine = stUsds.line();
         uint256 postMaxCap = stUsdsRateSetter.maxCap();
         uint256 postMaxLine = stUsdsRateSetter.maxLine();
+        (, , , uint256 postVatLine, ) = vat.ilks(stUsdsIlk);
 
         if (param == Param.LINE || param == Param.BOTH) {
             assertEq(postLine, 0, "after: STUSDS line non zeroed unexpectedly");
             assertEq(postMaxLine, 0, "after: STUSDS_RATE_SETTER maxLine non zeroed unexpectedly");
+            assertEq(postVatLine, 0, "after: MCD_VAT ilk line non zeroed unexpectedly");
         }
         if (param == Param.CAP || param == Param.BOTH) {
             assertEq(postCap, 0, "after: STUSDS cap non zeroed unexpectedly");
@@ -258,10 +274,12 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         uint256 line = stUsds.line();
         uint256 maxCap = stUsdsRateSetter.maxCap();
         uint256 maxLine = stUsdsRateSetter.maxLine();
+        (, , , uint256 vatLine, ) = vat.ilks(stUsdsIlk);
 
         if (param == Param.LINE || param == Param.BOTH) {
             assertNotEq(line, 0, "before: STUSDS line already zeroed");
             assertNotEq(maxLine, 0, "before: STUSDS_RATE_SETTER maxLine already zeroed");
+            assertNotEq(vatLine, 0, "before: MCD_VAT ilk line already zeroed");
         }
         if (param == Param.CAP || param == Param.BOTH) {
             assertNotEq(cap, 0, "before: STUSDS cap already zeroed");
@@ -276,10 +294,12 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         uint256 postLine = stUsds.line();
         uint256 postMaxCap = stUsdsRateSetter.maxCap();
         uint256 postMaxLine = stUsdsRateSetter.maxLine();
+        (, , , uint256 postVatLine, ) = vat.ilks(stUsdsIlk);
 
         if (param == Param.LINE || param == Param.BOTH) {
             assertEq(postLine, line, "after: STUSDS line zeroed unexpectedly");
             assertEq(postMaxLine, maxLine, "after: STUSDS_RATE_SETTER maxLine zeroed unexpectedly");
+            assertEq(postVatLine, vatLine, "after: MCD_VAT ilk line zeroed unexpectedly");
         }
         if (param == Param.CAP || param == Param.BOTH) {
             assertEq(postCap, cap, "after: STUSDS cap zeroed unexpectedly");
@@ -290,4 +310,5 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
 
     event ZeroCap();
     event ZeroLine();
+    event Drip(uint256 chi, uint256 diff);
 }

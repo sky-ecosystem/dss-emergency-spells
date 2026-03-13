@@ -36,6 +36,7 @@ interface StUsdsRateSetterLike {
 
 interface StUsdsLike {
     function cap() external view returns (uint256);
+    function drip() external returns (uint256 nChi);
     function line() external view returns (uint256);
     function wards(address) external view returns (uint256);
 }
@@ -77,6 +78,7 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
     function _emergencyActions() internal override {
         if (param == Param.LINE || param == Param.BOTH) {
             stUsdsMom.zeroLine(address(stUsdsRateSetter));
+            stUsds.drip();
             emit ZeroLine();
         }
         if (param == Param.CAP || param == Param.BOTH) {
