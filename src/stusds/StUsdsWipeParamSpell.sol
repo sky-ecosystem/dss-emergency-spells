@@ -89,22 +89,11 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
      * @notice Returns whether the spell is done or not.
      * @dev Checks if the line or cap have been zeroed on the stUSDS.
      *      The spell would revert if any of the following conditions holds:
-     *          1. stUsdsMom is not a ward of stUsds;
-     *          2. stUsdsRateSetter is not a ward of stUsds;
-     *          3. stUsdsMom is not a ward of stUsdsRateSetter.
-     *      In such cases, it returns `true`, meaning no further action can be taken at the moment.
+     *          1. stUsdsRateSetter is not a ward of stUsds;
+     *          2. stUsdsMom is not a ward of stUsdsRateSetter.
+     *      In both cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
-        try stUsds.wards(address(stUsdsMom)) returns (uint256 ward) {
-            // Ignore StUsds instances that have not relied on StUsdsMom.
-            if (ward == 0) {
-                return true;
-            }
-        } catch {
-            // If the call failed, it means the contract is most likely not a StUsds instance.
-            return true;
-        }
-
         try stUsds.wards(address(stUsdsRateSetter)) returns (uint256 ward) {
             // Ignore StUsds instances that have not relied on stUsdsRateSetter.
             if (ward == 0) {
