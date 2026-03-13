@@ -38,7 +38,10 @@ interface StUsdsLike {
 }
 
 interface VatLike {
-    function ilks(bytes32 ilk) external view returns (uint256 Art, uint256 rate, uint256 spot, uint256 line, uint256 dust);
+    function ilks(bytes32 ilk)
+        external
+        view
+        returns (uint256 Art, uint256 rate, uint256 spot, uint256 line, uint256 dust);
 }
 
 contract SingleLineOrCapWipeSpellTest is DssTest {
@@ -193,7 +196,7 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         uint256 line = stUsds.line();
         uint256 maxCap = stUsdsRateSetter.maxCap();
         uint256 maxLine = stUsdsRateSetter.maxLine();
-        (, , , uint256 vatLine, ) = vat.ilks(stUsdsIlk);
+        (,,, uint256 vatLine,) = vat.ilks(stUsdsIlk);
 
         if (param == Param.LINE || param == Param.BOTH) {
             assertNotEq(line, 0, "before: STUSDS line already zeroed");
@@ -223,7 +226,7 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         uint256 postLine = stUsds.line();
         uint256 postMaxCap = stUsdsRateSetter.maxCap();
         uint256 postMaxLine = stUsdsRateSetter.maxLine();
-        (, , , uint256 postVatLine, ) = vat.ilks(stUsdsIlk);
+        (,,, uint256 postVatLine,) = vat.ilks(stUsdsIlk);
 
         if (param == Param.LINE || param == Param.BOTH) {
             assertEq(postLine, 0, "after: STUSDS line non zeroed unexpectedly");
@@ -274,7 +277,7 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         uint256 line = stUsds.line();
         uint256 maxCap = stUsdsRateSetter.maxCap();
         uint256 maxLine = stUsdsRateSetter.maxLine();
-        (, , , uint256 vatLine, ) = vat.ilks(stUsdsIlk);
+        (,,, uint256 vatLine,) = vat.ilks(stUsdsIlk);
 
         if (param == Param.LINE || param == Param.BOTH) {
             assertNotEq(line, 0, "before: STUSDS line already zeroed");
@@ -294,7 +297,7 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         uint256 postLine = stUsds.line();
         uint256 postMaxCap = stUsdsRateSetter.maxCap();
         uint256 postMaxLine = stUsdsRateSetter.maxLine();
-        (, , , uint256 postVatLine, ) = vat.ilks(stUsdsIlk);
+        (,,, uint256 postVatLine,) = vat.ilks(stUsdsIlk);
 
         if (param == Param.LINE || param == Param.BOTH) {
             assertEq(postLine, line, "after: STUSDS line zeroed unexpectedly");
