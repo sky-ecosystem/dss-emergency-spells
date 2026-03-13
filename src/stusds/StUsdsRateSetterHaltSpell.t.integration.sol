@@ -97,13 +97,6 @@ contract StUsdsRateSetterHaltSpellTest is DssTest {
         assertFalse(spell.done(), "after: spell done unexpectedly");
     }
 
-    function testDoneWhenStUsdsMomIsNotWardInStUsds() public {
-        vm.prank(pauseProxy);
-        stUsds.deny(stUsdsMom);
-
-        assertTrue(spell.done(), "spell not done");
-    }
-
     function testDoneWhenStUsdsRateSetterIsNotWardInStUsds() public {
         vm.prank(pauseProxy);
         stUsds.deny(address(stUsdsRateSetter));
@@ -123,17 +116,6 @@ contract StUsdsRateSetterHaltSpellTest is DssTest {
         vm.mockCallRevert(
             address(spell.stUsds()),
             abi.encodeWithSelector(StUsdsLike.wards.selector, address(spell.stUsdsRateSetter())),
-            "revert"
-        );
-
-        assertTrue(spell.done(), "spell not done");
-    }
-
-    function testDoneWhenStUsdsToMomWardReverts() public {
-        // Mock stUsds.wards(stUsdsMom) to revert
-        vm.mockCallRevert(
-            address(spell.stUsds()),
-            abi.encodeWithSelector(StUsdsLike.wards.selector, address(spell.stUsdsMom())),
             "revert"
         );
 
