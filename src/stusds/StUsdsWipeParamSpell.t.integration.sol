@@ -94,6 +94,20 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         _checkLineOrCapWipeOnSchedule(Param.BOTH);
     }
 
+    // MOM is not ward is StUsds
+
+    function testDoneWhenStUsdsMomIsNotWardInStUsdsLine() public {
+        _checkDoneWhenStUsdsMomIsNotWardInStUsds(Param.LINE);
+    }
+
+    function testDoneWhenStUsdsMomIsNotWardInStUsdsCap() public {
+        _checkDoneWhenStUsdsMomIsNotWardInStUsds(Param.CAP);
+    }
+
+    function testDoneWhenStUsdsMomIsNotWardInStUsdsBoth() public {
+        _checkDoneWhenStUsdsMomIsNotWardInStUsds(Param.BOTH);
+    }
+
     // Rate Setter is not ward is StUsds
 
     function testDoneWhenStUsdsRateSetterIsNotWardInStUsdsLine() public {
@@ -164,6 +178,18 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         assertTrue(spell.done(), "spell not done");
     }
 
+    function testDoneWhenStUsdsToMomWardReverts() public {
+        StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(Param.LINE));
+        // Mock stUsds.wards(stUsdsMom) to revert
+        vm.mockCallRevert(
+            address(spell.stUsds()),
+            abi.encodeWithSelector(StUsdsLike.wards.selector, address(spell.stUsdsMom())),
+            "revert"
+        );
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
     function testDoneWhenRateSetterToMomWardReverts() public {
         StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(Param.LINE));
         // Mock stUsdsRateSetter.wards() to revert
@@ -210,8 +236,6 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         assertFalse(spell.done(), "before: spell already done");
 
         if (param == Param.LINE || param == Param.BOTH) {
-            vm.expectEmit(false, false, false, false, address(stUsds));
-            emit Drip(0, 0);
             vm.expectEmit(true, true, true, false, address(spell));
             emit ZeroLine();
         }
