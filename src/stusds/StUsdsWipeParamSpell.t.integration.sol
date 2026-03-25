@@ -337,5 +337,4 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
 
     event ZeroCap();
     event ZeroLine();
-    event Drip(uint256 chi, uint256 diff);
 }
