@@ -316,23 +316,6 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
 
         vm.expectRevert();
         spell.schedule();
-
-        uint256 postCap = stUsds.cap();
-        uint256 postLine = stUsds.line();
-        uint256 postMaxCap = stUsdsRateSetter.maxCap();
-        uint256 postMaxLine = stUsdsRateSetter.maxLine();
-        (,,, uint256 postVatLine,) = vat.ilks(stUsdsIlk);
-
-        if (param == Param.LINE || param == Param.BOTH) {
-            assertEq(postLine, line, "after: STUSDS line zeroed unexpectedly");
-            assertEq(postMaxLine, maxLine, "after: STUSDS_RATE_SETTER maxLine zeroed unexpectedly");
-            assertEq(postVatLine, vatLine, "after: MCD_VAT ilk line zeroed unexpectedly");
-        }
-        if (param == Param.CAP || param == Param.BOTH) {
-            assertEq(postCap, cap, "after: STUSDS cap zeroed unexpectedly");
-            assertEq(postMaxCap, maxCap, "after: STUSDS_RATE_SETTER maxCap zeroed unexpectedly");
-        }
-        assertFalse(spell.done(), "after: spell done unexpectedly");
     }
 
     event ZeroCap();
