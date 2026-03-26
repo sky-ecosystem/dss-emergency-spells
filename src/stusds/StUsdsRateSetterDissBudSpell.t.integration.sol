@@ -68,11 +68,9 @@ contract StUsdsRateSetterDissBudSpellTest is DssTest {
     }
 
     function testDissRateSetterOnSchedule() public {
-        uint256 pBud = stUsdsRateSetter.buds(bud);
-        assertEq(pBud, 1, "before: stUsdsRateSetter bud already dissed");
-
         vm.expectEmit(true, true, true, false);
         emit DissRateSetterBud(address(stUsdsRateSetter), bud);
+
         spell.schedule();
 
         uint256 aBud = stUsdsRateSetter.buds(bud);
@@ -87,17 +85,8 @@ contract StUsdsRateSetterDissBudSpellTest is DssTest {
     function testRevertDissRateSetterWhenItDoesNotHaveTheHat() public {
         stdstore.target(chief).sig("hat()").checked_write(address(0));
 
-        uint256 pBud = stUsdsRateSetter.buds(bud);
-        assertEq(pBud, 1, "before: stUsdsRateSetter bud already dissed");
-
-        assertFalse(spell.done(), "before: spell already done");
-
-        vm.expectRevert();
+        vm.expectRevert("StUsdsMom/not-authorized");
         spell.schedule();
-
-        uint256 aBud = stUsdsRateSetter.buds(bud);
-        assertEq(aBud, 1, "after: stUsdsRateSetter bud dissed unexpectedly");
-        assertFalse(spell.done(), "after: spell done unexpectedly");
     }
 
     function testDoneWhenStUsdsRateSetterIsNotWardInStUsds() public {

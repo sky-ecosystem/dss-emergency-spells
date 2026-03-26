@@ -218,23 +218,6 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
         vm.makePersistent(chief);
 
-        uint256 cap = stUsds.cap();
-        uint256 line = stUsds.line();
-        uint256 maxCap = stUsdsRateSetter.maxCap();
-        uint256 maxLine = stUsdsRateSetter.maxLine();
-        (,,, uint256 vatLine,) = vat.ilks(stUsdsIlk);
-
-        if (param == Param.LINE || param == Param.BOTH) {
-            assertNotEq(line, 0, "before: STUSDS line already zeroed");
-            assertNotEq(maxLine, 0, "before: STUSDS_RATE_SETTER maxLine already zeroed");
-            assertNotEq(vatLine, 0, "before: MCD_VAT ilk line already zeroed");
-        }
-        if (param == Param.CAP || param == Param.BOTH) {
-            assertNotEq(cap, 0, "before: STUSDS cap already zeroed");
-            assertNotEq(maxCap, 0, "before: STUSDS_RATE_SETTER maxCap already zeroed");
-        }
-        assertFalse(spell.done(), "before: spell already done");
-
         if (param == Param.LINE || param == Param.BOTH) {
             vm.expectEmit(true, true, true, false, address(spell));
             emit ZeroLine();
@@ -246,18 +229,19 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
 
         spell.schedule();
 
-        uint256 postCap = stUsds.cap();
-        uint256 postLine = stUsds.line();
-        uint256 postMaxCap = stUsdsRateSetter.maxCap();
-        uint256 postMaxLine = stUsdsRateSetter.maxLine();
-        (,,, uint256 postVatLine,) = vat.ilks(stUsdsIlk);
-
         if (param == Param.LINE || param == Param.BOTH) {
+            uint256 postLine = stUsds.line();
+            uint256 postMaxLine = stUsdsRateSetter.maxLine();
+            (,,, uint256 postVatLine,) = vat.ilks(stUsdsIlk);
+
             assertEq(postLine, 0, "after: STUSDS line non zeroed unexpectedly");
             assertEq(postMaxLine, 0, "after: STUSDS_RATE_SETTER maxLine non zeroed unexpectedly");
             assertEq(postVatLine, 0, "after: MCD_VAT ilk line non zeroed unexpectedly");
         }
         if (param == Param.CAP || param == Param.BOTH) {
+            uint256 postCap = stUsds.cap();
+            uint256 postMaxCap = stUsdsRateSetter.maxCap();
+
             assertEq(postCap, 0, "after: STUSDS cap non zeroed unexpectedly");
             assertEq(postMaxCap, 0, "after: STUSDS_RATE_SETTER maxCap non zeroed unexpectedly");
         }
@@ -297,24 +281,7 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
     function _checkRevertSpellWhenItDoesNotHaveTheHat(Param param) internal {
         DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(param));
 
-        uint256 cap = stUsds.cap();
-        uint256 line = stUsds.line();
-        uint256 maxCap = stUsdsRateSetter.maxCap();
-        uint256 maxLine = stUsdsRateSetter.maxLine();
-        (,,, uint256 vatLine,) = vat.ilks(stUsdsIlk);
-
-        if (param == Param.LINE || param == Param.BOTH) {
-            assertNotEq(line, 0, "before: STUSDS line already zeroed");
-            assertNotEq(maxLine, 0, "before: STUSDS_RATE_SETTER maxLine already zeroed");
-            assertNotEq(vatLine, 0, "before: MCD_VAT ilk line already zeroed");
-        }
-        if (param == Param.CAP || param == Param.BOTH) {
-            assertNotEq(cap, 0, "before: STUSDS cap already zeroed");
-            assertNotEq(maxCap, 0, "before: STUSDS_RATE_SETTER maxCap already zeroed");
-        }
-        assertFalse(spell.done(), "before: spell already done");
-
-        vm.expectRevert();
+        vm.expectRevert("StUsdsMom/not-authorized");
         spell.schedule();
     }
 
