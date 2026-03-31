@@ -118,7 +118,9 @@ bespoke spell in record time.
 | `ALLOCATOR-NOVA-A`                                                                                      | `0x401702b6B6fEEb4C19658e178B8cAa90d96E94D3` |
 | `ALLOCATOR-OBEX-A`                                                                                      | `0x2113592be9e40318C87320c36ba1eEAc9522ee3e` |
 | `ALLOCATOR-PATTERN-A`                                                                                   | `0x65231a74915fc154DC84Ac7a067B4835C8D049bF` |
-| `ALLOCATOR-SPARK-A`, `ALLOCATOR-BLOOM-A`, `ALLOCATOR-NOVA-A`, `ALLOCATOR-OBEX-A`, `ALLOCATOR-PATTERN-A` | `0x9356724264cBFA5A1a03C4C2817adADD790a2f6F` |
+| `ALLOCATOR-PRYSM-A`                                                                                   | `0xEe72cE730dd4aa1b559e9986fba6205B00F6e8ab` |
+| `ALLOCATOR-INTERVAL-A`                                                                                   | `0x3a92B3D880eC6eF00E788eDf69e7f961C4652F68` |
+| `ALLOCATOR-SPARK-A`, `ALLOCATOR-BLOOM-A`, `ALLOCATOR-NOVA-A`, `ALLOCATOR-OBEX-A`, `ALLOCATOR-PATTERN-A`, `ALLOCATOR-PRYSM-A`, `ALLOCATOR-INTERVAL-A` | `0xA38E1a8aE67c76588e70E1DBd3f04Cad78db2470` |
 | `ETH-A`, `ETH-B`, `ETH-C`                                                                               | `0x07bc4A6F65A7965856aFff5af67a702220367d5f` |
 | `WBTC-A`, `WBTC-B`, `WBTC-C`                                                                            | `0xC9c4e0C7F769Ec16a39e3fc016e2A4Dc639EAa74` |
 | `WSTETH-A`, `WSTETH-B`                                                                                  | `0x1a1F368e99F22dED25ECfeA2A87a7590771b6ED0` |
