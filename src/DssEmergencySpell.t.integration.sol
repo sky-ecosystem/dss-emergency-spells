@@ -31,6 +31,11 @@ contract DssEmergencySpellImpl is DssEmergencySpell {
     }
 }
 
+/// @dev WARNING: The `StUsdsMom`, which supports `drip()` in the `zeroLine()` method,
+/// is not yet deployed on the current active Chainlog. Until the new `StUsdsMom` is deployed on the mainnet Chainlog,
+/// these tests must be run against the virtual network where the new `StUsdsMom` has already been set in the Chainlog.
+/// Required environment variable:
+/// `export ETH_RPC_URL=https://virtual.mainnet.eu.rpc.tenderly.co/30b7f5ba-566c-475a-9876-a9c630e8d81a`
 contract DssEmergencySpellTest is DssTest {
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
     DssInstance dss;
