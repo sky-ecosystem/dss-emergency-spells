@@ -42,7 +42,7 @@ interface StUsdsLike {
 }
 
 interface VatLike {
-    function ilks(bytes32 ilk) external view returns (uint256, uint256, uint256, uint256, uint256);
+    function ilks(bytes32) external view returns (uint256 Art, uint256 rate, uint256 spot, uint256 line, uint256 dust);
 }
 
 /// @title stUSDS Wipe Param Emergency Spell
