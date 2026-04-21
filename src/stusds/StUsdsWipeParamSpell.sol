@@ -69,8 +69,8 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
     function _paramToString(Param _param) internal pure returns (string memory) {
         if (_param == Param.CAP) return "CAP";
         if (_param == Param.LINE) return "LINE";
-        if (_param == Param.BOTH) return "BOTH";
-        return "";
+        assert(_param == Param.BOTH);
+        return "BOTH";
     }
 
     function description() external view returns (string memory) {
@@ -100,9 +100,7 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
      *          3. stUsdsMom is not a ward of stUsdsRateSetter.
      *      For `Param.LINE`, it also returns `true` if:
      *          4. stUsds.ilk() reverts;
-     *          5. vat.ilks(stUsds.ilk()) reverts;
-     *          6. the Vat line for the stUsds ilk is already zero.
-     *      In such cases, it returns `true`, meaning no further action can be taken at the moment.
+     *          5. vat.ilks(stUsds.ilk()) reverts.
      */
     function done() external view returns (bool) {
         try stUsds.wards(address(stUsdsMom)) returns (uint256 ward) {
@@ -143,18 +141,17 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
                 return true;
             }
 
+            uint256 vatLine;
             try vat.ilks(ilk) returns (uint256, uint256, uint256, uint256 line, uint256) {
-                // If the line is already zeroed, the spell should not be cast.
-                if (line == 0) {
-                    return true;
-                }
+                vatLine = line;
             } catch {
                 // If the call failed, it means the contract most likely is not a Vat instance.
                 return true;
             }
 
-            return stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0;
+            return vatLine == 0 && stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0;
         }
+
         if (param == Param.CAP) {
             return stUsds.cap() == 0 && stUsdsRateSetter.maxCap() == 0;
         }
