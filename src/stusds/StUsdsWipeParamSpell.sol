@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: © 2024 Dai Foundation <www.daifoundation.org>
+// SPDX-FileCopyrightText: © 2026 Dai Foundation <www.daifoundation.org>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
 // This program is free software: you can redistribute it and/or modify
@@ -24,8 +24,8 @@ enum Param {
 }
 
 interface StUsdsMomLike {
-    function zeroCap(address rateSetter) external;
-    function zeroLine(address rateSetter) external;
+    function zeroCap(address) external;
+    function zeroLine(address) external;
 }
 
 interface StUsdsRateSetterLike {
@@ -36,8 +36,13 @@ interface StUsdsRateSetterLike {
 
 interface StUsdsLike {
     function cap() external view returns (uint256);
+    function ilk() external view returns (bytes32);
     function line() external view returns (uint256);
     function wards(address) external view returns (uint256);
+}
+
+interface VatLike {
+    function ilks(bytes32 ilk) external view returns (uint256, uint256, uint256, uint256, uint256);
 }
 
 /// @title stUSDS Wipe Param Emergency Spell
@@ -51,6 +56,7 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
     StUsdsRateSetterLike public immutable stUsdsRateSetter =
         StUsdsRateSetterLike(_log.getAddress("STUSDS_RATE_SETTER"));
     StUsdsLike public immutable stUsds = StUsdsLike(_log.getAddress("STUSDS"));
+    VatLike public immutable vat = VatLike(_log.getAddress("MCD_VAT"));
     Param public immutable param;
 
     event ZeroCap();
@@ -92,7 +98,11 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
      *          1. stUsdsMom is not a ward of stUsds;
      *          2. stUsdsRateSetter is not a ward of stUsds;
      *          3. stUsdsMom is not a ward of stUsdsRateSetter.
-     *      In both cases, it returns `true`, meaning no further action can be taken at the moment.
+     *      For `Param.LINE`, it also returns `true` if:
+     *          4. stUsds.ilk() reverts;
+     *          5. vat.ilks(stUsds.ilk()) reverts;
+     *          6. the Vat line for the stUsds ilk is already zero.
+     *      In such cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
         try stUsds.wards(address(stUsdsMom)) returns (uint256 ward) {
@@ -126,6 +136,23 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
         }
 
         if (param == Param.LINE) {
+            bytes32 ilk;
+            try stUsds.ilk() returns (bytes32 _ilk) {
+                ilk = _ilk;
+            } catch {
+                return true;
+            }
+
+            try vat.ilks(ilk) returns (uint256, uint256, uint256, uint256 line, uint256) {
+                // If the line is already zeroed, the spell should not be cast.
+                if (line == 0) {
+                    return true;
+                }
+            } catch {
+                // If the call failed, it means the contract most likely is not a Vat instance.
+                return true;
+            }
+
             return stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0;
         }
         if (param == Param.CAP) {
