@@ -139,6 +139,7 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
             try stUsds.ilk() returns (bytes32 _ilk) {
                 ilk = _ilk;
             } catch {
+                // If the call failed, it means the contract is most likely not a StUsds instance.
                 return true;
             }
 
