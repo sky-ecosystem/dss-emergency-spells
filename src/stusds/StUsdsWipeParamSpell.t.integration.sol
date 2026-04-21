@@ -202,6 +202,39 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         assertTrue(spell.done(), "spell not done");
     }
 
+    function testDoneWhenStUsdsIlkReverts() public {
+        StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(Param.LINE));
+        // Mock StUsds.ilk() to revert
+        vm.mockCallRevert(address(spell.stUsds()), abi.encodeWithSelector(StUsdsLike.ilk.selector), "revert");
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenVatIlksReverts() public {
+        StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(Param.LINE));
+        bytes32 ilk = spell.stUsds().ilk();
+        // Mock Vat.ilks() to revert
+        vm.mockCallRevert(address(spell.vat()), abi.encodeWithSelector(VatLike.ilks.selector, ilk), "revert");
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenVatStUsdsIlkLineIsAlreadyZero() public {
+        StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(Param.LINE));
+        bytes32 ilk = spell.stUsds().ilk();
+
+        (uint256 art, uint256 rate, uint256 spot,, uint256 dust) = spell.vat().ilks(ilk);
+
+        // Mock vat.ilks() to return a zero line
+        vm.mockCall(
+            address(spell.vat()),
+            abi.encodeWithSelector(VatLike.ilks.selector, ilk),
+            abi.encode(art, rate, spot, uint256(0), dust)
+        );
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
     // HELPERS
 
     function _checkDescription(Param param) internal {
