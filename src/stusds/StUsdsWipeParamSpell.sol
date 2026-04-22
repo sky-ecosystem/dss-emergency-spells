@@ -101,6 +101,7 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
      *      For `Param.LINE`, it also returns `true` if:
      *          4. stUsds.ilk() reverts;
      *          5. vat.ilks(stUsds.ilk()) reverts.
+     *      In such cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
         try stUsds.wards(address(stUsdsMom)) returns (uint256 ward) {
