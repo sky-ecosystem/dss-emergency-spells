@@ -18,7 +18,7 @@ pragma solidity ^0.8.16;
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
 import {DssEmergencySpellLike} from "../DssEmergencySpell.sol";
-import {SingleOsmStopFactory} from "./SingleOsmStopSpell.sol";
+import {SingleOsmStopFactory, SingleOsmStopSpell} from "./SingleOsmStopSpell.sol";
 
 interface OsmMomLike {
     function osms(bytes32 ilk) external view returns (address);
@@ -26,8 +26,9 @@ interface OsmMomLike {
 }
 
 interface OsmLike {
-    function stopped() external view returns (uint256);
     function deny(address who) external;
+    function stopped() external view returns (uint256);
+    function wards(address) external view returns (uint256);
 }
 
 contract SingleOsmStopSpellTest is DssTest {
@@ -40,7 +41,7 @@ contract SingleOsmStopSpellTest is DssTest {
     OsmMomLike osmMom;
     OsmLike osm;
     SingleOsmStopFactory factory;
-    DssEmergencySpellLike spell;
+    SingleOsmStopSpell spell;
 
     function setUp() public {
         vm.createSelectFork("mainnet");
@@ -51,7 +52,7 @@ contract SingleOsmStopSpellTest is DssTest {
         osmMom = OsmMomLike(dss.chainlog.getAddress("OSM_MOM"));
         osm = OsmLike(osmMom.osms(ilk));
         factory = new SingleOsmStopFactory();
-        spell = DssEmergencySpellLike(factory.deploy(ilk));
+        spell = SingleOsmStopSpell(factory.deploy(ilk));
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
 
@@ -97,6 +98,30 @@ contract SingleOsmStopSpellTest is DssTest {
 
         assertEq(osm.stopped(), 0, "after: oracle frozen unexpectedly");
         assertFalse(spell.done(), "after: spell done unexpectedly");
+    }
+
+    function testDescription() public view {
+        assertEq(spell.description(), string(abi.encodePacked("Emergency Spell | OSM Stop: ", ilk)));
+    }
+
+    function testDoneWhenOsmWardReverts() public {
+        // Mock osm.wards(osmMom) to revert
+        vm.mockCallRevert(
+            address(spell.osmMom().osms(spell.ilk())),
+            abi.encodeWithSelector(OsmLike.wards.selector, address(spell.osmMom())),
+            "revert"
+        );
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenOsmStoppedReverts() public {
+        // Mock osm.stopped() to revert
+        vm.mockCallRevert(
+            address(spell.osmMom().osms(spell.ilk())), abi.encodeWithSelector(OsmLike.stopped.selector), "revert"
+        );
+
+        assertTrue(spell.done(), "spell not done");
     }
 
     event Stop(address indexed osm);

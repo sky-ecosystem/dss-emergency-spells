@@ -202,5 +202,52 @@ contract MultiOsmStopSpellTest is DssTest {
         }
     }
 
+    function testDoneWhenOsmWardReverts() public {
+        bytes32[] memory ilks = ilkReg.list();
+        assertTrue(ilks.length > 0, "empty ilks list");
+
+        for (uint256 i = 0; i < ilks.length; i++) {
+            if (ilksToIgnore[ilks[i]]) continue;
+
+            // Mock osm.wards(osmMom) to revert
+            vm.mockCallRevert(
+                address(spell.osmMom().osms(ilks[i])),
+                abi.encodeWithSelector(OsmLike.wards.selector, address(spell.osmMom())),
+                "revert"
+            );
+        }
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenOsmMomIsNotWardOnAllOsms() public {
+        bytes32[] memory ilks = ilkReg.list();
+
+        assertTrue(ilks.length > 0, "empty ilks list");
+
+        for (uint256 i = 0; i < ilks.length; i++) {
+            if (ilksToIgnore[ilks[i]]) continue;
+
+            stdstore.target(spell.osmMom().osms(ilks[i])).sig("wards(address)").with_key(address(spell.osmMom())).checked_write(bytes32(0));
+        }
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenOsmStoppedReverts() public {
+        bytes32[] memory ilks = ilkReg.list();
+        assertTrue(ilks.length > 0, "empty ilks list");
+
+        for (uint256 i = 0; i < ilks.length; i++) {
+            if (ilksToIgnore[ilks[i]]) continue;
+            // Mock osm.stopped() to revert
+            vm.mockCallRevert(
+                address(spell.osmMom().osms(ilks[i])), abi.encodeWithSelector(OsmLike.stopped.selector), "revert"
+            );
+        }
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
     event Fail(bytes32 indexed ilk, address indexed osm, bytes reason);
 }
