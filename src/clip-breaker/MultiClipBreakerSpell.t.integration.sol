@@ -30,6 +30,10 @@ interface WardsLike {
     function wards(address who) external view returns (uint256);
 }
 
+interface ClipperMomLike {
+    function setBreaker(address clip, uint256 level, uint256 delay) external;
+}
+
 interface ClipLike {
     function stopped() external view returns (uint256);
 }
@@ -165,6 +169,109 @@ contract MultiClipBreakerSpellTest is DssTest {
         spell.schedule();
     }
 
+    function testDoneWhenMultiClipWardReverts() public {
+        bytes32[] memory ilks = ilkReg.list();
+        uint256 relevant = _countRelevantIlks(ilks);
+        uint256 mocked;
+
+        assertGt(relevant, 0, "no relevant ilks");
+
+        for (uint256 i = 0; i < ilks.length; i++) {
+            if (ilksToIgnore[ilks[i]]) continue;
+
+            address clip = ilkReg.xlip(ilks[i]);
+            vm.mockCallRevert(clip, abi.encodeWithSelector(WardsLike.wards.selector, clipperMom), bytes("revert"));
+
+            mocked++;
+            if (mocked < relevant) {
+                assertFalse(spell.done(), "spell done unexpectedly");
+            }
+        }
+
+        assertEq(mocked, relevant, "mocked count mismatch");
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenMultiClipStoppedReverts() public {
+        bytes32[] memory ilks = ilkReg.list();
+        uint256 relevant = _countRelevantIlks(ilks);
+        uint256 mocked;
+
+        assertGt(relevant, 0, "no relevant ilks");
+
+        for (uint256 i = 0; i < ilks.length; i++) {
+            if (ilksToIgnore[ilks[i]]) continue;
+
+            address clip = ilkReg.xlip(ilks[i]);
+            vm.mockCallRevert(clip, abi.encodeWithSelector(ClipLike.stopped.selector), bytes("revert"));
+
+            mocked++;
+            if (mocked < relevant) {
+                assertFalse(spell.done(), "spell done unexpectedly");
+            }
+        }
+
+        assertEq(mocked, relevant, "mocked count mismatch");
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testSetBreakerInBatchEmitsFailWhenClipWardReverts() public {
+        (bytes32 ilk, uint256 index) = _firstRelevantIlkWithIndex();
+        address clip = ilkReg.xlip(ilk);
+        uint256 preStopped = ClipLike(clip).stopped();
+        bytes memory reason = bytes("revert");
+
+        vm.mockCallRevert(clip, abi.encodeWithSelector(WardsLike.wards.selector, clipperMom), reason);
+
+        vm.expectEmit(true, true, true, true);
+        emit Fail(ilk, clip, reason);
+        spell.setBreakerInBatch(index, index);
+
+        assertEq(ClipLike(clip).stopped(), preStopped, "clip stopped status changed unexpectedly");
+    }
+
+    function testSetBreakerInBatchEmitsFailWhenSetBreakerRevertsWithStringReason() public {
+        (bytes32 ilk, uint256 index) = _firstRelevantIlkWithIndex();
+        address clip = ilkReg.xlip(ilk);
+        uint256 preStopped = ClipLike(clip).stopped();
+        string memory reason = "some-reason";
+
+        vm.mockCallRevert(
+            clipperMom,
+            abi.encodeWithSelector(
+                ClipperMomLike.setBreaker.selector, clip, spell.BREAKER_LEVEL(), spell.BREAKER_DELAY()
+            ),
+            abi.encodeWithSignature("Error(string)", reason)
+        );
+
+        vm.expectEmit(true, true, true, true);
+        emit Fail(ilk, clip, bytes(reason));
+        spell.setBreakerInBatch(index, index);
+
+        assertEq(ClipLike(clip).stopped(), preStopped, "clip stopped status changed unexpectedly");
+    }
+
+    function testSetBreakerInBatchEmitsFailWhenSetBreakerRevertsWithBytesReason() public {
+        (bytes32 ilk, uint256 index) = _firstRelevantIlkWithIndex();
+        address clip = ilkReg.xlip(ilk);
+        uint256 preStopped = ClipLike(clip).stopped();
+        bytes memory reason = hex"deadbeef";
+
+        vm.mockCallRevert(
+            clipperMom,
+            abi.encodeWithSelector(
+                ClipperMomLike.setBreaker.selector, clip, spell.BREAKER_LEVEL(), spell.BREAKER_DELAY()
+            ),
+            reason
+        );
+
+        vm.expectEmit(true, true, true, true);
+        emit Fail(ilk, clip, reason);
+        spell.setBreakerInBatch(index, index);
+
+        assertEq(ClipLike(clip).stopped(), preStopped, "clip stopped status changed unexpectedly");
+    }
+
     function _checkClipMaxStoppedStatus(bytes32[] memory ilks, uint256 maxExpected) internal view {
         assertTrue(ilks.length > 0, "empty ilks list");
 
@@ -187,6 +294,25 @@ contract MultiClipBreakerSpellTest is DssTest {
             address clip = ilkReg.xlip(ilks[i]);
             assertEq(ClipLike(clip).stopped(), expected, string(abi.encodePacked("invalid stopped status: ", ilks[i])));
         }
+    }
+
+    function _countRelevantIlks(bytes32[] memory ilks) internal view returns (uint256 count) {
+        for (uint256 i = 0; i < ilks.length; i++) {
+            if (!ilksToIgnore[ilks[i]]) {
+                count++;
+            }
+        }
+    }
+
+    function _firstRelevantIlkWithIndex() internal view returns (bytes32 ilk, uint256 index) {
+        bytes32[] memory ilks = ilkReg.list();
+        for (uint256 i = 0; i < ilks.length; i++) {
+            if (!ilksToIgnore[ilks[i]]) {
+                return (ilks[i], i);
+            }
+        }
+
+        revert("no relevant ilks");
     }
 
     event Fail(bytes32 indexed ilk, address indexed clip, bytes reason);

@@ -30,8 +30,9 @@ interface ClipperMomLike {
 }
 
 interface ClipLike {
-    function stopped() external view returns (uint256);
+    function wards(address) external view returns (uint256);
     function deny(address who) external;
+    function stopped() external view returns (uint256);
 }
 
 contract SingleClipBreakerSpellTest is DssTest {
@@ -103,6 +104,28 @@ contract SingleClipBreakerSpellTest is DssTest {
 
         assertEq(clip.stopped(), 0, "after: clip stopped unexpectedly");
         assertFalse(spell.done(), "after: spell done unexpectedly");
+    }
+
+    function testDescription() public view {
+        assertEq(spell.description(), string(abi.encodePacked("Emergency Spell | Set Clip Breaker: ", ilk)));
+    }
+
+    function testDoneWhenClipWardToMomReverts() public {
+        // Mock clip.wards(clipperMom) to revert
+        vm.mockCallRevert(
+            address(ilkReg.xlip(ilk)),
+            abi.encodeWithSelector(ClipLike.wards.selector, address(clipperMom)),
+            "revert"
+        );
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenClipStoppedReverts() public {
+        // Mock clip.stopped() to revert
+        vm.mockCallRevert(address(ilkReg.xlip(ilk)), abi.encodeWithSelector(ClipLike.stopped.selector), "revert");
+
+        assertTrue(spell.done(), "spell not done");
     }
 
     event SetBreaker(address indexed clip);

@@ -107,7 +107,7 @@ contract SingleOsmStopSpellTest is DssTest {
     function testDoneWhenOsmWardReverts() public {
         // Mock osm.wards(osmMom) to revert
         vm.mockCallRevert(
-            address(spell.osmMom().osms(spell.ilk())),
+            address(spell.osmMom().osms(ilk)),
             abi.encodeWithSelector(OsmLike.wards.selector, address(spell.osmMom())),
             "revert"
         );
@@ -117,9 +117,7 @@ contract SingleOsmStopSpellTest is DssTest {
 
     function testDoneWhenOsmStoppedReverts() public {
         // Mock osm.stopped() to revert
-        vm.mockCallRevert(
-            address(spell.osmMom().osms(spell.ilk())), abi.encodeWithSelector(OsmLike.stopped.selector), "revert"
-        );
+        vm.mockCallRevert(address(spell.osmMom().osms(ilk)), abi.encodeWithSelector(OsmLike.stopped.selector), "revert");
 
         assertTrue(spell.done(), "spell not done");
     }

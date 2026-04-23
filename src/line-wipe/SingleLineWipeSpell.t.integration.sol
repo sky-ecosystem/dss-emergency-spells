@@ -117,5 +117,9 @@ contract SingleLineWipeSpellTest is DssTest {
         assertFalse(spell.done(), "after: spell done unexpectedly");
     }
 
+    function testDescription() public view {
+        assertEq(spell.description(), string(abi.encodePacked("Emergency Spell | Line Wipe: ", ilk)));
+    }
+
     event Wipe();
 }

@@ -35,10 +35,12 @@ interface AutoLineLike {
         external
         view
         returns (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc);
+    function wards(address who) external view returns (uint256);
 }
 
 interface VatLike {
     function file(bytes32 ilk, bytes32 what, uint256 data) external;
+    function wards(address who) external view returns (uint256);
 }
 
 contract MultiLineWipeSpellTest is DssTest {
@@ -137,6 +139,21 @@ contract MultiLineWipeSpellTest is DssTest {
         vat.file("ETH-A", "line", 10 ** 45);
 
         assertFalse(spell.done(), "after: spell still done");
+    }
+
+    function testDoneWhenLineMomIsNotWardInVat() public {
+        vm.mockCall(address(vat), abi.encodeWithSelector(VatLike.wards.selector, address(lineMom)), abi.encode(uint256(0)));
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenLineMomIsNotWardInAutoLine() public {
+        vm.mockCall(address(vat), abi.encodeWithSelector(VatLike.wards.selector, address(lineMom)), abi.encode(uint256(1)));
+        vm.mockCall(
+            address(autoLine), abi.encodeWithSelector(AutoLineLike.wards.selector, address(lineMom)), abi.encode(uint256(0))
+        );
+
+        assertTrue(spell.done(), "spell not done");
     }
 
     function testRevertMultiOracleStopWhenItDoesNotHaveTheHat() public {
