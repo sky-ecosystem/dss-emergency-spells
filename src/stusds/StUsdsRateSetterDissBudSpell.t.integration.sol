@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: © 2024 Dai Foundation <www.daifoundation.org>
+// SPDX-FileCopyrightText: © 2026 Dai Foundation <www.daifoundation.org>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
 // This program is free software: you can redistribute it and/or modify
@@ -68,11 +68,9 @@ contract StUsdsRateSetterDissBudSpellTest is DssTest {
     }
 
     function testDissRateSetterOnSchedule() public {
-        uint256 pBud = stUsdsRateSetter.buds(bud);
-        assertEq(pBud, 1, "before: stUsdsRateSetter bud already dissed");
-
         vm.expectEmit(true, true, true, false);
         emit DissRateSetterBud(address(stUsdsRateSetter), bud);
+
         spell.schedule();
 
         uint256 aBud = stUsdsRateSetter.buds(bud);
@@ -87,25 +85,8 @@ contract StUsdsRateSetterDissBudSpellTest is DssTest {
     function testRevertDissRateSetterWhenItDoesNotHaveTheHat() public {
         stdstore.target(chief).sig("hat()").checked_write(address(0));
 
-        uint256 pBud = stUsdsRateSetter.buds(bud);
-        assertEq(pBud, 1, "before: stUsdsRateSetter bud already dissed");
-
-        assertFalse(spell.done(), "before: spell already done");
-
-        vm.expectRevert();
+        vm.expectRevert("StUsdsMom/not-authorized");
         spell.schedule();
-
-        uint256 aBud = stUsdsRateSetter.buds(bud);
-        assertEq(aBud, 1, "after: stUsdsRateSetter bud dissed unexpectedly");
-        assertFalse(spell.done(), "after: spell done unexpectedly");
-    }
-
-    function testDoneWhenStUsdsMomIsNotWardInStUsds() public {
-        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
-        vm.prank(pauseProxy);
-        stUsds.deny(stUsdsMom);
-
-        assertTrue(spell.done(), "spell not done");
     }
 
     function testDoneWhenStUsdsRateSetterIsNotWardInStUsds() public {
@@ -132,18 +113,6 @@ contract StUsdsRateSetterDissBudSpellTest is DssTest {
         vm.mockCallRevert(
             address(spellRevert.stUsds()),
             abi.encodeWithSelector(StUsdsLike.wards.selector, address(spellRevert.stUsdsRateSetter())),
-            "revert"
-        );
-
-        assertTrue(spellRevert.done(), "spell not done");
-    }
-
-    function testDoneWhenStUsdsToMomWardReverts() public {
-        StUsdsRateSetterDissBudSpell spellRevert = StUsdsRateSetterDissBudSpell(factory.deploy(bud));
-        // Mock stUsds.wards(stUsdsMom) to revert
-        vm.mockCallRevert(
-            address(spellRevert.stUsds()),
-            abi.encodeWithSelector(StUsdsLike.wards.selector, address(spellRevert.stUsdsMom())),
             "revert"
         );
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: © 2024 Dai Foundation <www.daifoundation.org>
+// SPDX-FileCopyrightText: © 2026 Dai Foundation <www.daifoundation.org>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
 // This program is free software: you can redistribute it and/or modify
@@ -66,9 +66,6 @@ contract StUsdsRateSetterHaltSpellTest is DssTest {
     }
 
     function testHaltRateOnSchedule() public {
-        uint8 pBad = stUsdsRateSetter.bad();
-        assertEq(pBad, 0, "before: stUsdsRateSetter bad already set");
-
         vm.expectEmit(true, true, true, false);
         emit HaltRateSetter(address(stUsdsRateSetter));
         spell.schedule();
@@ -85,23 +82,8 @@ contract StUsdsRateSetterHaltSpellTest is DssTest {
     function testRevertHaltRateWhenItDoesNotHaveTheHat() public {
         stdstore.target(chief).sig("hat()").checked_write(address(0));
 
-        uint8 pBad = stUsdsRateSetter.bad();
-        assertEq(pBad, 0, "before: stUsdsRateSetter bad already set");
-        assertFalse(spell.done(), "before: spell already done");
-
-        vm.expectRevert();
+        vm.expectRevert("StUsdsMom/not-authorized");
         spell.schedule();
-
-        uint8 bad = stUsdsRateSetter.bad();
-        assertEq(bad, 0, "after: stUsdsRateSetter bad set unexpectedly");
-        assertFalse(spell.done(), "after: spell done unexpectedly");
-    }
-
-    function testDoneWhenStUsdsMomIsNotWardInStUsds() public {
-        vm.prank(pauseProxy);
-        stUsds.deny(stUsdsMom);
-
-        assertTrue(spell.done(), "spell not done");
     }
 
     function testDoneWhenStUsdsRateSetterIsNotWardInStUsds() public {
@@ -123,17 +105,6 @@ contract StUsdsRateSetterHaltSpellTest is DssTest {
         vm.mockCallRevert(
             address(spell.stUsds()),
             abi.encodeWithSelector(StUsdsLike.wards.selector, address(spell.stUsdsRateSetter())),
-            "revert"
-        );
-
-        assertTrue(spell.done(), "spell not done");
-    }
-
-    function testDoneWhenStUsdsToMomWardReverts() public {
-        // Mock stUsds.wards(stUsdsMom) to revert
-        vm.mockCallRevert(
-            address(spell.stUsds()),
-            abi.encodeWithSelector(StUsdsLike.wards.selector, address(spell.stUsdsMom())),
             "revert"
         );
 

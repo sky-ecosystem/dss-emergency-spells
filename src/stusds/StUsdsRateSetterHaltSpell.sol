@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: © 2024 Dai Foundation <www.daifoundation.org>
+// SPDX-FileCopyrightText: © 2026 Dai Foundation <www.daifoundation.org>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
 // This program is free software: you can redistribute it and/or modify
@@ -50,23 +50,12 @@ contract StUsdsRateSetterHaltSpell is DssEmergencySpell {
      * @dev Checks if the bad has been set to 1 for the stUsdsRateSetter.
      *      The spell would revert if any of the following conditions holds:
      *          1. stUsdsRateSetter is not ward on stUsds;
-     *          2. stUsdsMom is not ward on stUsds;
-     *          3. stUsdsMom is not ward on stUsdsRateSetter.
-     *      In such cases, it returns `true`, meaning no further action can be taken at the moment.
+     *          2. stUsdsMom is not ward on stUsdsRateSetter.
+     *      In both cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
         try stUsds.wards(address(stUsdsRateSetter)) returns (uint256 ward) {
             // Ignore StUsds instances that have not relied on StUsdsRateSetter.
-            if (ward == 0) {
-                return true;
-            }
-        } catch {
-            // If the call failed, it means the contract is most likely not a StUsds instance.
-            return true;
-        }
-
-        try stUsds.wards(address(stUsdsMom)) returns (uint256 ward) {
-            // Ignore StUsds instances that have not relied on StUsdsMom.
             if (ward == 0) {
                 return true;
             }

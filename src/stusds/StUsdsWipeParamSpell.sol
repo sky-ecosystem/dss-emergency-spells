@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: © 2024 Dai Foundation <www.daifoundation.org>
+// SPDX-FileCopyrightText: © 2026 Dai Foundation <www.daifoundation.org>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
 // This program is free software: you can redistribute it and/or modify
@@ -36,8 +36,13 @@ interface StUsdsRateSetterLike {
 
 interface StUsdsLike {
     function cap() external view returns (uint256);
+    function ilk() external view returns (bytes32);
     function line() external view returns (uint256);
     function wards(address) external view returns (uint256);
+}
+
+interface VatLike {
+    function ilks(bytes32) external view returns (uint256 Art, uint256 rate, uint256 spot, uint256 line, uint256 dust);
 }
 
 /// @title stUSDS Wipe Param Emergency Spell
@@ -51,6 +56,7 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
     StUsdsRateSetterLike public immutable stUsdsRateSetter =
         StUsdsRateSetterLike(_log.getAddress("STUSDS_RATE_SETTER"));
     StUsdsLike public immutable stUsds = StUsdsLike(_log.getAddress("STUSDS"));
+    VatLike public immutable vat = VatLike(_log.getAddress("MCD_VAT"));
     Param public immutable param;
 
     event ZeroCap();
@@ -68,7 +74,7 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
     }
 
     function description() external view returns (string memory) {
-        return string(abi.encodePacked("Emergency Spell | stUSDS | halt: ", _paramToString(param)));
+        return string(abi.encodePacked("Emergency Spell | stUSDS | wipe param: ", _paramToString(param)));
     }
 
     /**
@@ -92,7 +98,6 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
      *          1. stUsdsMom is not a ward of stUsds;
      *          2. stUsdsRateSetter is not a ward of stUsds;
      *          3. stUsdsMom is not a ward of stUsdsRateSetter.
-     *      In both cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
         try stUsds.wards(address(stUsdsMom)) returns (uint256 ward) {
@@ -104,9 +109,8 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
             // If the call failed, it means the contract is most likely not a StUsds instance.
             return true;
         }
-
         try stUsds.wards(address(stUsdsRateSetter)) returns (uint256 ward) {
-            // Ignore StUsds instances that have not relied on StUsdsMom.
+            // Ignore StUsds instances that have not relied on stUsdsRateSetter.
             if (ward == 0) {
                 return true;
             }
@@ -125,15 +129,18 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
             return true;
         }
 
-        if (param == Param.LINE) {
-            return stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0;
-        }
         if (param == Param.CAP) {
             return stUsds.cap() == 0 && stUsdsRateSetter.maxCap() == 0;
         }
 
-        return
-            stUsds.cap() == 0 && stUsdsRateSetter.maxCap() == 0 && stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0;
+        (,,, uint256 vatLine,) = vat.ilks(stUsds.ilk());
+
+        if (param == Param.LINE) {
+            return vatLine == 0 && stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0;
+        }
+
+        return (stUsds.cap() == 0 && stUsdsRateSetter.maxCap() == 0)
+            && (vatLine == 0 && stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0);
     }
 }
 

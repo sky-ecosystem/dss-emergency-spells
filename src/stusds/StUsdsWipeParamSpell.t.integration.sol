@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: © 2024 Dai Foundation <www.daifoundation.org>
+// SPDX-FileCopyrightText: © 2026 Dai Foundation <www.daifoundation.org>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
 // This program is free software: you can redistribute it and/or modify
@@ -32,8 +32,16 @@ interface StUsdsLike {
     function cap() external view returns (uint256);
     function deny(address) external;
     function file(bytes32 what, uint256 data) external;
+    function ilk() external view returns (bytes32);
     function line() external view returns (uint256);
     function wards(address) external view returns (uint256);
+}
+
+interface VatLike {
+    function ilks(bytes32 ilk)
+        external
+        view
+        returns (uint256 Art, uint256 rate, uint256 spot, uint256 line, uint256 dust);
 }
 
 contract SingleLineOrCapWipeSpellTest is DssTest {
@@ -42,10 +50,12 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
     address chief;
     address stUsdsMom;
+    bytes32 stUsdsIlk;
     DssInstance dss;
     StUsdsLike stUsds;
     StUsdsRateSetterLike stUsdsRateSetter;
     StUsdsWipeParamFactory factory;
+    VatLike vat;
 
     function setUp() public {
         vm.createSelectFork("mainnet");
@@ -57,12 +67,15 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         stUsds = StUsdsLike(dss.chainlog.getAddress("STUSDS"));
         stUsdsMom = dss.chainlog.getAddress("STUSDS_MOM");
         factory = new StUsdsWipeParamFactory();
+        vat = VatLike(dss.chainlog.getAddress("MCD_VAT"));
 
-        stdstore.target(address(stUsds)).sig("line()").checked_write(uint256(1_000_000 * 1e18));
-        stdstore.target(address(stUsds)).sig("cap()").checked_write(uint256(1_000_000 * 1e18));
+        stUsdsIlk = StUsdsLike(stUsds).ilk();
 
-        stdstore.target(address(stUsdsRateSetter)).sig("maxLine()").checked_write(uint256(1_000_000 * 1e18));
-        stdstore.target(address(stUsdsRateSetter)).sig("maxCap()").checked_write(uint256(1_000_000 * 1e18));
+        stdstore.target(address(stUsds)).sig("line()").checked_write(uint256(1_000_000 * RAD));
+        stdstore.target(address(stUsds)).sig("cap()").checked_write(uint256(1_000_000 * WAD));
+
+        stdstore.target(address(stUsdsRateSetter)).sig("maxLine()").checked_write(uint256(1_000_000 * RAD));
+        stdstore.target(address(stUsdsRateSetter)).sig("maxCap()").checked_write(uint256(1_000_000 * WAD));
 
         vm.makePersistent(chief);
     }
@@ -189,36 +202,81 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         assertTrue(spell.done(), "spell not done");
     }
 
+    function testNotDoneWhenOnlyVatStUsdsIlkLineIsZero() public {
+        StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(Param.LINE));
+        bytes32 ilk = spell.stUsds().ilk();
+
+        (uint256 art, uint256 rate, uint256 spot,, uint256 dust) = spell.vat().ilks(ilk);
+
+        // Mock vat.ilks() to return a zero line
+        vm.mockCall(
+            address(spell.vat()),
+            abi.encodeWithSelector(VatLike.ilks.selector, ilk),
+            abi.encode(art, rate, spot, uint256(0), dust)
+        );
+
+        assertFalse(spell.done(), "spell unexpectedly done");
+    }
+
+    function testNotDoneWhenOnlyStUsdsLineIsZero() public {
+        StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(Param.LINE));
+        // Mock stUsds.line() to return a zero line
+        stdstore.target(address(spell.stUsds())).sig("line()").checked_write(uint256(0));
+
+        assertFalse(spell.done(), "spell unexpectedly done");
+    }
+
+    function testNotDoneWhenOnlyStUsdsRateSetterMaxLineIsZero() public {
+        StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(Param.LINE));
+        // Mock stUsdsRateSetter.maxLine() to return a zero line
+        stdstore.target(address(spell.stUsdsRateSetter())).sig("maxLine()").checked_write(uint256(0));
+
+        assertFalse(spell.done(), "spell unexpectedly done");
+    }
+
+    function testDoneWhenAllLineValuesAreZero() public {
+        StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(Param.LINE));
+        bytes32 ilk = spell.stUsds().ilk();
+
+        (uint256 art, uint256 rate, uint256 spot,, uint256 dust) = spell.vat().ilks(ilk);
+
+        vm.mockCall(
+            address(spell.vat()),
+            abi.encodeWithSelector(VatLike.ilks.selector, ilk),
+            abi.encode(art, rate, spot, uint256(0), dust)
+        );
+        stdstore.target(address(spell.stUsds())).sig("line()").checked_write(uint256(0));
+        stdstore.target(address(spell.stUsdsRateSetter())).sig("maxLine()").checked_write(uint256(0));
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testNotDoneWhenBothParamsAreZeroButVatStUsdsIlkLineIsNotZero() public {
+        StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(Param.BOTH));
+
+        stdstore.target(address(spell.stUsds())).sig("line()").checked_write(uint256(0));
+        stdstore.target(address(spell.stUsds())).sig("cap()").checked_write(uint256(0));
+        stdstore.target(address(spell.stUsdsRateSetter())).sig("maxLine()").checked_write(uint256(0));
+        stdstore.target(address(spell.stUsdsRateSetter())).sig("maxCap()").checked_write(uint256(0));
+
+        assertFalse(spell.done(), "spell unexpectedly done");
+    }
+
     // HELPERS
 
     function _checkDescription(Param param) internal {
         DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(param));
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
         string memory description = spell.description();
-        if (param == Param.LINE) assertEq(description, "Emergency Spell | stUSDS | halt: LINE");
-        else if (param == Param.CAP) assertEq(description, "Emergency Spell | stUSDS | halt: CAP");
-        else assertEq(description, "Emergency Spell | stUSDS | halt: BOTH");
+        if (param == Param.LINE) assertEq(description, "Emergency Spell | stUSDS | wipe param: LINE");
+        else if (param == Param.CAP) assertEq(description, "Emergency Spell | stUSDS | wipe param: CAP");
+        else assertEq(description, "Emergency Spell | stUSDS | wipe param: BOTH");
     }
 
     function _checkLineOrCapWipeOnSchedule(Param param) internal {
         DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(param));
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
         vm.makePersistent(chief);
-
-        uint256 cap = stUsds.cap();
-        uint256 line = stUsds.line();
-        uint256 maxCap = stUsdsRateSetter.maxCap();
-        uint256 maxLine = stUsdsRateSetter.maxLine();
-
-        if (param == Param.LINE || param == Param.BOTH) {
-            assertNotEq(line, 0, "before: STUSDS line already zeroed");
-            assertNotEq(maxLine, 0, "before: STUSDS_RATE_SETTER maxLine already zeroed");
-        }
-        if (param == Param.CAP || param == Param.BOTH) {
-            assertNotEq(cap, 0, "before: STUSDS cap already zeroed");
-            assertNotEq(maxCap, 0, "before: STUSDS_RATE_SETTER maxCap already zeroed");
-        }
-        assertFalse(spell.done(), "before: spell already done");
 
         if (param == Param.LINE || param == Param.BOTH) {
             vm.expectEmit(true, true, true, false, address(spell));
@@ -231,16 +289,19 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
 
         spell.schedule();
 
-        uint256 postCap = stUsds.cap();
-        uint256 postLine = stUsds.line();
-        uint256 postMaxCap = stUsdsRateSetter.maxCap();
-        uint256 postMaxLine = stUsdsRateSetter.maxLine();
-
         if (param == Param.LINE || param == Param.BOTH) {
+            uint256 postLine = stUsds.line();
+            uint256 postMaxLine = stUsdsRateSetter.maxLine();
+            (,,, uint256 postVatLine,) = vat.ilks(stUsdsIlk);
+
             assertEq(postLine, 0, "after: STUSDS line non zeroed unexpectedly");
             assertEq(postMaxLine, 0, "after: STUSDS_RATE_SETTER maxLine non zeroed unexpectedly");
+            assertEq(postVatLine, 0, "after: MCD_VAT ilk line non zeroed unexpectedly");
         }
         if (param == Param.CAP || param == Param.BOTH) {
+            uint256 postCap = stUsds.cap();
+            uint256 postMaxCap = stUsdsRateSetter.maxCap();
+
             assertEq(postCap, 0, "after: STUSDS cap non zeroed unexpectedly");
             assertEq(postMaxCap, 0, "after: STUSDS_RATE_SETTER maxCap non zeroed unexpectedly");
         }
@@ -280,38 +341,8 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
     function _checkRevertSpellWhenItDoesNotHaveTheHat(Param param) internal {
         DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(param));
 
-        uint256 cap = stUsds.cap();
-        uint256 line = stUsds.line();
-        uint256 maxCap = stUsdsRateSetter.maxCap();
-        uint256 maxLine = stUsdsRateSetter.maxLine();
-
-        if (param == Param.LINE || param == Param.BOTH) {
-            assertNotEq(line, 0, "before: STUSDS line already zeroed");
-            assertNotEq(maxLine, 0, "before: STUSDS_RATE_SETTER maxLine already zeroed");
-        }
-        if (param == Param.CAP || param == Param.BOTH) {
-            assertNotEq(cap, 0, "before: STUSDS cap already zeroed");
-            assertNotEq(maxCap, 0, "before: STUSDS_RATE_SETTER maxCap already zeroed");
-        }
-        assertFalse(spell.done(), "before: spell already done");
-
-        vm.expectRevert();
+        vm.expectRevert("StUsdsMom/not-authorized");
         spell.schedule();
-
-        uint256 postCap = stUsds.cap();
-        uint256 postLine = stUsds.line();
-        uint256 postMaxCap = stUsdsRateSetter.maxCap();
-        uint256 postMaxLine = stUsdsRateSetter.maxLine();
-
-        if (param == Param.LINE || param == Param.BOTH) {
-            assertEq(postLine, line, "after: STUSDS line zeroed unexpectedly");
-            assertEq(postMaxLine, maxLine, "after: STUSDS_RATE_SETTER maxLine zeroed unexpectedly");
-        }
-        if (param == Param.CAP || param == Param.BOTH) {
-            assertEq(postCap, cap, "after: STUSDS cap zeroed unexpectedly");
-            assertEq(postMaxCap, maxCap, "after: STUSDS_RATE_SETTER maxCap zeroed unexpectedly");
-        }
-        assertFalse(spell.done(), "after: spell done unexpectedly");
     }
 
     event ZeroCap();
