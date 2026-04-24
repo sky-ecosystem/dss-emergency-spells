@@ -139,8 +139,8 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
             return vatLine == 0 && stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0;
         }
 
-        return vatLine == 0 && stUsds.cap() == 0 && stUsdsRateSetter.maxCap() == 0 && stUsds.line() == 0
-            && stUsdsRateSetter.maxLine() == 0;
+        return (stUsds.cap() == 0 && stUsdsRateSetter.maxCap() == 0)
+            && (vatLine == 0 && stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0);
     }
 }
 
