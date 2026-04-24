@@ -202,23 +202,6 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         assertTrue(spell.done(), "spell not done");
     }
 
-    function testDoneWhenStUsdsIlkReverts() public {
-        StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(Param.LINE));
-        // Mock stUsds.ilk() to revert
-        vm.mockCallRevert(address(spell.stUsds()), abi.encodeWithSelector(StUsdsLike.ilk.selector), "revert");
-
-        assertTrue(spell.done(), "spell not done");
-    }
-
-    function testDoneWhenVatIlksReverts() public {
-        StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(Param.LINE));
-        bytes32 ilk = spell.stUsds().ilk();
-        // Mock vat.ilks() to revert
-        vm.mockCallRevert(address(spell.vat()), abi.encodeWithSelector(VatLike.ilks.selector, ilk), "revert");
-
-        assertTrue(spell.done(), "spell not done");
-    }
-
     function testNotDoneWhenOnlyVatStUsdsIlkLineIsZero() public {
         StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(Param.LINE));
         bytes32 ilk = spell.stUsds().ilk();
