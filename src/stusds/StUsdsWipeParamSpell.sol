@@ -36,8 +36,13 @@ interface StUsdsRateSetterLike {
 
 interface StUsdsLike {
     function cap() external view returns (uint256);
+    function ilk() external view returns (bytes32);
     function line() external view returns (uint256);
     function wards(address) external view returns (uint256);
+}
+
+interface VatLike {
+    function ilks(bytes32) external view returns (uint256 Art, uint256 rate, uint256 spot, uint256 line, uint256 dust);
 }
 
 /// @title stUSDS Wipe Param Emergency Spell
@@ -51,6 +56,7 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
     StUsdsRateSetterLike public immutable stUsdsRateSetter =
         StUsdsRateSetterLike(_log.getAddress("STUSDS_RATE_SETTER"));
     StUsdsLike public immutable stUsds = StUsdsLike(_log.getAddress("STUSDS"));
+    VatLike public immutable vat = VatLike(_log.getAddress("MCD_VAT"));
     Param public immutable param;
 
     event ZeroCap();
@@ -92,7 +98,6 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
      *          1. stUsdsMom is not a ward of stUsds;
      *          2. stUsdsRateSetter is not a ward of stUsds;
      *          3. stUsdsMom is not a ward of stUsdsRateSetter.
-     *      In such cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
         try stUsds.wards(address(stUsdsMom)) returns (uint256 ward) {
@@ -124,15 +129,18 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
             return true;
         }
 
-        if (param == Param.LINE) {
-            return stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0;
-        }
         if (param == Param.CAP) {
             return stUsds.cap() == 0 && stUsdsRateSetter.maxCap() == 0;
         }
 
-        return
-            stUsds.cap() == 0 && stUsdsRateSetter.maxCap() == 0 && stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0;
+        (,,, uint256 vatLine,) = vat.ilks(stUsds.ilk());
+
+        if (param == Param.LINE) {
+            return vatLine == 0 && stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0;
+        }
+
+        return (stUsds.cap() == 0 && stUsdsRateSetter.maxCap() == 0)
+            && (vatLine == 0 && stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0);
     }
 }
 

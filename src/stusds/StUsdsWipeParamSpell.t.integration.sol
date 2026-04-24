@@ -71,11 +71,11 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
 
         stUsdsIlk = StUsdsLike(stUsds).ilk();
 
-        stdstore.target(address(stUsds)).sig("line()").checked_write(uint256(1_000_000 * 1e18));
-        stdstore.target(address(stUsds)).sig("cap()").checked_write(uint256(1_000_000 * 1e18));
+        stdstore.target(address(stUsds)).sig("line()").checked_write(uint256(1_000_000 * RAD));
+        stdstore.target(address(stUsds)).sig("cap()").checked_write(uint256(1_000_000 * WAD));
 
-        stdstore.target(address(stUsdsRateSetter)).sig("maxLine()").checked_write(uint256(1_000_000 * 1e18));
-        stdstore.target(address(stUsdsRateSetter)).sig("maxCap()").checked_write(uint256(1_000_000 * 1e18));
+        stdstore.target(address(stUsdsRateSetter)).sig("maxLine()").checked_write(uint256(1_000_000 * RAD));
+        stdstore.target(address(stUsdsRateSetter)).sig("maxCap()").checked_write(uint256(1_000_000 * WAD));
 
         vm.makePersistent(chief);
     }
@@ -200,6 +200,66 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         );
 
         assertTrue(spell.done(), "spell not done");
+    }
+
+    function testNotDoneWhenOnlyVatStUsdsIlkLineIsZero() public {
+        StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(Param.LINE));
+        bytes32 ilk = spell.stUsds().ilk();
+
+        (uint256 art, uint256 rate, uint256 spot,, uint256 dust) = spell.vat().ilks(ilk);
+
+        // Mock vat.ilks() to return a zero line
+        vm.mockCall(
+            address(spell.vat()),
+            abi.encodeWithSelector(VatLike.ilks.selector, ilk),
+            abi.encode(art, rate, spot, uint256(0), dust)
+        );
+
+        assertFalse(spell.done(), "spell unexpectedly done");
+    }
+
+    function testNotDoneWhenOnlyStUsdsLineIsZero() public {
+        StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(Param.LINE));
+        // Mock stUsds.line() to return a zero line
+        stdstore.target(address(spell.stUsds())).sig("line()").checked_write(uint256(0));
+
+        assertFalse(spell.done(), "spell unexpectedly done");
+    }
+
+    function testNotDoneWhenOnlyStUsdsRateSetterMaxLineIsZero() public {
+        StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(Param.LINE));
+        // Mock stUsdsRateSetter.maxLine() to return a zero line
+        stdstore.target(address(spell.stUsdsRateSetter())).sig("maxLine()").checked_write(uint256(0));
+
+        assertFalse(spell.done(), "spell unexpectedly done");
+    }
+
+    function testDoneWhenAllLineValuesAreZero() public {
+        StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(Param.LINE));
+        bytes32 ilk = spell.stUsds().ilk();
+
+        (uint256 art, uint256 rate, uint256 spot,, uint256 dust) = spell.vat().ilks(ilk);
+
+        vm.mockCall(
+            address(spell.vat()),
+            abi.encodeWithSelector(VatLike.ilks.selector, ilk),
+            abi.encode(art, rate, spot, uint256(0), dust)
+        );
+        stdstore.target(address(spell.stUsds())).sig("line()").checked_write(uint256(0));
+        stdstore.target(address(spell.stUsdsRateSetter())).sig("maxLine()").checked_write(uint256(0));
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testNotDoneWhenBothParamsAreZeroButVatStUsdsIlkLineIsNotZero() public {
+        StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(Param.BOTH));
+
+        stdstore.target(address(spell.stUsds())).sig("line()").checked_write(uint256(0));
+        stdstore.target(address(spell.stUsds())).sig("cap()").checked_write(uint256(0));
+        stdstore.target(address(spell.stUsdsRateSetter())).sig("maxLine()").checked_write(uint256(0));
+        stdstore.target(address(spell.stUsdsRateSetter())).sig("maxCap()").checked_write(uint256(0));
+
+        assertFalse(spell.done(), "spell unexpectedly done");
     }
 
     // HELPERS
