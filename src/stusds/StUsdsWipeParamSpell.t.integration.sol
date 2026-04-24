@@ -71,11 +71,11 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
 
         stUsdsIlk = StUsdsLike(stUsds).ilk();
 
-        stdstore.target(address(stUsds)).sig("line()").checked_write(uint256(1_000_000 * 1e18));
-        stdstore.target(address(stUsds)).sig("cap()").checked_write(uint256(1_000_000 * 1e18));
+        stdstore.target(address(stUsds)).sig("line()").checked_write(uint256(1_000_000 * RAD));
+        stdstore.target(address(stUsds)).sig("cap()").checked_write(uint256(1_000_000 * RAD));
 
-        stdstore.target(address(stUsdsRateSetter)).sig("maxLine()").checked_write(uint256(1_000_000 * 1e18));
-        stdstore.target(address(stUsdsRateSetter)).sig("maxCap()").checked_write(uint256(1_000_000 * 1e18));
+        stdstore.target(address(stUsdsRateSetter)).sig("maxLine()").checked_write(uint256(1_000_000 * RAD));
+        stdstore.target(address(stUsdsRateSetter)).sig("maxCap()").checked_write(uint256(1_000_000 * RAD));
 
         vm.makePersistent(chief);
     }
