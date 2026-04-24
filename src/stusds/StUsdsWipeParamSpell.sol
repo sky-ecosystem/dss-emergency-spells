@@ -129,17 +129,18 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
             return true;
         }
 
-        if (param == Param.LINE) {
-            (,,, uint256 vatLine,) = vat.ilks(stUsds.ilk());
-            return vatLine == 0 && stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0;
-        }
-
         if (param == Param.CAP) {
             return stUsds.cap() == 0 && stUsdsRateSetter.maxCap() == 0;
         }
 
-        return
-            stUsds.cap() == 0 && stUsdsRateSetter.maxCap() == 0 && stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0;
+        (,,, uint256 vatLine,) = vat.ilks(stUsds.ilk());
+
+        if (param == Param.LINE) {
+            return vatLine == 0 && stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0;
+        }
+
+        return vatLine == 0 && stUsds.cap() == 0 && stUsdsRateSetter.maxCap() == 0 && stUsds.line() == 0
+            && stUsdsRateSetter.maxLine() == 0;
     }
 }
 

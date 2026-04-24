@@ -251,6 +251,17 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         assertTrue(spell.done(), "spell not done");
     }
 
+    function testNotDoneWhenBothParamsAreZeroButVatStUsdsIlkLineIsNotZero() public {
+        StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(Param.BOTH));
+
+        stdstore.target(address(spell.stUsds())).sig("line()").checked_write(uint256(0));
+        stdstore.target(address(spell.stUsds())).sig("cap()").checked_write(uint256(0));
+        stdstore.target(address(spell.stUsdsRateSetter())).sig("maxLine()").checked_write(uint256(0));
+        stdstore.target(address(spell.stUsdsRateSetter())).sig("maxCap()").checked_write(uint256(0));
+
+        assertFalse(spell.done(), "spell unexpectedly done");
+    }
+
     // HELPERS
 
     function _checkDescription(Param param) internal {
