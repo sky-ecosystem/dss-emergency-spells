@@ -98,10 +98,6 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
      *          1. stUsdsMom is not a ward of stUsds;
      *          2. stUsdsRateSetter is not a ward of stUsds;
      *          3. stUsdsMom is not a ward of stUsdsRateSetter.
-     *      For `Param.LINE`, it also returns `true` if:
-     *          4. stUsds.ilk() reverts;
-     *          5. vat.ilks(stUsds.ilk()) reverts.
-     *      In such cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
         try stUsds.wards(address(stUsdsMom)) returns (uint256 ward) {
@@ -133,32 +129,18 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
             return true;
         }
 
-        if (param == Param.LINE) {
-            bytes32 ilk;
-            try stUsds.ilk() returns (bytes32 _ilk) {
-                ilk = _ilk;
-            } catch {
-                // If the call failed, it means the contract is most likely not a StUsds instance.
-                return true;
-            }
-
-            uint256 vatLine;
-            try vat.ilks(ilk) returns (uint256, uint256, uint256, uint256 line, uint256) {
-                vatLine = line;
-            } catch {
-                // If the call failed, it means the contract most likely is not a Vat instance.
-                return true;
-            }
-
-            return vatLine == 0 && stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0;
-        }
-
         if (param == Param.CAP) {
             return stUsds.cap() == 0 && stUsdsRateSetter.maxCap() == 0;
         }
 
-        return
-            stUsds.cap() == 0 && stUsdsRateSetter.maxCap() == 0 && stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0;
+        (,,, uint256 vatLine,) = vat.ilks(stUsds.ilk());
+
+        if (param == Param.LINE) {
+            return vatLine == 0 && stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0;
+        }
+
+        return (stUsds.cap() == 0 && stUsdsRateSetter.maxCap() == 0)
+            && (vatLine == 0 && stUsds.line() == 0 && stUsdsRateSetter.maxLine() == 0);
     }
 }
 
