@@ -22,9 +22,11 @@ import {SingleLitePsmHaltFactory, Flow} from "./SingleLitePsmHaltSpell.sol";
 
 interface LitePsmLike {
     function deny(address) external;
+    function ilk() external view returns (bytes32);
     function tin() external view returns (uint256);
     function tout() external view returns (uint256);
     function HALTED() external view returns (uint256);
+    function wards(address) external view returns (uint256);
 }
 
 contract MockAuth {
@@ -161,6 +163,45 @@ contract SingleLitePsmHaltSpellTest is DssTest {
         }
 
         assertFalse(spell.done(), "after: spell done unexpectedly");
+    }
+
+    function testDoneWhenPsmToMomWardReverts() public {
+        Flow flow = Flow.BOTH;
+        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(psm), flow));
+        // Mock psm.wards(litePsmMom) to revert
+        vm.mockCallRevert(
+            address(psm), abi.encodeWithSelector(LitePsmLike.wards.selector, address(litePsmMom)), "revert"
+        );
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    // Description
+
+    function testDescriptionCap() public {
+        _checkDescription(Flow.SELL);
+    }
+
+    function testDescriptionLine() public {
+        _checkDescription(Flow.BUY);
+    }
+
+    function testDescriptionBoth() public {
+        _checkDescription(Flow.BOTH);
+    }
+
+    function _checkDescription(Flow flow) internal {
+        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(psm), flow));
+
+        stdstore.target(chief).sig("hat()").checked_write(address(spell));
+        string memory description = spell.description();
+        if (flow == Flow.SELL) {
+            assertEq(description, string(abi.encodePacked("Emergency Spell | ", psm.ilk(), " | halt: SELL")));
+        } else if (flow == Flow.BUY) {
+            assertEq(description, string(abi.encodePacked("Emergency Spell | ", psm.ilk(), " | halt: BUY")));
+        } else {
+            assertEq(description, string(abi.encodePacked("Emergency Spell | ", psm.ilk(), " | halt: BOTH")));
+        }
     }
 
     event Halt(Flow what);

@@ -31,6 +31,7 @@ interface ClipperMomLike {
 
 interface ClipLike {
     function stopped() external view returns (uint256);
+    function wards(address who) external view returns (uint256);
     function deny(address who) external;
 }
 
@@ -147,6 +148,40 @@ abstract contract GroupedClipBreakerSpellTest is DssTest {
 
         vm.expectRevert();
         spell.schedule();
+    }
+
+    function testDoneWhenClipWardReverts() public {
+        vm.mockCallRevert(
+            address(clipA), abi.encodeWithSelector(ClipLike.wards.selector, address(clipperMom)), bytes("revert")
+        );
+        assertFalse(spell.done(), "ClipA: spell done unexpectedly");
+
+        vm.mockCallRevert(
+            address(clipB), abi.encodeWithSelector(ClipLike.wards.selector, address(clipperMom)), bytes("revert")
+        );
+
+        if (ilks.length > 2) {
+            assertFalse(spell.done(), "ClipB: spell done unexpectedly");
+            vm.mockCallRevert(
+                address(clipC), abi.encodeWithSelector(ClipLike.wards.selector, address(clipperMom)), bytes("revert")
+            );
+        }
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenClipStoppedReverts() public {
+        vm.mockCallRevert(address(clipA), abi.encodeWithSelector(ClipLike.stopped.selector), bytes("revert"));
+        assertFalse(spell.done(), "ClipA: spell done unexpectedly");
+
+        vm.mockCallRevert(address(clipB), abi.encodeWithSelector(ClipLike.stopped.selector), bytes("revert"));
+
+        if (ilks.length > 2) {
+            assertFalse(spell.done(), "ClipB: spell done unexpectedly");
+            vm.mockCallRevert(address(clipC), abi.encodeWithSelector(ClipLike.stopped.selector), bytes("revert"));
+        }
+
+        assertTrue(spell.done(), "spell not done");
     }
 
     event SetBreaker(bytes32 indexed ilk, address indexed clip);

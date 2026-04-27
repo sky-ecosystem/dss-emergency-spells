@@ -105,5 +105,9 @@ contract SingleDdmDisableSpellTest is DssTest {
         assertFalse(spell.done(), "after: spell done unexpectedly");
     }
 
+    function testDescription() public view {
+        assertEq(spell.description(), string(abi.encodePacked("Emergency Spell | Disable DDM Plan: ", ilk)));
+    }
+
     event Disable(address indexed plan);
 }

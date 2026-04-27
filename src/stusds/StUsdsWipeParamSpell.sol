@@ -69,8 +69,8 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
     function _paramToString(Param _param) internal pure returns (string memory) {
         if (_param == Param.CAP) return "CAP";
         if (_param == Param.LINE) return "LINE";
-        if (_param == Param.BOTH) return "BOTH";
-        return "";
+        assert(_param == Param.BOTH);
+        return "BOTH";
     }
 
     function description() external view returns (string memory) {
