@@ -84,6 +84,13 @@ contract DssGroupedEmergencySpellTest is DssTest {
         assertEq(spell3.description(), "Grouped Emergency Spell: ETH-A, ETH-B, ETH-C");
     }
 
+    function testRevertWhenTooFewIlks() public {
+        bytes32[] memory ilks = new bytes32[](0);
+
+        vm.expectRevert("DssGroupedEmergencySpell/too-few-ilks");
+        new DssGroupedEmergencySpellImpl(ilks);
+    }
+
     function testEmergencyActions() public {
         vm.expectEmit(true, true, true, true);
         emit EmergencyAction("WSTETH-A");
@@ -135,6 +142,11 @@ contract DssGroupedEmergencySpellTest is DssTest {
         }
 
         assertTrue(spellN.done(), "spellN not done");
+    }
+
+    function testRevertEmergencyActionsInBatchWhenStartIsGreaterThanEnd() public {
+        vm.expectRevert("DssGroupedEmergencySpell/bad-iteration");
+        spell2.emergencyActionsInBatch(2, 3);
     }
 
     function testDone() public {

@@ -1,5 +1,7 @@
 # Maker Protocol Emergency Spells
 
+![coverage](https://img.shields.io/badge/coverage-100%25%20contracts-brightgreen)
+
 Pre-deployed spells to allow MakerDAO Governance to react faster in case of emergencies.
 
 ## Motivation
