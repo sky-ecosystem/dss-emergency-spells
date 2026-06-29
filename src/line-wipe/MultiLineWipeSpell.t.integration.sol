@@ -142,15 +142,21 @@ contract MultiLineWipeSpellTest is DssTest {
     }
 
     function testDoneWhenLineMomIsNotWardInVat() public {
-        vm.mockCall(address(vat), abi.encodeWithSelector(VatLike.wards.selector, address(lineMom)), abi.encode(uint256(0)));
+        vm.mockCall(
+            address(vat), abi.encodeWithSelector(VatLike.wards.selector, address(lineMom)), abi.encode(uint256(0))
+        );
 
         assertTrue(spell.done(), "spell not done");
     }
 
     function testDoneWhenLineMomIsNotWardInAutoLine() public {
-        vm.mockCall(address(vat), abi.encodeWithSelector(VatLike.wards.selector, address(lineMom)), abi.encode(uint256(1)));
         vm.mockCall(
-            address(autoLine), abi.encodeWithSelector(AutoLineLike.wards.selector, address(lineMom)), abi.encode(uint256(0))
+            address(vat), abi.encodeWithSelector(VatLike.wards.selector, address(lineMom)), abi.encode(uint256(1))
+        );
+        vm.mockCall(
+            address(autoLine),
+            abi.encodeWithSelector(AutoLineLike.wards.selector, address(lineMom)),
+            abi.encode(uint256(0))
         );
 
         assertTrue(spell.done(), "spell not done");

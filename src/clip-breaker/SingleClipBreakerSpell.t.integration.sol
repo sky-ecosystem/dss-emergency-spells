@@ -113,9 +113,7 @@ contract SingleClipBreakerSpellTest is DssTest {
     function testDoneWhenClipWardToMomReverts() public {
         // Mock clip.wards(clipperMom) to revert
         vm.mockCallRevert(
-            address(ilkReg.xlip(ilk)),
-            abi.encodeWithSelector(ClipLike.wards.selector, address(clipperMom)),
-            "revert"
+            address(ilkReg.xlip(ilk)), abi.encodeWithSelector(ClipLike.wards.selector, address(clipperMom)), "revert"
         );
 
         assertTrue(spell.done(), "spell not done");
