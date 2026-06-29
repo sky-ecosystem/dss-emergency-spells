@@ -70,13 +70,15 @@ bespoke spell in record time.
 
 ### On-chain Emergency Spell Factories
 
-| Name                        | Address                                      |
-| --------------------------- | -------------------------------------------- |
-| `GroupedClipBreakerFactory` | `0x867852d30bb3cb1411fb4e404fae28ef742b1023` |
-| `GroupedLineWipeFactory`    | `0x8646f8778b58a0df118facedf522181ba7277529` |
-| `SingleDdmDisableFactory`   | `0x8BA0f6C4009Ea915706e1bCfB1d879E34587dC69` |
-| `SingleOsmStopFactory`      | `0x83211c74131bA2B3de7538f588f1c2f309e81eF0` |
-| `SingleLitePsmHaltFactory`  | `0xB261b73698F6dBC03cB1E998A3176bdD81C3514A` |
+| Name                              | Address                                      |
+| --------------------------------- | -------------------------------------------- |
+| `GroupedClipBreakerFactory`       | `0x867852d30bb3cb1411fb4e404fae28ef742b1023` |
+| `GroupedLineWipeFactory`          | `0x8646f8778b58a0df118facedf522181ba7277529` |
+| `SingleDdmDisableFactory`         | `0x8BA0f6C4009Ea915706e1bCfB1d879E34587dC69` |
+| `SingleOsmStopFactory`            | `0x83211c74131bA2B3de7538f588f1c2f309e81eF0` |
+| `SingleLitePsmHaltFactory`        | `0xB261b73698F6dBC03cB1E998A3176bdD81C3514A` |
+| `StUsdsRateSetterDissBudFactory`  | `0xb3Fd827F58989cFacFE50d2F8e86A1113b6066D1` |
+| `StUsdsWipeParamFactory`          | `0x768D5Ce639c7E7d51E1244E2634d6149bd0d8096` |
 
 #### `GroupedClipBreakerSpell`
 
@@ -170,23 +172,23 @@ bespoke spell in record time.
 
 #### `StUsdsRateSetterDissBudSpell`
 
-| Ilk         | Address                                      |
-| ----------- | -------------------------------------------- |
-| `stUSDS`     | `<TBD>` |
+| Ilk      | Bud                                          | Address                                      |
+| -------- | -------------------------------------------- | -------------------------------------------- |
+| `stUSDS` | `0xBB865F94B8A92E57f79fCc89Dfd4dcf0D3fDEA16` | `0x8e1a1bb9537e355cB4B2B2f8aFeBB31dBC158a83` |
 
 #### `StUsdsRateSetterHaltSpell`
 
 | Ilk         | Address                                      |
 | ----------- | -------------------------------------------- |
-| `stUSDS`     | `<TBD>` |
+| `stUSDS`    | `0x91808ABeCd82495a4a7bf27d80C8c1e89de9effb` |
 
 #### `StUsdsWipeParamSpell`
 
-| Ilk                    | Flow   | Address                                      |
-| ---------------------- | ----   | ------------------------------------------   |
-| `stUSDS`      | `BOTH` | `<TBD>` |
-| `stUSDS`      | `CAP`  | `<TBD>` |
-| `stUSDS`      | `LINE` | `<TBD>` |
+| Ilk           | Flow   | Address                                      |
+| ------------- | ------ | -------------------------------------------  |
+| `stUSDS`      | `BOTH` | `0x845C2e308b953D61f321dAb19206ba14549BD73b` |
+| `stUSDS`      | `CAP`  | `0xc41578939B8dFF7210F9544c2E97A10fb5d83E7d` |
+| `stUSDS`      | `LINE` | `0xD4cD97EB11F3aF42DC2Ea1a83B7e401F34513143` |
 
 ## Implemented Actions
 
