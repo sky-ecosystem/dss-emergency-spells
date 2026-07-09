@@ -21,6 +21,7 @@ import {MultiOsmStopSpell} from "./MultiOsmStopSpell.sol";
 
 interface OsmMomLike {
     function osms(bytes32) external view returns (address);
+    function stop(bytes32) external;
 }
 
 interface OsmLike {
@@ -191,6 +192,82 @@ contract MultiOsmStopSpellTest is DssTest {
         spell.schedule();
     }
 
+    function testStopBatchEmitsFailWhenOsmMomStopReverts() public {
+        (bytes32 ilk, uint256 index) = _firstRelevantIlkWithIndex();
+        address osm = spell.osmMom().osms(ilk);
+        string memory reason = "mock-stop-error";
+
+        vm.mockCallRevert(
+            address(spell.osmMom()),
+            abi.encodeWithSelector(OsmMomLike.stop.selector, ilk),
+            abi.encodeWithSignature("Error(string)", reason)
+        );
+
+        vm.expectEmit(true, true, true, true);
+        emit Fail(ilk, osm, bytes(reason));
+        spell.stopBatch(index, index);
+    }
+
+    function testStopBatchEmitsFailWhenOsmWardReverts() public {
+        (bytes32 ilk, uint256 index) = _firstRelevantIlkWithIndex();
+        address osm = spell.osmMom().osms(ilk);
+        bytes memory reason = hex"abcdef";
+
+        vm.mockCallRevert(osm, abi.encodeWithSelector(OsmLike.wards.selector, address(spell.osmMom())), reason);
+
+        vm.expectEmit(true, true, true, true);
+        emit Fail(ilk, osm, reason);
+        spell.stopBatch(index, index);
+    }
+
+    function testDoneWhenOsmWardReverts() public {
+        bytes32[] memory ilks = ilkReg.list();
+        assertTrue(ilks.length > 0, "empty ilks list");
+
+        for (uint256 i = 0; i < ilks.length; i++) {
+            if (ilksToIgnore[ilks[i]]) continue;
+
+            // Mock osm.wards(osmMom) to revert
+            vm.mockCallRevert(
+                address(spell.osmMom().osms(ilks[i])),
+                abi.encodeWithSelector(OsmLike.wards.selector, address(spell.osmMom())),
+                "revert"
+            );
+        }
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenOsmMomIsNotWardOnAllOsms() public {
+        bytes32[] memory ilks = ilkReg.list();
+
+        assertTrue(ilks.length > 0, "empty ilks list");
+
+        for (uint256 i = 0; i < ilks.length; i++) {
+            if (ilksToIgnore[ilks[i]]) continue;
+            // Set osm.wards(OsmMom) == address(0x00)
+            stdstore.target(spell.osmMom().osms(ilks[i])).sig("wards(address)").with_key(address(spell.osmMom()))
+                .checked_write(bytes32(0));
+        }
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenOsmStoppedReverts() public {
+        bytes32[] memory ilks = ilkReg.list();
+        assertTrue(ilks.length > 0, "empty ilks list");
+
+        for (uint256 i = 0; i < ilks.length; i++) {
+            if (ilksToIgnore[ilks[i]]) continue;
+            // Mock osm.stopped() to revert
+            vm.mockCallRevert(
+                address(spell.osmMom().osms(ilks[i])), abi.encodeWithSelector(OsmLike.stopped.selector), "revert"
+            );
+        }
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
     function _checkOsmStoppedStatus(bytes32[] memory ilks, uint256 expected) internal view {
         assertTrue(ilks.length > 0, "empty ilks list");
 
@@ -200,6 +277,17 @@ contract MultiOsmStopSpellTest is DssTest {
             address pip = ilkReg.pip(ilks[i]);
             assertEq(OsmLike(pip).stopped(), expected, string(abi.encodePacked("invalid stopped status: ", ilks[i])));
         }
+    }
+
+    function _firstRelevantIlkWithIndex() internal view returns (bytes32 ilk, uint256 index) {
+        bytes32[] memory ilks = ilkReg.list();
+
+        for (uint256 i = 0; i < ilks.length; i++) {
+            if (ilksToIgnore[ilks[i]]) continue;
+            return (ilks[i], i);
+        }
+
+        revert("no relevant ilk");
     }
 
     event Fail(bytes32 indexed ilk, address indexed osm, bytes reason);

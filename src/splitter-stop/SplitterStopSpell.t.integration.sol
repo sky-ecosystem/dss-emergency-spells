@@ -23,6 +23,7 @@ interface SplitterLike {
     function rely(address) external;
     function deny(address) external;
     function hop() external view returns (uint256);
+    function wards(address) external view returns (uint256);
 }
 
 contract MockAuth {
@@ -110,6 +111,17 @@ contract SplitterStopSpellTest is DssTest {
         uint256 postHop = splitter.hop();
         assertEq(postHop, preHop, "after: Splitter stopped unexpectedly");
         assertFalse(spell.done(), "after: spell done unexpectedly");
+    }
+
+    function testDoneWhenSplitterWardReverts() public {
+        // Mock splitter.wards(splitterMom) to revert
+        vm.mockCallRevert(
+            address(spell.splitter()),
+            abi.encodeWithSelector(SplitterLike.wards.selector, address(spell.splitterMom())),
+            "revert"
+        );
+
+        assertTrue(spell.done(), "spell not done");
     }
 
     event Stop();
