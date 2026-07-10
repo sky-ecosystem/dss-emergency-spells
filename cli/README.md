@@ -182,6 +182,8 @@ Error details are written to standard error.
 
 CLI tests are colocated with the Python sources and use only `unittest` from the standard library.
 
+Command handlers must not import other command handlers. Reusable validation, deployment, batch, parsing, and runtime behavior belongs in `emergency_spells/common/`; common modules may depend only on other common modules. Keep a helper in its handler when it has only one consumer.
+
 ```sh
 python3 -m compileall -q cli
 python3 -m unittest discover -s cli/emergency_spells -t . -v

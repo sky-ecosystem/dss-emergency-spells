@@ -1,22 +1,6 @@
-import json
-
-from .common import ValidationError
-from .manifest import _require, validate_manifest
-
-
-def _json_output(value, context):
-    try:
-        return json.loads(value)
-    except json.JSONDecodeError as error:
-        raise ValidationError(f"{context}: command returned invalid JSON") from error
-
-
-def _same_hex(left, right):
-    return (
-        isinstance(left, str)
-        and isinstance(right, str)
-        and left.lower() == right.lower()
-    )
+from .manifest import validate_manifest
+from .runtime import json_output, same_hex
+from .validation import ValidationError, require as _require
 
 
 def verify_source(record, runner):
@@ -74,7 +58,7 @@ def verify_deployment(manifest, address, rpc_url, runner, root, *, allow_batch=F
         + record["deployment"]["constructorArguments"].removeprefix("0x")
     )
     transaction_hash = record["deployment"]["transactionHash"]
-    transaction = _json_output(
+    transaction = json_output(
         runner.run("cast", "tx", transaction_hash, "--rpc-url", rpc_url, "--json"),
         "deployment transaction",
     )
@@ -84,23 +68,23 @@ def verify_deployment(manifest, address, rpc_url, runner, root, *, allow_batch=F
         "transaction is not direct CREATE",
     )
     _require(
-        _same_hex(transaction.get("input"), expected_input),
+        same_hex(transaction.get("input"), expected_input),
         "deployment.constructorArguments",
         "deployment initcode or constructor arguments mismatch",
     )
 
     actual_codehash = runner.run("cast", "codehash", address, "--rpc-url", rpc_url)
     _require(
-        _same_hex(actual_codehash, record["runtimeCodehash"]),
+        same_hex(actual_codehash, record["runtimeCodehash"]),
         "runtimeCodehash",
         "does not match deployed code",
     )
     for signature, expected in record["immutableReadbacks"].items():
         actual = runner.run("cast", "call", address, signature, "--rpc-url", rpc_url)
         if actual.startswith('"'):
-            actual = _json_output(actual, f"immutableReadbacks.{signature}")
+            actual = json_output(actual, f"immutableReadbacks.{signature}")
         matches = (
-            _same_hex(actual, expected)
+            same_hex(actual, expected)
             if isinstance(actual, str)
             and isinstance(expected, str)
             and actual.startswith("0x")
@@ -111,7 +95,7 @@ def verify_deployment(manifest, address, rpc_url, runner, root, *, allow_batch=F
             matches, f"immutableReadbacks.{signature}", "does not match deployed value"
         )
 
-    receipt = _json_output(
+    receipt = json_output(
         runner.run("cast", "receipt", transaction_hash, "--rpc-url", rpc_url, "--json"),
         "deployment receipt",
     )
@@ -121,12 +105,12 @@ def verify_deployment(manifest, address, rpc_url, runner, root, *, allow_batch=F
         "transaction failed",
     )
     _require(
-        _same_hex(receipt.get("contractAddress"), address),
+        same_hex(receipt.get("contractAddress"), address),
         "deployment.address",
         "receipt contract address mismatch",
     )
     _require(
-        _same_hex(receipt.get("transactionHash"), transaction_hash),
+        same_hex(receipt.get("transactionHash"), transaction_hash),
         "deployment.transactionHash",
         "receipt transaction hash mismatch",
     )

@@ -2,13 +2,8 @@ import os
 import unittest
 from unittest.mock import patch
 
-from cli.emergency_spells.common import (
-    DependencyError,
-    ValidationError,
-    parse_leaves,
-    parse_string_array,
-    require_rpc_url,
-)
+from .runtime import parse_leaves, parse_string_array, require_rpc_url
+from .validation import DependencyError, ValidationError
 
 
 ADDRESS_A = "0x0000000000000000000000000000000000000011"

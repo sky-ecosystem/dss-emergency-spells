@@ -1,39 +1,20 @@
 import re
 
-from .common import ADDRESS_RE, BYTES32_RE, BYTES_RE, COMMIT_RE, ValidationError
+from .validation import (
+    ADDRESS_RE,
+    BYTES32_RE,
+    BYTES_RE,
+    COMMIT_RE,
+    integer as _integer,
+    matches as _matches,
+    nonempty as _nonempty,
+    object_ as _object,
+    require as _require,
+)
 
 
 SPELL_BASE = ("action()(address)", "pause()(address)")
 CONTRACT_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
-
-
-def _fail(path, message):
-    raise ValidationError(f"{path}: {message}")
-
-
-def _require(condition, path, message):
-    if not condition:
-        _fail(path, message)
-
-
-def _object(value, path, keys):
-    _require(isinstance(value, dict), path, "must be an object")
-    missing = set(keys) - value.keys()
-    extra = value.keys() - set(keys)
-    _require(not missing, path, f"missing fields: {', '.join(sorted(missing))}")
-    _require(not extra, path, f"unexpected fields: {', '.join(sorted(extra))}")
-
-
-def _nonempty(value):
-    return isinstance(value, str) and bool(value)
-
-
-def _integer(value):
-    return isinstance(value, int) and not isinstance(value, bool) and value >= 1
-
-
-def _matches(value, pattern):
-    return isinstance(value, str) and pattern.fullmatch(value) is not None
 
 
 def _review(review, path):

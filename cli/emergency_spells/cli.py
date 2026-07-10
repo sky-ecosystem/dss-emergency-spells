@@ -13,9 +13,9 @@ from .common import (
     parse_string_array,
     require_rpc_url,
 )
-from .deployment import verify_deployment
+from .common.deployment import verify_deployment
+from .common.manifest import validate_manifest
 from .draft import draft_batch, draft_deployment
-from .manifest import validate_manifest
 from .migration import validate_migration
 
 

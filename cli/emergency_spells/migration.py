@@ -1,5 +1,12 @@
-from .common import ADDRESS_RE, ValidationError
-from .manifest import _matches, _nonempty, _object, _require, validate_manifest
+from .common.manifest import validate_manifest
+from .common.validation import (
+    ADDRESS_RE,
+    ValidationError,
+    matches as _matches,
+    nonempty as _nonempty,
+    object_ as _object,
+    require as _require,
+)
 
 
 DIRECT_REPLACEMENTS = {

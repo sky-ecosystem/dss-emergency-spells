@@ -1,13 +1,21 @@
 from .common import ADDRESS_RE, ValidationError, parse_leaves
-from .deployment import _json_output, _same_hex, verify_deployment
-from .manifest import _require, validate_manifest
+from .common.batch import (
+    batch_configuration,
+    batch_deployed_address,
+    leaves_argument,
+    read_batch_getters,
+)
+from .common.deployment import verify_deployment
+from .common.manifest import validate_manifest
+from .common.runtime import json_output, same_hex
+from .common.validation import require as _require
 
 
 FACTORY_NAME = "EmergencySpellBatchFactoryV2"
 
 
 def _read_description(address, rpc_url, runner):
-    value = _json_output(
+    value = json_output(
         runner.run(
             "cast", "call", address, "description()(string)", "--rpc-url", rpc_url
         ),
@@ -59,17 +67,6 @@ def inspect_batch(batch_address, rpc_url, runner):
             result["errors"].append(f"{leaf_address} description(): {error}")
         result["leaves"].append(leaf)
     return result
-
-
-def _leaves_argument(leaves):
-    return f"[{','.join(leaves)}]"
-
-
-def _config_hash(leaves, label, runner):
-    encoded = runner.run(
-        "cast", "abi-encode", "f(address[],string)", _leaves_argument(leaves), label
-    )
-    return encoded, runner.run("cast", "keccak", encoded)
 
 
 def preflight_batch(
@@ -130,12 +127,12 @@ def preflight_batch(
         )
         codehash = runner.run("cast", "codehash", leaf_address, "--rpc-url", rpc_url)
         _require(
-            _same_hex(codehash, leaf["runtimeCodehash"]),
+            same_hex(codehash, leaf["runtimeCodehash"]),
             "orderedLeaves",
             f"runtime codehash mismatch for {leaf_address}",
         )
 
-    _encoded, config_hash = _config_hash(ordered_leaves, label, runner)
+    _encoded, config_hash = batch_configuration(ordered_leaves, label, runner)
     result = {"configHash": config_hash}
     if deployment_mode == "create2":
         result["predictedBatch"] = runner.run(
@@ -143,7 +140,7 @@ def preflight_batch(
             "call",
             factory_address,
             "previewDeterministicAddress(address[],string)(address)",
-            _leaves_argument(ordered_leaves),
+            leaves_argument(ordered_leaves),
             label,
             "--rpc-url",
             rpc_url,
@@ -154,64 +151,28 @@ def preflight_batch(
 def _verify_batch_readbacks(
     record, address, leaves, label, config_hash, rpc_url, runner
 ):
-    label_readback = runner.run(
-        "cast", "call", address, "label()(string)", "--rpc-url", rpc_url
-    )
-    if label_readback.startswith('"'):
-        label_readback = _json_output(label_readback, "batch label readback")
-    _require(label_readback == label, "batch.label", "getter readback mismatch")
-    leaves_readback = runner.run(
-        "cast", "call", address, "leaves()(address[])", "--rpc-url", rpc_url
-    )
+    readbacks = read_batch_getters(address, rpc_url, runner)
+    _require(readbacks["label"] == label, "batch.label", "getter readback mismatch")
     _require(
-        [leaf.lower() for leaf in parse_leaves(leaves_readback)]
+        [leaf.lower() for leaf in readbacks["leaves"]]
         == [leaf.lower() for leaf in leaves],
         "batch.orderedLeaves",
         "getter readback mismatch",
     )
-    actual_config = runner.run(
-        "cast", "call", address, "configHash()(bytes32)", "--rpc-url", rpc_url
-    )
     _require(
-        _same_hex(actual_config, config_hash),
+        same_hex(readbacks["configHash"], config_hash),
         "batch.configHash",
         "getter readback mismatch",
     )
     for signature, expected in record["immutableReadbacks"].items():
         actual = runner.run("cast", "call", address, signature, "--rpc-url", rpc_url)
         _require(
-            _same_hex(actual, expected)
+            same_hex(actual, expected)
             if expected.startswith("0x")
             else actual == expected,
             f"immutableReadbacks.{signature}",
             "does not match deployed value",
         )
-
-
-def _verify_event(receipt, factory, batch, config_hash, mode, runner):
-    signature = runner.run(
-        "cast", "keccak", "BatchDeployed(address,bytes32,uint8)"
-    ).lower()
-    batch_topic = "0x" + batch.removeprefix("0x").lower().rjust(64, "0")
-    mode_data = "0x" + ("1" if mode == "create2" else "0").rjust(64, "0")
-    matches = 0
-    for log in receipt.get("logs", []):
-        topics = log.get("topics", [])
-        if (
-            isinstance(log.get("address"), str)
-            and log["address"].lower() == factory.lower()
-            and len(topics) >= 3
-            and topics[0].lower() == signature
-            and topics[1].lower() == batch_topic
-            and topics[2].lower() == config_hash.lower()
-            and log.get("data", "").lower() == mode_data
-        ):
-            matches += 1
-    _require(
-        matches == 1,
-        "deployment.event",
-        "expected exactly one matching BatchDeployed event",
-    )
 
 
 def verify_batch(
@@ -246,7 +207,7 @@ def verify_batch(
         )
         actual = runner.run("cast", "codehash", leaf_address, "--rpc-url", rpc_url)
         _require(
-            _same_hex(actual, leaf["runtimeCodehash"]),
+            same_hex(actual, leaf["runtimeCodehash"]),
             "orderedLeaves",
             f"runtime codehash mismatch for {leaf_address}",
         )
@@ -257,8 +218,8 @@ def verify_batch(
     )
     batch = record["batch"]
     configuration_matches = (
-        _same_hex(record["deployment"]["transactionHash"], transaction_hash)
-        and _same_hex(batch["factory"], factory_address)
+        same_hex(record["deployment"]["transactionHash"], transaction_hash)
+        and same_hex(batch["factory"], factory_address)
         and batch["deploymentMode"] == deployment_mode
         and batch["label"] == label
         and [leaf.lower() for leaf in batch["orderedLeaves"]]
@@ -267,14 +228,14 @@ def verify_batch(
     )
     _require(configuration_matches, "batch", "manifest configuration mismatch")
 
-    encoded, config_hash = _config_hash(ordered_leaves, label, runner)
+    encoded, config_hash = batch_configuration(ordered_leaves, label, runner)
     _require(
-        _same_hex(record["deployment"]["constructorArguments"], encoded),
+        same_hex(record["deployment"]["constructorArguments"], encoded),
         "deployment.constructorArguments",
         "does not match batch configuration",
     )
     _require(
-        _same_hex(batch["configHash"], config_hash),
+        same_hex(batch["configHash"], config_hash),
         "batch.configHash",
         "does not match batch configuration",
     )
@@ -291,7 +252,7 @@ def verify_batch(
         "cast", "codehash", batch_address, "--rpc-url", rpc_url
     )
     _require(
-        _same_hex(actual_codehash, record["runtimeCodehash"]),
+        same_hex(actual_codehash, record["runtimeCodehash"]),
         "runtimeCodehash",
         "does not match deployed batch",
     )
@@ -302,24 +263,24 @@ def verify_batch(
         else "deploy(address[],string)"
     )
     expected_input = runner.run(
-        "cast", "calldata", function, _leaves_argument(ordered_leaves), label
+        "cast", "calldata", function, leaves_argument(ordered_leaves), label
     )
-    transaction = _json_output(
+    transaction = json_output(
         runner.run("cast", "tx", transaction_hash, "--rpc-url", rpc_url, "--json"),
         "batch deployment transaction",
     )
     _require(
-        _same_hex(transaction.get("to"), factory_address),
+        same_hex(transaction.get("to"), factory_address),
         "deployment.transactionHash",
         "factory call target mismatch",
     )
     _require(
-        _same_hex(transaction.get("input"), expected_input),
+        same_hex(transaction.get("input"), expected_input),
         "deployment.transactionHash",
         "factory calldata mismatch",
     )
 
-    receipt = _json_output(
+    receipt = json_output(
         runner.run("cast", "receipt", transaction_hash, "--rpc-url", rpc_url, "--json"),
         "batch deployment receipt",
     )
@@ -329,7 +290,7 @@ def verify_batch(
         "transaction failed",
     )
     _require(
-        _same_hex(receipt.get("transactionHash"), transaction_hash),
+        same_hex(receipt.get("transactionHash"), transaction_hash),
         "deployment.transactionHash",
         "receipt transaction hash mismatch",
     )
@@ -344,13 +305,13 @@ def verify_batch(
         "deployment.blockNumber",
         "does not match receipt",
     )
-    _verify_event(
+    batch_deployed_address(
         receipt,
         factory_address,
-        batch_address,
         config_hash,
         deployment_mode,
         runner,
+        batch_address,
     )
 
     if deployment_mode == "create2":
@@ -375,7 +336,7 @@ def verify_batch(
             init_code,
         )
         _require(
-            _same_hex(predicted, batch_address),
+            same_hex(predicted, batch_address),
             "batch.address",
             "independent CREATE2 prediction mismatch",
         )

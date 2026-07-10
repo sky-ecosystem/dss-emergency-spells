@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .common import ValidationError
 from .draft import draft_batch, draft_deployment
-from .manifest import validate_manifest
+from .common.manifest import validate_manifest
 
 
 ROOT = Path(__file__).resolve().parents[2]

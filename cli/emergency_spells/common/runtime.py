@@ -1,23 +1,10 @@
 import json
 import os
-import re
 import subprocess
 from pathlib import Path
 from typing import Any
 
-
-ADDRESS_RE = re.compile(r"^0x[0-9a-fA-F]{40}$")
-BYTES32_RE = re.compile(r"^0x[0-9a-fA-F]{64}$")
-COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
-BYTES_RE = re.compile(r"^0x(?:[0-9a-fA-F]{2})*$")
-
-
-class ValidationError(Exception):
-    pass
-
-
-class DependencyError(Exception):
-    pass
+from .validation import ADDRESS_RE, DependencyError, ValidationError
 
 
 def parse_leaves(value: str) -> list[str]:
@@ -85,3 +72,18 @@ class Runner:
             )
             raise ValidationError(f"{tool} failed: {detail}") from error
         return result.stdout.strip()
+
+
+def json_output(value, context):
+    try:
+        return json.loads(value)
+    except json.JSONDecodeError as error:
+        raise ValidationError(f"{context}: command returned invalid JSON") from error
+
+
+def same_hex(left, right):
+    return (
+        isinstance(left, str)
+        and isinstance(right, str)
+        and left.lower() == right.lower()
+    )

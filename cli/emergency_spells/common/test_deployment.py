@@ -2,11 +2,11 @@ import json
 import unittest
 from pathlib import Path
 
-from .common import ValidationError
 from .deployment import verify_deployment
+from .validation import ValidationError
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 MANIFEST = json.loads((ROOT / "cli/fixtures/v2-manifest-valid.json").read_text())
 SPELL = "0x0000000000000000000000000000000000000011"
 TX = "0x" + "22" * 32

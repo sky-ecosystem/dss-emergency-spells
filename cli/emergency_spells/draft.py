@@ -1,6 +1,17 @@
-from .common import ADDRESS_RE, BYTES32_RE, ValidationError, parse_leaves
-from .deployment import _json_output, _same_hex, verify_deployment, verify_source
-from .manifest import CONTRACT_NAME_RE, _require, validate_manifest
+from .common import ADDRESS_RE, BYTES32_RE, ValidationError
+from .common.batch import (
+    batch_configuration,
+    batch_deployed_address,
+    leaves_argument,
+    read_batch_getters,
+)
+from .common.deployment import (
+    verify_deployment,
+    verify_source,
+)
+from .common.manifest import CONTRACT_NAME_RE, validate_manifest
+from .common.runtime import json_output, same_hex
+from .common.validation import require as _require
 
 
 SPELL_KINDS = {"leaf", "registry-global"}
@@ -43,7 +54,7 @@ def _positive_block(value):
 def _readback(address, signature, rpc_url, runner):
     value = runner.run("cast", "call", address, signature, "--rpc-url", rpc_url)
     if value.startswith('"'):
-        value = _json_output(value, f"immutableReadbacks.{signature}")
+        value = json_output(value, f"immutableReadbacks.{signature}")
     _require(
         isinstance(value, str) and value != "",
         f"immutableReadbacks.{signature}",
@@ -99,7 +110,7 @@ def draft_deployment(
     creation_code = runner.run(
         "forge", "inspect", "--root", str(root), "--force", artifact, "bytecode"
     )
-    transaction = _json_output(
+    transaction = json_output(
         runner.run("cast", "tx", transaction_hash, "--rpc-url", rpc_url, "--json"),
         "deployment transaction",
     )
@@ -117,13 +128,13 @@ def draft_deployment(
     )
     constructor_arguments = "0x" + input_bytes[len(creation_bytes) :]
 
-    receipt = _json_output(
+    receipt = json_output(
         runner.run("cast", "receipt", transaction_hash, "--rpc-url", rpc_url, "--json"),
         "deployment receipt",
     )
     _require(receipt.get("status") == "0x1", "transactionHash", "transaction failed")
     _require(
-        _same_hex(receipt.get("transactionHash"), transaction_hash),
+        same_hex(receipt.get("transactionHash"), transaction_hash),
         "transactionHash",
         "receipt transaction hash mismatch",
     )
@@ -241,16 +252,14 @@ def draft_batch(
             "cast", "codehash", leaf_address, "--rpc-url", rpc_url
         )
         _require(
-            _same_hex(actual_codehash, leaf["runtimeCodehash"]),
+            same_hex(actual_codehash, leaf["runtimeCodehash"]),
             "orderedLeaves",
             f"runtime codehash mismatch for {leaf_address}",
         )
 
-    leaves_argument = f"[{','.join(ordered_leaves)}]"
-    constructor_arguments = runner.run(
-        "cast", "abi-encode", "f(address[],string)", leaves_argument, label
+    constructor_arguments, config_hash = batch_configuration(
+        ordered_leaves, label, runner
     )
-    config_hash = runner.run("cast", "keccak", constructor_arguments)
     _require(
         BYTES32_RE.fullmatch(config_hash) is not None, "configHash", "must be bytes32"
     )
@@ -260,75 +269,52 @@ def draft_batch(
         if deployment_mode == "create2"
         else "deploy(address[],string)"
     )
-    expected_calldata = runner.run("cast", "calldata", function, leaves_argument, label)
-    transaction = _json_output(
+    expected_calldata = runner.run(
+        "cast", "calldata", function, leaves_argument(ordered_leaves), label
+    )
+    transaction = json_output(
         runner.run("cast", "tx", transaction_hash, "--rpc-url", rpc_url, "--json"),
         "batch deployment transaction",
     )
     _require(
-        _same_hex(transaction.get("to"), factory_address),
+        same_hex(transaction.get("to"), factory_address),
         "transactionHash",
         "factory call target mismatch",
     )
     _require(
-        _same_hex(transaction.get("input"), expected_calldata),
+        same_hex(transaction.get("input"), expected_calldata),
         "transactionHash",
         "factory calldata mismatch",
     )
 
-    receipt = _json_output(
+    receipt = json_output(
         runner.run("cast", "receipt", transaction_hash, "--rpc-url", rpc_url, "--json"),
         "batch deployment receipt",
     )
     _require(receipt.get("status") == "0x1", "transactionHash", "transaction failed")
     _require(
-        _same_hex(receipt.get("transactionHash"), transaction_hash),
+        same_hex(receipt.get("transactionHash"), transaction_hash),
         "transactionHash",
         "receipt transaction hash mismatch",
     )
     block_number = _positive_block(receipt.get("blockNumber"))
 
-    event_signature = runner.run(
-        "cast", "keccak", "BatchDeployed(address,bytes32,uint8)"
+    batch_address = batch_deployed_address(
+        receipt, factory_address, config_hash, deployment_mode, runner
     )
-    mode_data = "0x" + ("1" if deployment_mode == "create2" else "0").rjust(64, "0")
-    matching_logs = []
-    for log in receipt.get("logs", []):
-        topics = log.get("topics", [])
-        if (
-            _same_hex(log.get("address"), factory_address)
-            and len(topics) >= 3
-            and _same_hex(topics[0], event_signature)
-            and _same_hex(topics[2], config_hash)
-            and _same_hex(log.get("data"), mode_data)
-        ):
-            matching_logs.append(log)
+    getter_readbacks = read_batch_getters(batch_address, rpc_url, runner)
     _require(
-        len(matching_logs) == 1,
-        "deployment.event",
-        "expected exactly one matching BatchDeployed event",
+        getter_readbacks["label"] == label,
+        "batch.label",
+        "getter readback mismatch",
     )
-    batch_topic = matching_logs[0]["topics"][1]
     _require(
-        isinstance(batch_topic, str) and BYTES32_RE.fullmatch(batch_topic) is not None,
-        "deployment.event",
-        "BatchDeployed batch topic is invalid",
-    )
-    batch_address = "0x" + batch_topic[-40:]
-
-    label_readback = _readback(batch_address, "label()(string)", rpc_url, runner)
-    leaves_readback = parse_leaves(
-        _readback(batch_address, "leaves()(address[])", rpc_url, runner)
-    )
-    config_readback = _readback(batch_address, "configHash()(bytes32)", rpc_url, runner)
-    _require(label_readback == label, "batch.label", "getter readback mismatch")
-    _require(
-        [leaf.lower() for leaf in leaves_readback] == normalized_leaves,
+        [leaf.lower() for leaf in getter_readbacks["leaves"]] == normalized_leaves,
         "batch.orderedLeaves",
         "getter readback mismatch",
     )
     _require(
-        _same_hex(config_readback, config_hash),
+        same_hex(getter_readbacks["configHash"], config_hash),
         "batch.configHash",
         "getter readback mismatch",
     )
@@ -359,7 +345,7 @@ def draft_batch(
             init_code,
         )
         _require(
-            _same_hex(predicted, batch_address),
+            same_hex(predicted, batch_address),
             "batch.address",
             "independent CREATE2 prediction mismatch",
         )
@@ -402,9 +388,9 @@ def draft_batch(
             "factory": factory_address,
             "deploymentMode": deployment_mode,
             "getterReadbacks": {
-                "label": label_readback,
-                "leaves": leaves_readback,
-                "configHash": config_readback,
+                "label": getter_readbacks["label"],
+                "leaves": getter_readbacks["leaves"],
+                "configHash": getter_readbacks["configHash"],
             },
             "factoryEventVerified": True,
             "atomicSimulation": {

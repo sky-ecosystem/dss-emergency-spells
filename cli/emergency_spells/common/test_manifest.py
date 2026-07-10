@@ -3,11 +3,11 @@ import json
 import unittest
 from pathlib import Path
 
-from .common import ValidationError
 from .manifest import validate_manifest
+from .validation import ValidationError
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 
 
 def fixture(name="v2-manifest-valid.json"):
