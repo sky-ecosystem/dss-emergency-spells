@@ -5,12 +5,26 @@ V2 leaves and registry-global spells are deployed directly. The only shared depl
 Run scripts with the reviewed source checkout, the intended RPC endpoint, and Foundry's normal signer configuration. Simulate before adding `--broadcast`. For example:
 
 ```sh
-forge script script/DeployV2.s.sol:ClipBreakerSpellV2DeployScript \
+forge script script/clip-breaker/DeployClipBreakerV2.s.sol:ClipBreakerSpellV2DeployScript \
   --sig "run(address,address,bytes32)" <clipper-mom> <clip> <ilk> \
   --rpc-url <rpc-url>
 ```
 
 Every script keeps a fully parameterized entrypoint for deployment before the applicable Chainlog entries exist. Post-hoc convenience entrypoints resolve only fixed, protocol-wide dependencies from Chainlog; variable subject addresses remain explicit.
+
+Scripts and their colocated unit tests are organized by emergency subject:
+
+| Subject       | Deployment source                                 |
+| ------------- | ------------------------------------------------- |
+| Line wipe     | `script/line-wipe/DeployLineWipeV2.s.sol`         |
+| Clip breaker  | `script/clip-breaker/DeployClipBreakerV2.s.sol`   |
+| OSM stop      | `script/osm-stop/DeployOsmStopV2.s.sol`           |
+| DDM disable   | `script/ddm-disable/DeployDdmDisableV2.s.sol`     |
+| Lite PSM halt | `script/lite-psm-halt/DeployLitePsmHaltV2.s.sol`  |
+| SPBEAM halt   | `script/spbeam-halt/DeploySPBEAMHaltV2.s.sol`     |
+| Splitter stop | `script/splitter-stop/DeploySplitterStopV2.s.sol` |
+| stUSDS        | `script/stusds/DeployStUsdsV2.s.sol`              |
+| Batch         | `script/batch/DeployEmergencySpellBatchV2.s.sol`  |
 
 | Script contract | Fully parameterized | Chainlog-backed convenience |
 | --- | --- | --- |
@@ -35,11 +49,11 @@ Every script keeps a fully parameterized entrypoint for deployment before the ap
 The explicit enum-bearing functions use ABI `uint8` values: `Flow` is `SELL = 0`, `BUY = 1`, and `BOTH = 2`; `Param` is `CAP = 0`, `LINE = 1`, and `BOTH = 2`. The convenience path uses named entrypoints instead. For example:
 
 ```sh
-forge script script/DeployV2.s.sol:LitePsmHaltSpellV2DeployScript \
+forge script script/lite-psm-halt/DeployLitePsmHaltV2.s.sol:LitePsmHaltSpellV2DeployScript \
   --sig "runBoth(address)" <lite-psm> \
   --rpc-url <rpc-url>
 
-forge script script/DeployV2.s.sol:StUsdsWipeParamSpellV2DeployScript \
+forge script script/stusds/DeployStUsdsV2.s.sol:StUsdsWipeParamSpellV2DeployScript \
   --sig "runLine()" \
   --rpc-url <rpc-url>
 ```
