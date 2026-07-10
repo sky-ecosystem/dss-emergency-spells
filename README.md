@@ -141,6 +141,5 @@ reviewed V2 replacement and all 25 historically deprecated artifacts as
 deprecated. The migration classification is a publication record, not proof
 that an address is the current Chief `hat` or ready for incident use.
 
-Audit reports are retained under [`audits/`](./audits/) and remain scoped to the
-source and components identified by each report. V2 changes require their own
-review and audit coverage before production deployment.
+No V2 audit reports are published in this repository. Production deployment
+requires dedicated V2 review and audit coverage.
