@@ -265,7 +265,7 @@ class CliTests(unittest.TestCase):
         with patch.dict(os.environ, {}, clear=True):
             code, _, error = self.run_cli(
                 [
-                    "diagnose-registry",
+                    "probe-registry",
                     "--spell",
                     "0x0000000000000000000000000000000000000011",
                 ]
@@ -273,9 +273,9 @@ class CliTests(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("ETH_RPC_URL", error)
 
-    @patch("cli.emergency_spells.cli.diagnose_registry")
-    def test_renders_complete_registry_diagnostic_and_exits_one(self, diagnose):
-        diagnose.return_value = {
+    @patch("cli.emergency_spells.cli.probe_registry")
+    def test_renders_complete_registry_probe_and_exits_one(self, probe):
+        probe.return_value = {
             "spell": "0x0000000000000000000000000000000000000011",
             "registry": "0x0000000000000000000000000000000000000022",
             "block": 123,
@@ -289,15 +289,15 @@ class CliTests(unittest.TestCase):
         with patch.dict(os.environ, {"ETH_RPC_URL": "mock://"}):
             code, output, error = self.run_cli(
                 [
-                    "diagnose-registry",
+                    "probe-registry",
                     "--spell",
-                    diagnose.return_value["spell"],
+                    probe.return_value["spell"],
                 ]
             )
         self.assertEqual(code, 1)
         self.assertEqual(
             output,
-            "Registry diagnostic at block 123\n"
+            "Registry probe at block 123\n"
             "0x0000000000000000000000000000000000000011\n"
             "Registry: 0x0000000000000000000000000000000000000022\n"
             "├── [0] PASS\n"
@@ -307,8 +307,8 @@ class CliTests(unittest.TestCase):
         )
         self.assertIn("failing registry entry: 1", error)
 
-    @patch("cli.emergency_spells.cli.diagnose_registry")
-    def test_renders_clean_and_empty_registry_diagnostics(self, diagnose):
+    @patch("cli.emergency_spells.cli.probe_registry")
+    def test_renders_clean_and_empty_registry_probes(self, probe):
         base = {
             "spell": "0x0000000000000000000000000000000000000011",
             "registry": "0x0000000000000000000000000000000000000022",
@@ -316,19 +316,19 @@ class CliTests(unittest.TestCase):
             "entries": [{"index": 0, "error": None}],
             "safeRanges": [(0, 0)],
         }
-        diagnose.return_value = base
+        probe.return_value = base
         with patch.dict(os.environ, {"ETH_RPC_URL": "mock://"}):
             code, output, error = self.run_cli(
-                ["diagnose-registry", "--spell", base["spell"]]
+                ["probe-registry", "--spell", base["spell"]]
             )
         self.assertEqual(code, 0)
         self.assertEqual(error, "")
         self.assertIn("└── [0] PASS", output)
 
-        diagnose.return_value = dict(base, entries=[], safeRanges=[])
+        probe.return_value = dict(base, entries=[], safeRanges=[])
         with patch.dict(os.environ, {"ETH_RPC_URL": "mock://"}):
             code, output, error = self.run_cli(
-                ["diagnose-registry", "--spell", base["spell"]]
+                ["probe-registry", "--spell", base["spell"]]
             )
         self.assertEqual(code, 0)
         self.assertEqual(error, "")

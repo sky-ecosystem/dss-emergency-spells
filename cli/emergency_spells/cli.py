@@ -17,7 +17,7 @@ from .common.deployment import verify_deployment
 from .common.manifest import validate_manifest
 from .draft import draft_batch, draft_deployment
 from .migration import validate_migration
-from .registry import diagnose_registry
+from .registry import probe_registry
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -59,7 +59,7 @@ def _parser():
     inspection.add_argument("--batch", required=True)
 
     registry = commands.add_parser(
-        "diagnose-registry", help="identify failing registry-global entries"
+        "probe-registry", help="identify failing registry-global entries"
     )
     registry.add_argument("--spell", required=True)
 
@@ -158,8 +158,8 @@ def _render_batch_inspection(result):
         )
 
 
-def _render_registry_diagnostic(result):
-    print(f"Registry diagnostic at block {result['block']}")
+def _render_registry_probe(result):
+    print(f"Registry probe at block {result['block']}")
     print(result["spell"])
     print(f"Registry: {result['registry']}")
     if not result["entries"]:
@@ -200,9 +200,9 @@ def _execute(arguments, runner):
             )
         return
 
-    if command == "diagnose-registry":
-        result = diagnose_registry(arguments.spell, require_rpc_url(), runner)
-        _render_registry_diagnostic(result)
+    if command == "probe-registry":
+        result = probe_registry(arguments.spell, require_rpc_url(), runner)
+        _render_registry_probe(result)
         failures = [
             str(entry["index"])
             for entry in result["entries"]
@@ -211,7 +211,7 @@ def _execute(arguments, runner):
         if failures:
             noun = "entry" if len(failures) == 1 else "entries"
             raise ValidationError(
-                f"registry diagnostic found {len(failures)} failing registry {noun}: "
+                f"registry probe found {len(failures)} failing registry {noun}: "
                 + ", ".join(failures)
             )
         return

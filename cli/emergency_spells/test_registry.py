@@ -1,7 +1,7 @@
 import unittest
 
 from .common import ValidationError
-from .registry import diagnose_registry
+from .registry import probe_registry
 
 
 SPELL = "0x0000000000000000000000000000000000000011"
@@ -31,11 +31,11 @@ class RegistryRunner:
         return "0x"
 
 
-class RegistryDiagnosticTests(unittest.TestCase):
+class RegistryProbeTests(unittest.TestCase):
     def test_scans_every_entry_at_one_block_and_groups_safe_ranges(self):
         runner = RegistryRunner(failures=(1, 2, 4))
 
-        result = diagnose_registry(SPELL, "mock://", runner)
+        result = probe_registry(SPELL, "mock://", runner)
 
         self.assertEqual(result["block"], 123)
         self.assertEqual(result["registry"], REGISTRY)
@@ -62,27 +62,27 @@ class RegistryDiagnosticTests(unittest.TestCase):
 
     def test_handles_clean_all_failed_and_empty_registries(self):
         self.assertEqual(
-            diagnose_registry(SPELL, "mock://", RegistryRunner(count=3))["safeRanges"],
+            probe_registry(SPELL, "mock://", RegistryRunner(count=3))["safeRanges"],
             [(0, 2)],
         )
         self.assertEqual(
-            diagnose_registry(
+            probe_registry(
                 SPELL, "mock://", RegistryRunner(count=3, failures=(0, 1, 2))
             )["safeRanges"],
             [],
         )
-        empty = diagnose_registry(SPELL, "mock://", RegistryRunner(count=0))
+        empty = probe_registry(SPELL, "mock://", RegistryRunner(count=0))
         self.assertEqual(empty["entries"], [])
         self.assertEqual(empty["safeRanges"], [])
 
     def test_rejects_invalid_spell_and_malformed_readbacks(self):
         with self.assertRaisesRegex(ValidationError, "spell"):
-            diagnose_registry("not-an-address", "mock://", RegistryRunner())
+            probe_registry("not-an-address", "mock://", RegistryRunner())
 
         runner = RegistryRunner()
         runner.count = "invalid"
         with self.assertRaisesRegex(ValidationError, "count"):
-            diagnose_registry(SPELL, "mock://", runner)
+            probe_registry(SPELL, "mock://", runner)
 
 
 if __name__ == "__main__":

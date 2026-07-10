@@ -49,7 +49,7 @@ Batch eligibility is a review property, not something the permissionless factory
 
 The batch itself stores its reviewed leaf list and label, so it is direct-use only. It bubbles leaf revert data and rolls the complete transaction back if any leaf fails.
 
-Registry-global calls are also atomic. Each action verifies its target postcondition before emitting success. If a full call fails, `emergency-spells diagnose-registry` simulates every singleton registry range at one pinned block and reports the failing indices and contiguous safe ranges. Operators can execute those safe ranges for partial mitigation, investigate the excluded entries, and rerun diagnostics against current state. Reverted calls do not produce canonical queryable events; successful range calls retain the existing action-specific success events.
+Registry-global calls are also atomic. Each action verifies its target postcondition before emitting success. If a full call fails, `emergency-spells probe-registry` simulates every singleton registry range at one pinned block and reports the failing indices and contiguous safe ranges. Operators can execute those safe ranges for partial mitigation, investigate the excluded entries, and rerun the probe against current state. Reverted calls do not produce canonical queryable events; successful range calls retain the existing action-specific success events.
 
 No V2 constructor uses generic zero-address or bytecode-presence checks as an identity guarantee. Deployment identity is established off-chain through the signed source commit, freshly compiled creation bytecode, constructor arguments, creating transaction, receipt address, live runtime codehash, and immutable getter readbacks.
 
@@ -63,7 +63,7 @@ Foundry deployment entrypoints and exact signatures are documented in [`script/R
 - `emergency-spells preflight-batch` authenticates the factory and selected leaves before deployment and prints the exact configuration hash;
 - `emergency-spells verify-batch` validates factory calldata and event, getters, runtime codehashes, constructor encoding, and deterministic address;
 - `emergency-spells inspect-batch` displays a deployed batch and its ordered leaf descriptions as an on-chain tree.
-- `emergency-spells diagnose-registry` identifies failing registry-global entries and the ranges that can be executed atomically around them.
+- `emergency-spells probe-registry` identifies failing registry-global entries and the ranges that can be executed atomically around them.
 
 The CLI requires Python 3.12 or newer and uses only the Python standard library. Live-chain commands read the RPC endpoint from `ETH_RPC_URL` and invoke `cast`, `forge`, and `git` directly.
 

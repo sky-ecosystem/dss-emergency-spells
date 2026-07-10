@@ -22,7 +22,7 @@ def _safe_ranges(entries):
     return ranges
 
 
-def diagnose_registry(spell_address, rpc_url, runner):
+def probe_registry(spell_address, rpc_url, runner):
     if ADDRESS_RE.fullmatch(spell_address) is None:
         raise ValidationError("spell: must be an address")
 
