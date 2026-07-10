@@ -10,28 +10,56 @@ forge script script/DeployV2.s.sol:ClipBreakerSpellV2DeployScript \
   --rpc-url <rpc-url>
 ```
 
-The available script contracts and `run` signatures are:
+Every script keeps a fully parameterized entrypoint for deployment before the applicable Chainlog entries exist. Post-hoc convenience entrypoints resolve only fixed, protocol-wide dependencies from Chainlog; variable subject addresses remain explicit.
 
-| Script contract | Signature |
+| Script contract | Fully parameterized | Chainlog-backed convenience |
+| --- | --- | --- |
+| `LineWipeSpellV2DeployScript` | `run(address,bytes32)` | `run(bytes32)` |
+| `ClipBreakerSpellV2DeployScript` | `run(address,address,bytes32)` | `run(address,bytes32)` |
+| `OsmStopSpellV2DeployScript` | `run(address,address,bytes32)` | `run(address,bytes32)` |
+| `DdmDisableSpellV2DeployScript` | `run(address,address,bytes32)` | `run(address,bytes32)` |
+| `LitePsmHaltSpellV2DeployScript` | `run(address,address,uint8)` | `runSell(address)`, `runBuy(address)`, `runBoth(address)` |
+| `SPBEAMHaltSpellV2DeployScript` | `run(address,address)` | `run()` |
+| `SplitterStopSpellV2DeployScript` | `run(address,address)` | `run()` |
+| `StUsdsRateSetterDissBudSpellV2DeployScript` | `run(address,address,address)` | `run(address)` |
+| `StUsdsRateSetterHaltSpellV2DeployScript` | `run(address,address)` | `run()` |
+| `StUsdsWipeParamSpellV2DeployScript` | `run(address,address,address,uint8)` | `runCap()`, `runLine()`, `runBoth()` |
+| `GlobalLineWipeSpellV2DeployScript` | `run(address,address)` | `run()` |
+| `GlobalClipBreakerSpellV2DeployScript` | `run(address,address)` | `run()` |
+| `GlobalOsmStopSpellV2DeployScript` | `run(address,address)` | `run()` |
+| `EmergencySpellBatchFactoryV2DeployScript` | `run()` | Not applicable |
+| `EmergencySpellBatchV2DeployScript` | `run(address,address[],string,bytes32)` | `run(address[],string,bytes32)` |
+| `EmergencySpellBatchV2DeployScript` | `runDeterministic(address,address[],string,bytes32)` | `runDeterministic(address[],string,bytes32)` |
+| `EmergencySpellBatchV2DeployScript` | `preview(address,address[],string)` | `preview(address[],string)` |
+
+The explicit enum-bearing functions use ABI `uint8` values: `Flow` is `SELL = 0`, `BUY = 1`, and `BOTH = 2`; `Param` is `CAP = 0`, `LINE = 1`, and `BOTH = 2`. The convenience path uses named entrypoints instead. For example:
+
+```sh
+forge script script/DeployV2.s.sol:LitePsmHaltSpellV2DeployScript \
+  --sig "runBoth(address)" <lite-psm> \
+  --rpc-url <rpc-url>
+
+forge script script/DeployV2.s.sol:StUsdsWipeParamSpellV2DeployScript \
+  --sig "runLine()" \
+  --rpc-url <rpc-url>
+```
+
+The convenience entrypoints use these fixed Chainlog keys:
+
+| Spell family | Chainlog keys |
 | --- | --- |
-| `LineWipeSpellV2DeployScript` | `run(address,bytes32)` |
-| `ClipBreakerSpellV2DeployScript` | `run(address,address,bytes32)` |
-| `OsmStopSpellV2DeployScript` | `run(address,address,bytes32)` |
-| `DdmDisableSpellV2DeployScript` | `run(address,address,bytes32)` |
-| `LitePsmHaltSpellV2DeployScript` | `run(address,address,uint8)` |
-| `SPBEAMHaltSpellV2DeployScript` | `run(address,address)` |
-| `SplitterStopSpellV2DeployScript` | `run(address,address)` |
-| `StUsdsRateSetterDissBudSpellV2DeployScript` | `run(address,address,address)` |
-| `StUsdsRateSetterHaltSpellV2DeployScript` | `run(address,address)` |
-| `StUsdsWipeParamSpellV2DeployScript` | `run(address,address,address,uint8)` |
-| `GlobalLineWipeSpellV2DeployScript` | `run(address,address)` |
-| `GlobalClipBreakerSpellV2DeployScript` | `run(address,address)` |
-| `GlobalOsmStopSpellV2DeployScript` | `run(address,address)` |
-| `EmergencySpellBatchFactoryV2DeployScript` | `run()` |
-| `EmergencySpellBatchV2DeployScript` | `run(address,address[],string,bytes32)` for `CREATE` |
-| `EmergencySpellBatchV2DeployScript` | `runDeterministic(address,address[],string,bytes32)` for `CREATE2` |
+| Line wipe | `LINE_MOM` |
+| Clip breaker | `CLIPPER_MOM` |
+| OSM stop | `OSM_MOM` |
+| DDM disable | `DIRECT_MOM` |
+| Lite PSM halt | `LITE_PSM_MOM` |
+| SPBEAM halt | `SPBEAM_MOM`, `MCD_SPBEAM` |
+| Splitter stop | `SPLITTER_MOM`, `MCD_SPLIT` |
+| stUSDS actions | `STUSDS_MOM`, `STUSDS_RATE_SETTER`, and, for wipe actions, `STUSDS` |
+| Registry globals | `ILK_REGISTRY` and the applicable mom key |
+| Batch deployment | `EMERGENCY_SPELL_BATCH_FAB` |
 
-`Flow` values are `SELL = 0`, `BUY = 1`, and `BOTH = 2`. `Param` values are `CAP = 0`, `LINE = 1`, and `BOTH = 2`.
+Use a convenience entrypoint only after every key it reads has been published in Chainlog. Otherwise, use the fully parameterized entrypoint; both paths deploy the same concrete contract constructor.
 
 Before broadcasting a batch, run the preflight with the exact reviewed factory, label, mode, and ordered leaves. Record its configuration hash and, for `CREATE2`, its predicted address:
 
