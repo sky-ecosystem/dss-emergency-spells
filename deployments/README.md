@@ -24,9 +24,11 @@ The current overlay uses these migration states:
 
 - `waiting-for-reviewed-v2-replacement` retains documented V1 standby
   coverage while a V2 replacement is pending;
-- `deprecated-v1` excludes a V1 artifact from incident use;
-- `superseded-by-v2` requires an explicit replacement whose V2 manifest status
-  is `incident-ready`;
+- `deprecated-v1` preserves the exclusion recorded in the signed V1 snapshot;
+- `revoked-v1` withdraws a historically active V1 artifact from incident use
+  before a replacement exists and requires a revocation reason;
+- `superseded-by-v2` requires an explicit `incident-ready` replacement, an
+  allowed action-family mapping, and an approved coverage-equivalence review;
 - `retained-v1-exception` requires a documented retention rationale.
 
 The 49 entries classified active in the signed V1 snapshot initially use the
@@ -71,10 +73,16 @@ simulation evidence.
 
 A V1 migration change must preserve the exact identity copied from
 `legacy-v1.json`, update the aggregate counts, include evidence, and arrive in
-a signed commit. A superseded record must reference an `incident-ready` V2
-manifest address. A retained exception must explain why V1 remains the safer
-operational path. The immutable legacy snapshot itself is never rewritten to
-represent current status.
+a signed commit. The migration validator first validates the complete V2
+manifest before trusting a replacement. A superseded record must reference an
+`incident-ready` V2 address in the allowed action family and include an
+approved review bound to both addresses, the legacy name, kind, subject and
+parameter, the replacement contract, its manifest subjects and parameters,
+and a description of intended coverage. Batch replacements additionally must
+contain only leaves in the corresponding action family. A retained exception
+must explain why V1 remains the safer operational path. A revoked record must
+explain why formerly active V1 coverage was withdrawn. The immutable legacy
+snapshot itself is never rewritten to represent current status.
 
 The intended lifecycle is `deployed` → `reviewed` → `incident-ready`.
 `revoked` removes an artifact from incident use without erasing its history;

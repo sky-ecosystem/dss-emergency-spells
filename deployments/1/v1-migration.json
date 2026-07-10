@@ -11,12 +11,14 @@
   "statusSemantics": {
     "waiting-for-reviewed-v2-replacement": "Retained as documented V1 standby coverage while a reviewed V2 replacement is pending. This status does not prove current Chief authorization or readiness; incident-time validation remains required.",
     "deprecated-v1": "Deprecated in the signed V1 snapshot and excluded from incident use.",
-    "superseded-by-v2": "Replaced by the referenced incident-ready V2 deployment.",
+    "revoked-v1": "Previously active V1 coverage withdrawn from incident use before replacement.",
+    "superseded-by-v2": "Replaced by the referenced incident-ready V2 deployment after an approved coverage-equivalence review.",
     "retained-v1-exception": "Intentionally retained as documented V1 standby coverage with an explicit rationale."
   },
   "counts": {
     "waitingForReviewedV2Replacement": 49,
     "deprecatedV1": 25,
+    "revokedV1": 0,
     "supersededByV2": 0,
     "retainedV1Exception": 0,
     "total": 74

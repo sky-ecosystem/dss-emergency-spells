@@ -207,6 +207,42 @@
           "atomicRollbackVerified": true
         }
       }
+    },
+    {
+      "contractName": "SPBEAMHaltSpellV2",
+      "artifact": "src/spbeam-halt/SPBEAMHaltSpellV2.sol:SPBEAMHaltSpellV2",
+      "kind": "leaf",
+      "address": "0x0000000000000000000000000000000000000044",
+      "runtimeCodehash": "0x4444444444444444444444444444444444444444444444444444444444444444",
+      "sourceCommit": "1111111111111111111111111111111111111111",
+      "deployment": {
+        "transactionHash": "0x6666666666666666666666666666666666666666666666666666666666666666",
+        "blockNumber": 3,
+        "constructorArguments": "0x4234"
+      },
+      "immutableReadbacks": {
+        "action()(address)": "0x0000000000000000000000000000000000000044",
+        "pause()(address)": "0x0000000000000000000000000000000000000012",
+        "spbeam()(address)": "0x0000000000000000000000000000000000000046",
+        "spbeamMom()(address)": "0x0000000000000000000000000000000000000045"
+      },
+      "subjects": {
+        "spbeam()(address)": "0x0000000000000000000000000000000000000046",
+        "spbeamMom()(address)": "0x0000000000000000000000000000000000000045"
+      },
+      "parameters": {},
+      "reviews": {
+        "directUse": {
+          "status": "approved",
+          "evidence": "https://example.com/spbeam-direct-review"
+        },
+        "batchUse": {
+          "status": "approved",
+          "evidence": "https://example.com/spbeam-batch-review"
+        }
+      },
+      "batchEligible": true,
+      "operationalStatus": "incident-ready"
     }
   ]
 }
