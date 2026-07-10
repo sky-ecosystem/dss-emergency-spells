@@ -70,12 +70,12 @@ Deployment records are published under [`deployments/`](./deployments/). The man
 
 ## Testing
 
-Unit and integration tests are colocated with the Solidity, deployment-script, and CLI sources they exercise. Integration test files use the `*.integration.t.sol` suffix. Local tests do not require a fork:
+Unit and integration tests are colocated with the Solidity, deployment-script, and CLI sources they exercise. Integration test files use the `*Integration.t.sol` suffix. Local tests do not require a fork:
 
 ```sh
 forge build --sizes
 forge fmt --check
-forge test --no-match-path '**/*.integration.t.sol'
+forge test --no-match-path '**/*Integration.t.sol'
 python3 -m compileall -q cli
 python3 -m unittest discover -s cli/emergency_spells -t . -v
 ```
@@ -83,8 +83,8 @@ python3 -m unittest discover -s cli/emergency_spells -t . -v
 Mainnet integration tests require `ETH_RPC_URL`:
 
 ```sh
-forge test --match-path '**/*.integration.t.sol'
-forge test --match-path 'src/clip-breaker/GlobalClipBreakerSpellV2.integration.t.sol'
+forge test --match-path '**/*Integration.t.sol'
+forge test --match-path 'src/clip-breaker/GlobalClipBreakerSpellV2Integration.t.sol'
 ```
 
 The second command is listed explicitly because the global clip-breaker suite performs dynamic live-registry isolation and may be run separately during review.
