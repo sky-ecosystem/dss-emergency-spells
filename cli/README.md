@@ -33,7 +33,9 @@ Canonical flags use the names from [`deployments/v2.schema.json`](../deployments
 | `--parameters`          | `--params`    |
 | `--immutable-readbacks` | `--readbacks` |
 
-## Validate a V2 manifest
+## Commands
+
+### `validate-manifest`
 
 Validate the manifest schema, shared spell interface, review state, subject and parameter bindings, batch dependencies, deployment chronology, and lifecycle rules. This command does not access the network.
 
@@ -42,7 +44,7 @@ cli/emergency-spells validate-manifest \
   --manifest deployments/1/v2.json
 ```
 
-## Validate V1 migration status
+### `validate-migration`
 
 Reconcile the immutable V1 snapshot with the V2 manifest and the current migration overlay. This command does not access the network.
 
@@ -53,7 +55,7 @@ cli/emergency-spells validate-migration \
   --mig deployments/1/v1-migration.json
 ```
 
-## Draft a direct deployment record
+### `draft-deployment`
 
 Generate a complete record-shaped JSON draft from a direct `CREATE` transaction and live getter readbacks. The command writes JSON to standard output and never edits the manifest.
 
@@ -74,7 +76,7 @@ cli/emergency-spells draft-deployment \
 
 The draft intentionally has pending reviews with empty evidence and `operationalStatus: "deployed"`. It is not a valid manifest record until a reviewer completes the required evidence and state fields.
 
-## Draft a batch deployment record
+### `draft-batch`
 
 Generate a batch record from the factory transaction, the published factory and leaf records, the factory event, and live batch getter readbacks. The factory and leaves must already be present in the supplied manifest. For `create2`, the command also independently checks the deterministic address.
 
@@ -93,7 +95,7 @@ cli/emergency-spells draft-batch \
 
 The batch draft records a pending atomic-simulation object with deliberately incomplete evidence fields. Complete those fields from a reviewed simulation before adding the record to a valid manifest.
 
-## Verify a direct deployment
+### `verify-deployment`
 
 Verify a published leaf, registry-global spell, or batch factory against its creating transaction, receipt, runtime codehash, immutable readbacks, and signed source provenance.
 
@@ -109,7 +111,7 @@ cli/emergency-spells verify-deployment \
 
 Use `verify-batch` instead for a batch deployed through `EmergencySpellBatchFactoryV2`.
 
-## Preflight a batch
+### `preflight-batch`
 
 Authenticate the factory and selected leaves before deployment, then calculate the configuration hash. `create2` additionally prints the predicted deterministic batch address.
 
@@ -128,7 +130,7 @@ cli/emergency-spells preflight-batch \
 
 Pass the printed configuration hash to the batch deployment script without changing the factory, mode, label, or leaf order.
 
-## Verify a batch deployment
+### `verify-batch`
 
 Verify the manifest configuration, factory deployment, selected leaf codehashes, constructor encoding, batch getters, factory call and event, receipt, and deterministic address when applicable.
 
@@ -147,7 +149,7 @@ cli/emergency-spells verify-batch \
 
 The arguments must exactly match the published batch record.
 
-## Inspect a deployed batch
+### `inspect-batch`
 
 Read the batch description and ordered leaf list from chain, then read each leaf description. Inspection is one level deep and preserves execution order.
 
@@ -168,7 +170,7 @@ Emergency Spell | Batch: Incident batch (0x0000000000000000000000000000000000000
 
 If a description or leaf-list read fails, the command prints every available node, marks unavailable data in the tree, and exits with status 1. Inspection is read-only and does not establish manifest publication, review status, batch eligibility, or incident readiness.
 
-## Probe a registry-global spell
+### `probe-registry`
 
 Simulate `scheduleRange(i, i)` for every entry in a registry-global spell. The command pins all reads and simulations to the block printed in its output, reports every passing and failing index, and groups passing indices into contiguous ranges that can be submitted through `scheduleRange(start, end)`.
 
