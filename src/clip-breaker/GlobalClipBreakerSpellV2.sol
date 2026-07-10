@@ -65,6 +65,7 @@ contract GlobalClipBreakerSpellV2 is EmergencySpellV2 {
             if (clip == address(0)) continue;
 
             ClipperMomLike(clipperMom).setBreaker(clip, BREAKER_LEVEL, BREAKER_DELAY);
+            require(ClipLike(clip).stopped() == BREAKER_LEVEL, "GlobalClipBreakerSpellV2/not-stopped");
             emit SetBreaker(ilk, clip);
         }
     }

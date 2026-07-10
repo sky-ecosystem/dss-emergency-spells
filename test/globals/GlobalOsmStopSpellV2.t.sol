@@ -10,6 +10,7 @@ import {
     MalformedGlobalTargetV2,
     OsmGlobalMockV2,
     OsmMomGlobalMockV2,
+    PermissiveOsmGlobalMockV2,
     RevertingOsmGlobalMockV2
 } from "../mocks/GlobalSpellMocksV2.sol";
 
@@ -147,6 +148,20 @@ contract GlobalOsmStopSpellV2Test is Test {
         vm.expectRevert("RevertingOsmGlobalMockV2/stop-failed");
         spell.scheduleRange(0, 1);
         assertEq(osmA.stopped(), 0);
+    }
+
+    function testPostconditionFailureRollsBackEarlierTargets() public {
+        OsmGlobalMockV2 osmA = new OsmGlobalMockV2();
+        PermissiveOsmGlobalMockV2 osmB = new PermissiveOsmGlobalMockV2();
+        _addOsm(ILK_A, address(osmA));
+        _addOsm(ILK_B, address(osmB));
+        GlobalOsmStopSpellV2 spell = _deploy();
+
+        vm.expectRevert("GlobalOsmStopSpellV2/not-stopped");
+        spell.schedule();
+
+        assertEq(osmA.stopped(), 0);
+        assertEq(osmB.stopped(), 0);
     }
 
     function testUnauthorizedExecutionRevertsWithoutPartialEffects() public {

@@ -88,6 +88,7 @@ contract LineMomGlobalMockV2 {
 
     mapping(address => bool) public authorized;
     mapping(bytes32 => uint256) internal enrolled;
+    mapping(bytes32 => bool) public noopOnWipe;
     mapping(bytes32 => bool) public revertOnWipe;
 
     constructor(address autoLine_, address vat_) {
@@ -109,6 +110,10 @@ contract LineMomGlobalMockV2 {
         revertOnWipe[ilk] = value;
     }
 
+    function setNoopOnWipe(bytes32 ilk, bool value) external {
+        noopOnWipe[ilk] = value;
+    }
+
     function ilks(bytes32 ilk) external view returns (uint256) {
         return enrolled[ilk];
     }
@@ -116,6 +121,7 @@ contract LineMomGlobalMockV2 {
     function wipe(bytes32 ilk) external returns (uint256) {
         require(authorized[msg.sender], "LineMomGlobalMockV2/not-authorized");
         require(!revertOnWipe[ilk], "LineMomGlobalMockV2/wipe-failed");
+        if (noopOnWipe[ilk]) return 0;
         delete enrolled[ilk];
         AutoLineGlobalMockV2(autoLine).clear(ilk);
         VatGlobalMockV2(vat).setLine(ilk, 0);
@@ -141,6 +147,12 @@ contract RevertingClipGlobalMockV2 {
     function setStopped(uint256) external pure {
         require(false, "RevertingClipGlobalMockV2/set-failed");
     }
+}
+
+contract PermissiveClipGlobalMockV2 {
+    uint256 public stopped;
+
+    fallback() external {}
 }
 
 contract ClipperMomGlobalMockV2 {
@@ -174,6 +186,12 @@ contract RevertingOsmGlobalMockV2 {
     function stop() external pure {
         require(false, "RevertingOsmGlobalMockV2/stop-failed");
     }
+}
+
+contract PermissiveOsmGlobalMockV2 {
+    uint256 public stopped;
+
+    fallback() external {}
 }
 
 contract OsmMomGlobalMockV2 {

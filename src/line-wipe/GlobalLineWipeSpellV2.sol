@@ -63,9 +63,7 @@ contract GlobalLineWipeSpellV2 is EmergencySpellV2 {
             bytes32 ilk = ilks[i];
             if (LineMomLike(lineMom).ilks(ilk) == 0) continue;
 
-            (,,, uint256 line,) = VatLike(vat).ilks(ilk);
-            (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc) = AutoLineLike(autoLine).ilks(ilk);
-            if (line != 0 || maxLine != 0 || gap != 0 || ttl != 0 || last != 0 || lastInc != 0) return false;
+            if (!_isWiped(ilk)) return false;
         }
         return true;
     }
@@ -80,7 +78,14 @@ contract GlobalLineWipeSpellV2 is EmergencySpellV2 {
             if (LineMomLike(lineMom).ilks(ilk) == 0) continue;
 
             LineMomLike(lineMom).wipe(ilk);
+            require(_isWiped(ilk), "GlobalLineWipeSpellV2/not-wiped");
             emit Wipe(ilk);
         }
+    }
+
+    function _isWiped(bytes32 ilk) internal view returns (bool) {
+        (,,, uint256 line,) = VatLike(vat).ilks(ilk);
+        (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc) = AutoLineLike(autoLine).ilks(ilk);
+        return line == 0 && maxLine == 0 && gap == 0 && ttl == 0 && last == 0 && lastInc == 0;
     }
 }

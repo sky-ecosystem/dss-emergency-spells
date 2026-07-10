@@ -63,6 +63,7 @@ contract GlobalOsmStopSpellV2 is EmergencySpellV2 {
             if (osm == address(0)) continue;
 
             OsmMomLike(osmMom).stop(ilk);
+            require(OsmLike(osm).stopped() == 1, "GlobalOsmStopSpellV2/not-stopped");
             emit Stop(ilk, osm);
         }
     }

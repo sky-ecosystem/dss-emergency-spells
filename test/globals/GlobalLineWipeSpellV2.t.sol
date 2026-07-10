@@ -156,6 +156,19 @@ contract GlobalLineWipeSpellV2Test is Test {
         _assertActive(ILK_A);
     }
 
+    function testPostconditionFailureRollsBackEarlierTargets() public {
+        _addActive(ILK_A);
+        _addActive(ILK_B);
+        GlobalLineWipeSpellV2 spell = _deploy();
+        lineMom.setNoopOnWipe(ILK_B, true);
+
+        vm.expectRevert("GlobalLineWipeSpellV2/not-wiped");
+        spell.schedule();
+
+        _assertActive(ILK_A);
+        _assertActive(ILK_B);
+    }
+
     function testUnauthorizedExecutionRevertsWithoutPartialEffects() public {
         _addActive(ILK_A);
         _addActive(ILK_B);

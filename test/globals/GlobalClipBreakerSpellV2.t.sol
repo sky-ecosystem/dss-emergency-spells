@@ -10,6 +10,7 @@ import {
     ClipperMomGlobalMockV2,
     IlkRegistryMockV2,
     MalformedGlobalTargetV2,
+    PermissiveClipGlobalMockV2,
     RevertingClipGlobalMockV2
 } from "../mocks/GlobalSpellMocksV2.sol";
 
@@ -149,6 +150,20 @@ contract GlobalClipBreakerSpellV2Test is Test {
         vm.expectRevert("RevertingClipGlobalMockV2/set-failed");
         spell.scheduleRange(0, 1);
         assertEq(clipA.stopped(), 0);
+    }
+
+    function testPostconditionFailureRollsBackEarlierTargets() public {
+        ClipGlobalMockV2 clipA = new ClipGlobalMockV2();
+        PermissiveClipGlobalMockV2 clipB = new PermissiveClipGlobalMockV2();
+        _addClip(ILK_A, address(clipA));
+        _addClip(ILK_B, address(clipB));
+        GlobalClipBreakerSpellV2 spell = _deploy();
+
+        vm.expectRevert("GlobalClipBreakerSpellV2/not-stopped");
+        spell.schedule();
+
+        assertEq(clipA.stopped(), 0);
+        assertEq(clipB.stopped(), 0);
     }
 
     function testUnauthorizedExecutionRevertsWithoutPartialEffects() public {
