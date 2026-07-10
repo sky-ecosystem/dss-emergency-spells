@@ -55,11 +55,18 @@ contract DeployV2ScriptsTest is Test {
         leaves[1] = address(0x22);
 
         EmergencySpellBatchV2DeployScript deployer = new EmergencySpellBatchV2DeployScript();
+        bytes32 createConfigHash = keccak256(abi.encode(leaves, "Immediate incident batch"));
+        bytes32 deterministicConfigHash = keccak256(abi.encode(leaves, "Incident batch"));
+        address created = deployer.run(factory, leaves, "Immediate incident batch", createConfigHash);
         address predicted = deployer.preview(factory, leaves, "Incident batch");
-        address batch = deployer.run(factory, leaves, "Incident batch", true);
+        address batch = deployer.runDeterministic(factory, leaves, "Incident batch", deterministicConfigHash);
 
+        assertEq(EmergencySpellBatchV2(created).leaves(), leaves);
         assertEq(batch, predicted);
         assertEq(EmergencySpellBatchV2(batch).leaves(), leaves);
+
+        vm.expectRevert("EmergencySpellBatchV2DeployScript/config-hash-mismatch");
+        deployer.run(factory, leaves, "Wrong config", deterministicConfigHash);
     }
 
     function testOsmDeploymentPinsCurrentMomMapping() public {

@@ -17,11 +17,13 @@ shift 7
 leaves=("$@")
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-"$root/scripts/validate-v2-batch-preflight.sh" "$manifest" "$rpc_url" "$mode" "${leaves[@]}" >/dev/null
+"$root/scripts/validate-v2-batch-preflight.sh" "$manifest" "$rpc_url" "$factory" "$mode" "$label" "${leaves[@]}" >/dev/null
 
 cast_bin=${CAST:-cast}
 forge_bin=${FORGE:-forge}
+git_bin=${GIT:-git}
 command -v "$cast_bin" >/dev/null || { echo "validate-v2-batch-postdeploy: cast is required" >&2; exit 2; }
+command -v "$git_bin" >/dev/null || { echo "validate-v2-batch-postdeploy: git is required" >&2; exit 2; }
 
 leaves_json=$(printf '%s\n' "${leaves[@]}" | jq -R . | jq -s 'map(ascii_downcase)')
 batch_normalized=${batch,,}
@@ -56,6 +58,14 @@ if [[ "$record_matches" != "true" ]]; then
     exit 1
 fi
 
+source_commit=$(jq -r --arg address "$batch_normalized" '
+    .records[] | select((.address | ascii_downcase) == $address) | .sourceCommit
+' "$manifest")
+if [[ "$($git_bin rev-parse HEAD)" != "$source_commit" ]]; then
+    echo "validate-v2-batch-postdeploy: checkout does not match batch sourceCommit" >&2
+    exit 1
+fi
+
 separator=
 leaves_argument="["
 for leaf in "${leaves[@]}"; do
@@ -66,6 +76,13 @@ leaves_argument+="]"
 
 encoded=$($cast_bin abi-encode "f(address[],string)" "$leaves_argument" "$label")
 expected_config_hash=$($cast_bin keccak "$encoded")
+recorded_constructor_arguments=$(jq -r --arg address "$batch_normalized" '
+    .records[] | select((.address | ascii_downcase) == $address) | .deployment.constructorArguments
+' "$manifest")
+if [[ "${recorded_constructor_arguments,,}" != "${encoded,,}" ]]; then
+    echo "validate-v2-batch-postdeploy: batch constructor arguments mismatch" >&2
+    exit 1
+fi
 recorded_config_hash=$(jq -r --arg address "$batch_normalized" '
     .records[] | select((.address | ascii_downcase) == $address) | .batch.configHash
 ' "$manifest")
@@ -102,6 +119,38 @@ expected_runtime_codehash=$(jq -r --arg address "$batch_normalized" '
 actual_runtime_codehash=$($cast_bin codehash "$batch" --rpc-url "$rpc_url")
 if [[ "${actual_runtime_codehash,,}" != "${expected_runtime_codehash,,}" ]]; then
     echo "validate-v2-batch-postdeploy: batch runtime codehash mismatch" >&2
+    exit 1
+fi
+
+while IFS= read -r encoded_readback; do
+    readback=$(base64 --decode <<<"$encoded_readback")
+    signature=$(jq -r '.key' <<<"$readback")
+    expected=$(jq -r '.value' <<<"$readback")
+    actual=$($cast_bin call "$batch" "$signature" --rpc-url "$rpc_url")
+    if [[ "$expected" == 0x* && "$actual" == 0x* ]]; then
+        expected=${expected,,}
+        actual=${actual,,}
+    fi
+    if [[ "$actual" != "$expected" ]]; then
+        echo "validate-v2-batch-postdeploy: immutable readback mismatch: $signature" >&2
+        exit 1
+    fi
+done < <(jq -r --arg address "$batch_normalized" '
+    .records[]
+    | select((.address | ascii_downcase) == $address)
+    | .immutableReadbacks
+    | to_entries[]
+    | @base64
+' "$manifest")
+
+factory_function="deploy(address[],string)"
+if [[ "$mode" == "create2" ]]; then factory_function="deployDeterministic(address[],string)"; fi
+expected_transaction_input=$($cast_bin calldata "$factory_function" "$leaves_argument" "$label")
+transaction=$($cast_bin tx "$deployment_tx" --rpc-url "$rpc_url" --json)
+transaction_to=$(jq -r '.to | ascii_downcase' <<<"$transaction")
+transaction_input=$(jq -r '.input | ascii_downcase' <<<"$transaction")
+if [[ "$transaction_to" != "$factory_normalized" || "$transaction_input" != "${expected_transaction_input,,}" ]]; then
+    echo "validate-v2-batch-postdeploy: factory call target or calldata mismatch" >&2
     exit 1
 fi
 
@@ -150,7 +199,10 @@ fi
 
 if [[ "$mode" == "create2" ]]; then
     command -v "$forge_bin" >/dev/null || { echo "validate-v2-batch-postdeploy: forge is required for CREATE2 validation" >&2; exit 2; }
-    creation_code=$($forge_bin inspect src/EmergencySpellBatchV2.sol:EmergencySpellBatchV2 bytecode)
+    batch_artifact=$(jq -r --arg address "$batch_normalized" '
+        .records[] | select((.address | ascii_downcase) == $address) | .artifact
+    ' "$manifest")
+    creation_code=$($forge_bin inspect "$batch_artifact" bytecode)
     init_code="0x${creation_code#0x}${encoded#0x}"
     predicted=$($cast_bin create2 --deployer "$factory" --salt "$expected_config_hash" --init-code "$init_code")
     if [[ "${predicted,,}" != "$batch_normalized" ]]; then
@@ -160,3 +212,4 @@ if [[ "$mode" == "create2" ]]; then
 fi
 
 echo "Validated V2 batch deployment: $batch"
+echo "Validated the configuration-bound simulation attestation; reviewers must verify its external trace."

@@ -122,14 +122,30 @@ contract EmergencySpellBatchFactoryV2DeployScript is Script {
 }
 
 contract EmergencySpellBatchV2DeployScript is Script {
-    function run(address factory, address[] calldata leaves, string calldata label, bool deterministic)
+    function run(address factory, address[] calldata leaves, string calldata label, bytes32 expectedConfigHash)
         external
         returns (address deployed)
     {
+        require(
+            keccak256(abi.encode(leaves, label)) == expectedConfigHash,
+            "EmergencySpellBatchV2DeployScript/config-hash-mismatch"
+        );
         vm.broadcast();
-        deployed = deterministic
-            ? EmergencySpellBatchFactoryV2(factory).deployDeterministic(leaves, label)
-            : EmergencySpellBatchFactoryV2(factory).deploy(leaves, label);
+        deployed = EmergencySpellBatchFactoryV2(factory).deploy(leaves, label);
+    }
+
+    function runDeterministic(
+        address factory,
+        address[] calldata leaves,
+        string calldata label,
+        bytes32 expectedConfigHash
+    ) external returns (address deployed) {
+        require(
+            keccak256(abi.encode(leaves, label)) == expectedConfigHash,
+            "EmergencySpellBatchV2DeployScript/config-hash-mismatch"
+        );
+        vm.broadcast();
+        deployed = EmergencySpellBatchFactoryV2(factory).deployDeterministic(leaves, label);
     }
 
     function preview(address factory, address[] calldata leaves, string calldata label)

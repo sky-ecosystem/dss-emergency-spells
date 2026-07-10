@@ -5,6 +5,7 @@
   "records": [
     {
       "contractName": "GlobalLineWipeSpellV2",
+      "artifact": "src/line-wipe/GlobalLineWipeSpellV2.sol:GlobalLineWipeSpellV2",
       "kind": "registry-global",
       "address": "0x0000000000000000000000000000000000000031",
       "runtimeCodehash": "0x3333333333333333333333333333333333333333333333333333333333333333",

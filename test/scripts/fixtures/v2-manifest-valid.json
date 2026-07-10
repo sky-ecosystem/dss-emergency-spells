@@ -5,6 +5,7 @@
   "records": [
     {
       "contractName": "LineWipeSpellV2",
+      "artifact": "src/line-wipe/LineWipeSpellV2.sol:LineWipeSpellV2",
       "kind": "leaf",
       "address": "0x0000000000000000000000000000000000000011",
       "runtimeCodehash": "0x1111111111111111111111111111111111111111111111111111111111111111",
@@ -12,10 +13,15 @@
       "deployment": {
         "transactionHash": "0x2222222222222222222222222222222222222222222222222222222222222222",
         "blockNumber": 1,
-        "constructorArguments": "0x"
+        "constructorArguments": "0x1234"
       },
       "immutableReadbacks": {
-        "lineMom()(address)": "0x0000000000000000000000000000000000000021"
+        "action()(address)": "0x0000000000000000000000000000000000000011",
+        "autoLine()(address)": "0x0000000000000000000000000000000000000022",
+        "ilk()(bytes32)": "0x4554482d41000000000000000000000000000000000000000000000000000000",
+        "lineMom()(address)": "0x0000000000000000000000000000000000000021",
+        "pause()(address)": "0x0000000000000000000000000000000000000012",
+        "vat()(address)": "0x0000000000000000000000000000000000000023"
       },
       "subjects": {
         "ilk": "ETH-A"
@@ -36,6 +42,7 @@
     },
     {
       "contractName": "GlobalLineWipeSpellV2",
+      "artifact": "src/line-wipe/GlobalLineWipeSpellV2.sol:GlobalLineWipeSpellV2",
       "kind": "registry-global",
       "address": "0x0000000000000000000000000000000000000031",
       "runtimeCodehash": "0x3333333333333333333333333333333333333333333333333333333333333333",
@@ -43,9 +50,16 @@
       "deployment": {
         "transactionHash": "0x4444444444444444444444444444444444444444444444444444444444444444",
         "blockNumber": 2,
-        "constructorArguments": "0x"
+        "constructorArguments": "0x2234"
       },
-      "immutableReadbacks": {},
+      "immutableReadbacks": {
+        "action()(address)": "0x0000000000000000000000000000000000000031",
+        "autoLine()(address)": "0x0000000000000000000000000000000000000034",
+        "ilkRegistry()(address)": "0x0000000000000000000000000000000000000032",
+        "lineMom()(address)": "0x0000000000000000000000000000000000000033",
+        "pause()(address)": "0x0000000000000000000000000000000000000012",
+        "vat()(address)": "0x0000000000000000000000000000000000000023"
+      },
       "subjects": {
         "registry": "IlkRegistry"
       },
@@ -65,6 +79,7 @@
     },
     {
       "contractName": "OsmStopSpellV2",
+      "artifact": "src/osm-stop/OsmStopSpellV2.sol:OsmStopSpellV2",
       "kind": "leaf",
       "address": "0x0000000000000000000000000000000000000022",
       "runtimeCodehash": "0x2222222222222222222222222222222222222222222222222222222222222222",
@@ -72,10 +87,14 @@
       "deployment": {
         "transactionHash": "0x5555555555555555555555555555555555555555555555555555555555555555",
         "blockNumber": 3,
-        "constructorArguments": "0x"
+        "constructorArguments": "0x3234"
       },
       "immutableReadbacks": {
-        "osmMom()(address)": "0x0000000000000000000000000000000000000041"
+        "action()(address)": "0x0000000000000000000000000000000000000022",
+        "ilk()(bytes32)": "0x4554482d41000000000000000000000000000000000000000000000000000000",
+        "osm()(address)": "0x0000000000000000000000000000000000000042",
+        "osmMom()(address)": "0x0000000000000000000000000000000000000041",
+        "pause()(address)": "0x0000000000000000000000000000000000000012"
       },
       "subjects": {
         "ilk": "ETH-A"
@@ -95,7 +114,36 @@
       "operationalStatus": "incident-ready"
     },
     {
+      "contractName": "EmergencySpellBatchFactoryV2",
+      "artifact": "src/EmergencySpellBatchFactoryV2.sol:EmergencySpellBatchFactoryV2",
+      "kind": "infrastructure",
+      "address": "0x00000000000000000000000000000000000000f1",
+      "runtimeCodehash": "0xf1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1",
+      "sourceCommit": "1111111111111111111111111111111111111111",
+      "deployment": {
+        "transactionHash": "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "blockNumber": 5,
+        "constructorArguments": "0x"
+      },
+      "immutableReadbacks": {},
+      "subjects": {},
+      "parameters": {},
+      "reviews": {
+        "directUse": {
+          "status": "approved",
+          "evidence": "https://example.com/factory-review"
+        },
+        "batchUse": {
+          "status": "not-applicable",
+          "evidence": "Infrastructure is direct-use only."
+        }
+      },
+      "batchEligible": false,
+      "operationalStatus": "incident-ready"
+    },
+    {
       "contractName": "EmergencySpellBatchV2",
+      "artifact": "src/EmergencySpellBatchV2.sol:EmergencySpellBatchV2",
       "kind": "batch",
       "address": "0x00000000000000000000000000000000000000b1",
       "runtimeCodehash": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -103,10 +151,12 @@
       "deployment": {
         "transactionHash": "0x9999999999999999999999999999999999999999999999999999999999999999",
         "blockNumber": 4,
-        "constructorArguments": "0x"
+        "constructorArguments": "0xabcdef"
       },
       "immutableReadbacks": {
-        "configHash()(bytes32)": "0x66fbf5b80224f0df35fa2a524c580bc83ea780a0e2e0dda40366cf190f725300"
+        "action()(address)": "0x00000000000000000000000000000000000000b1",
+        "configHash()(bytes32)": "0x66fbf5b80224f0df35fa2a524c580bc83ea780a0e2e0dda40366cf190f725300",
+        "pause()(address)": "0x0000000000000000000000000000000000000012"
       },
       "subjects": {},
       "parameters": {},
@@ -121,7 +171,7 @@
         }
       },
       "batchEligible": false,
-      "operationalStatus": "reviewed",
+      "operationalStatus": "incident-ready",
       "batch": {
         "label": "Incident batch",
         "orderedLeaves": [
@@ -140,7 +190,18 @@
           "configHash": "0x66fbf5b80224f0df35fa2a524c580bc83ea780a0e2e0dda40366cf190f725300"
         },
         "factoryEventVerified": true,
-        "atomicSimulationEvidence": "https://example.com/atomic-simulation"
+        "atomicSimulation": {
+          "status": "approved",
+          "reference": "https://example.com/atomic-simulation",
+          "chainId": 1,
+          "blockNumber": 4,
+          "batch": "0x00000000000000000000000000000000000000b1",
+          "configHash": "0x66fbf5b80224f0df35fa2a524c580bc83ea780a0e2e0dda40366cf190f725300",
+          "chief": "0x00000000000000000000000000000000000000c1",
+          "chiefAuthorizationVerified": true,
+          "downstreamCallerVerified": true,
+          "atomicRollbackVerified": true
+        }
       }
     }
   ]

@@ -32,21 +32,34 @@ The available script contracts and `run` signatures are:
 | `GlobalClipBreakerSpellV2DeployScript` | `run(address,address)` |
 | `GlobalOsmStopSpellV2DeployScript` | `run(address,address)` |
 | `EmergencySpellBatchFactoryV2DeployScript` | `run()` |
-| `EmergencySpellBatchV2DeployScript` | `run(address,address[],string,bool)` |
+| `EmergencySpellBatchV2DeployScript` | `run(address,address[],string,bytes32)` for `CREATE` |
+| `EmergencySpellBatchV2DeployScript` | `runDeterministic(address,address[],string,bytes32)` for `CREATE2` |
 
 `Flow` values are `SELL = 0`, `BUY = 1`, and `BOTH = 2`. `Param` values are
 `CAP = 0`, `LINE = 1`, and `BOTH = 2`.
 
-Before broadcasting a batch, run:
+Before broadcasting a batch, run the preflight with the exact reviewed factory,
+label, mode, and ordered leaves. Record its configuration hash and, for
+`CREATE2`, its predicted address:
 
 ```sh
 scripts/validate-v2-batch-preflight.sh \
-  deployments/<chain-id>/v2.json <rpc-url> <create|create2> <leaf> [leaf ...]
+  deployments/<chain-id>/v2.json <rpc-url> <factory> <create|create2> <label> \
+  <leaf> [leaf ...]
 ```
 
-After any deployment, add the reviewed record to the V2 manifest and run the
-general deployment validator. For a batch, also run the batch-specific
-post-deployment validator:
+Pass the printed configuration hash as the final deployment-script argument.
+The script rejects a leaf/label configuration that differs from the reviewed
+preflight output.
+
+Use `CREATE2` only when the selected actions are order-independent and the leaf
+addresses have already been placed in strictly increasing order. Use `CREATE`
+when execution order is semantically meaningful; it preserves the reviewed
+order. Never sort a meaningful action sequence merely to make it deterministic.
+
+After a direct leaf, global, or factory deployment, add the reviewed record to
+the V2 manifest and run the general deployment validator. For a factory-created
+batch, run the batch-specific post-deployment validator instead:
 
 ```sh
 scripts/validate-v2-deployment.sh \
@@ -58,4 +71,13 @@ scripts/validate-v2-batch-postdeploy.sh \
 ```
 
 A successful deployment or factory event is not incident-response approval.
-The manifest must contain the applicable review and simulation evidence.
+The manifest must contain the applicable review and structured simulation
+attestation. The validators bind that attestation to the configuration but do
+not replay or truth-test its external trace; reviewers must verify the evidence
+criteria in [`deployments/README.md`](../deployments/README.md).
+
+Deployment validators must run from a clean checkout at each record's exact
+signed `sourceCommit`. Before incident use, fetch and verify the latest canonical
+signed manifest commit and record it in the incident log. See
+[`deployments/README.md`](../deployments/README.md) for status transitions and
+the manual publication/revocation boundary.

@@ -58,7 +58,7 @@
         "deploymentMode",
         "getterReadbacks",
         "factoryEventVerified",
-        "atomicSimulationEvidence"
+        "atomicSimulation"
       ],
       "properties": {
         "label": { "type": "string", "minLength": 1 },
@@ -70,9 +70,50 @@
         "configHash": { "$ref": "#/$defs/bytes32" },
         "factory": { "$ref": "#/$defs/address" },
         "deploymentMode": { "enum": ["create", "create2"] },
-        "getterReadbacks": { "type": "object" },
+        "getterReadbacks": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["label", "leaves", "configHash"],
+          "properties": {
+            "label": { "type": "string", "minLength": 1 },
+            "leaves": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/address" }
+            },
+            "configHash": { "$ref": "#/$defs/bytes32" }
+          }
+        },
         "factoryEventVerified": { "type": "boolean" },
-        "atomicSimulationEvidence": { "type": "string", "minLength": 1 }
+        "atomicSimulation": { "$ref": "#/$defs/simulation" }
+      }
+    },
+    "simulation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "reference",
+        "chainId",
+        "blockNumber",
+        "batch",
+        "configHash",
+        "chief",
+        "chiefAuthorizationVerified",
+        "downstreamCallerVerified",
+        "atomicRollbackVerified"
+      ],
+      "properties": {
+        "status": { "enum": ["pending", "approved", "rejected"] },
+        "reference": { "type": "string", "minLength": 1 },
+        "chainId": { "type": "integer", "minimum": 1 },
+        "blockNumber": { "type": "integer", "minimum": 1 },
+        "batch": { "$ref": "#/$defs/address" },
+        "configHash": { "$ref": "#/$defs/bytes32" },
+        "chief": { "$ref": "#/$defs/address" },
+        "chiefAuthorizationVerified": { "type": "boolean" },
+        "downstreamCallerVerified": { "type": "boolean" },
+        "atomicRollbackVerified": { "type": "boolean" }
       }
     },
     "record": {
@@ -80,6 +121,7 @@
       "additionalProperties": false,
       "required": [
         "contractName",
+        "artifact",
         "kind",
         "address",
         "runtimeCodehash",
@@ -94,6 +136,10 @@
       ],
       "properties": {
         "contractName": { "type": "string", "minLength": 1 },
+        "artifact": {
+          "type": "string",
+          "pattern": "^src/[A-Za-z0-9_./-]+\\.sol:[A-Za-z_][A-Za-z0-9_]*$"
+        },
         "kind": {
           "enum": ["leaf", "registry-global", "batch", "infrastructure"]
         },

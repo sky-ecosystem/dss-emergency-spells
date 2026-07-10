@@ -11,11 +11,27 @@ leaf1=0x0000000000000000000000000000000000000011
 leaf2=0x0000000000000000000000000000000000000022
 
 CAST="$root/test/scripts/mock-cast.sh" FORGE="$root/test/scripts/mock-forge.sh" \
-    "$validator" "$manifest" mock:// "$batch" "$factory" "$tx" create2 "Incident batch" "$leaf1" "$leaf2"
+    GIT="$root/test/scripts/mock-git.sh" "$validator" "$manifest" mock:// "$batch" "$factory" "$tx" create2 \
+    "Incident batch" "$leaf1" "$leaf2"
 
 if CAST="$root/test/scripts/mock-cast.sh" FORGE="$root/test/scripts/mock-forge.sh" \
-    "$validator" "$manifest" mock:// "$batch" "$factory" "$tx" create2 "Wrong label" "$leaf1" "$leaf2" >/dev/null 2>&1; then
+    GIT="$root/test/scripts/mock-git.sh" "$validator" "$manifest" mock:// "$batch" "$factory" "$tx" create2 \
+    "Wrong label" "$leaf1" "$leaf2" >/dev/null 2>&1; then
     echo "expected mismatched label to fail post-deployment validation" >&2
+    exit 1
+fi
+
+if BROKEN_FACTORY_CALL=1 CAST="$root/test/scripts/mock-cast.sh" FORGE="$root/test/scripts/mock-forge.sh" \
+    GIT="$root/test/scripts/mock-git.sh" "$validator" "$manifest" mock:// "$batch" "$factory" "$tx" create2 \
+    "Incident batch" "$leaf1" "$leaf2" >/dev/null 2>&1; then
+    echo "expected mismatched factory calldata to fail post-deployment validation" >&2
+    exit 1
+fi
+
+if BROKEN_EVENT=1 CAST="$root/test/scripts/mock-cast.sh" FORGE="$root/test/scripts/mock-forge.sh" \
+    GIT="$root/test/scripts/mock-git.sh" "$validator" "$manifest" mock:// "$batch" "$factory" "$tx" create2 \
+    "Incident batch" "$leaf1" "$leaf2" >/dev/null 2>&1; then
+    echo "expected an event from the wrong emitter to fail post-deployment validation" >&2
     exit 1
 fi
 
