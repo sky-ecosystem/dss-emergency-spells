@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -ne 4 ]]; then
-    echo "usage: $0 <v2-manifest.json> <rpc-url> <source-root> <deployed-address>" >&2
+if [[ $# -ne 3 ]]; then
+    echo "usage: $0 <v2-manifest.json> <rpc-url> <deployed-address>" >&2
     exit 2
 fi
 
 manifest=$1
 rpc_url=$2
-source_root=$3
-deployed=$4
+deployed=$3
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 "$root/cli/validate-v2-manifest.sh" "$manifest" >/dev/null
@@ -46,15 +45,15 @@ fi
 source_commit=$(jq -r --arg address "$normalized" '
     .records[] | select((.address | ascii_downcase) == $address) | .sourceCommit
 ' "$manifest")
-if [[ "$($git_bin -C "$source_root" rev-parse HEAD)" != "$source_commit" ]]; then
-    echo "validate-v2-deployment: source root does not match sourceCommit" >&2
+if [[ "$($git_bin -C "$root" rev-parse HEAD)" != "$source_commit" ]]; then
+    echo "validate-v2-deployment: repository does not match sourceCommit" >&2
     exit 1
 fi
-if [[ -n "$($git_bin -C "$source_root" status --porcelain --untracked-files=all)" ]]; then
-    echo "validate-v2-deployment: source root has tracked, untracked, or submodule changes" >&2
+if [[ -n "$($git_bin -C "$root" status --porcelain --untracked-files=all)" ]]; then
+    echo "validate-v2-deployment: repository has tracked, untracked, or submodule changes" >&2
     exit 1
 fi
-$git_bin -C "$source_root" verify-commit "$source_commit" >/dev/null 2>&1 || {
+$git_bin -C "$root" verify-commit "$source_commit" >/dev/null 2>&1 || {
     echo "validate-v2-deployment: sourceCommit signature verification failed" >&2
     exit 1
 }
@@ -65,7 +64,7 @@ artifact=$(jq -r --arg address "$normalized" '
 constructor_arguments=$(jq -r --arg address "$normalized" '
     .records[] | select((.address | ascii_downcase) == $address) | .deployment.constructorArguments
 ' "$manifest")
-creation_code=$($forge_bin inspect --root "$source_root" --force "$artifact" bytecode)
+creation_code=$($forge_bin inspect --root "$root" --force "$artifact" bytecode)
 expected_input="0x${creation_code#0x}${constructor_arguments#0x}"
 
 deployment_tx=$(jq -r --arg address "$normalized" '

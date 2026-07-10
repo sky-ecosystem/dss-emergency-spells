@@ -79,7 +79,7 @@ Before broadcasting a batch, run the preflight with the exact reviewed factory, 
 
 ```sh
 cli/validate-v2-batch-preflight.sh \
-  deployments/<chain-id>/v2.json <rpc-url> <source-root> <factory> \
+  deployments/<chain-id>/v2.json <rpc-url> <factory> \
   <create|create2> <label> <leaf> [leaf ...]
 ```
 
@@ -91,13 +91,13 @@ After a direct leaf, global, or factory deployment, add the reviewed record to t
 
 ```sh
 cli/validate-v2-deployment.sh \
-  deployments/<chain-id>/v2.json <rpc-url> <source-root> <deployed-address>
+  deployments/<chain-id>/v2.json <rpc-url> <deployed-address>
 
 cli/validate-v2-batch-postdeploy.sh \
-  deployments/<chain-id>/v2.json <rpc-url> <source-root> <batch> <factory> \
+  deployments/<chain-id>/v2.json <rpc-url> <batch> <factory> \
   <deployment-tx> <create|create2> <label> <leaf> [leaf ...]
 ```
 
 A successful deployment or factory event is not incident-response approval. The manifest must contain the applicable review and structured simulation attestation. The validators bind that attestation to the configuration but do not replay or truth-test its external trace; reviewers must verify the evidence criteria in [`deployments/README.md`](../deployments/README.md).
 
-Run the latest canonical signed CLI and pass a separate clean `source-root` checked out at the record's exact signed `sourceCommit`. Before incident use, fetch and verify the latest canonical signed manifest commit and record it in the incident log. See [`deployments/README.md`](../deployments/README.md) for status transitions and the manual publication/revocation boundary.
+Run the validator from a clean repository checkout at the record's exact signed `sourceCommit`. Before incident use, fetch and verify the latest canonical signed manifest commit and record it in the incident log. See [`deployments/README.md`](../deployments/README.md) for status transitions and the manual publication/revocation boundary.

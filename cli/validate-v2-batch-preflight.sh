@@ -1,18 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -lt 7 ]]; then
-    echo "usage: $0 <v2-manifest.json> <rpc-url> <source-root> <factory> <create|create2> <label> <leaf> [leaf ...]" >&2
+if [[ $# -lt 6 ]]; then
+    echo "usage: $0 <v2-manifest.json> <rpc-url> <factory> <create|create2> <label> <leaf> [leaf ...]" >&2
     exit 2
 fi
 
 manifest=$1
 rpc_url=$2
-source_root=$3
-factory=$4
-mode=$5
-label=$6
-shift 6
+factory=$3
+mode=$4
+label=$5
+shift 5
 leaves=("$@")
 
 case "$mode" in
@@ -58,7 +57,7 @@ if [[ "$factory_ready" != "true" ]]; then
     echo "validate-v2-batch-preflight: factory is not incident-ready infrastructure" >&2
     exit 1
 fi
-"$root/cli/validate-v2-deployment.sh" "$manifest" "$rpc_url" "$source_root" "$factory" >/dev/null
+"$root/cli/validate-v2-deployment.sh" "$manifest" "$rpc_url" "$factory" >/dev/null
 
 declare -A selected
 previous=

@@ -1,20 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -lt 9 ]]; then
-    echo "usage: $0 <v2-manifest.json> <rpc-url> <source-root> <batch> <factory> <deployment-tx> <create|create2> <label> <leaf> [leaf ...]" >&2
+if [[ $# -lt 8 ]]; then
+    echo "usage: $0 <v2-manifest.json> <rpc-url> <batch> <factory> <deployment-tx> <create|create2> <label> <leaf> [leaf ...]" >&2
     exit 2
 fi
 
 manifest=$1
 rpc_url=$2
-source_root=$3
-batch=$4
-factory=$5
-deployment_tx=$6
-mode=$7
-label=$8
-shift 8
+batch=$3
+factory=$4
+deployment_tx=$5
+mode=$6
+label=$7
+shift 7
 leaves=("$@")
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -39,7 +38,7 @@ if [[ "$factory_matches" -ne 1 ]]; then
     echo "validate-v2-batch-postdeploy: expected factory record not found" >&2
     exit 1
 fi
-"$root/cli/validate-v2-deployment.sh" "$manifest" "$rpc_url" "$source_root" "$factory" >/dev/null
+"$root/cli/validate-v2-deployment.sh" "$manifest" "$rpc_url" "$factory" >/dev/null
 
 leaves_json=$(printf '%s\n' "${leaves[@]}" | jq -R . | jq -s 'map(ascii_downcase)')
 batch_normalized=${batch,,}
@@ -88,8 +87,8 @@ fi
 source_commit=$(jq -r --arg address "$batch_normalized" '
     .records[] | select((.address | ascii_downcase) == $address) | .sourceCommit
 ' "$manifest")
-if [[ "$($git_bin -C "$source_root" rev-parse HEAD)" != "$source_commit" ]]; then
-    echo "validate-v2-batch-postdeploy: source root does not match batch sourceCommit" >&2
+if [[ "$($git_bin -C "$root" rev-parse HEAD)" != "$source_commit" ]]; then
+    echo "validate-v2-batch-postdeploy: repository does not match batch sourceCommit" >&2
     exit 1
 fi
 
@@ -229,7 +228,7 @@ if [[ "$mode" == "create2" ]]; then
     batch_artifact=$(jq -r --arg address "$batch_normalized" '
         .records[] | select((.address | ascii_downcase) == $address) | .artifact
     ' "$manifest")
-    creation_code=$($forge_bin inspect --root "$source_root" --force "$batch_artifact" bytecode)
+    creation_code=$($forge_bin inspect --root "$root" --force "$batch_artifact" bytecode)
     init_code="0x${creation_code#0x}${encoded#0x}"
     predicted=$($cast_bin create2 --deployer "$factory" --salt "$expected_config_hash" --init-code "$init_code")
     if [[ "${predicted,,}" != "$batch_normalized" ]]; then

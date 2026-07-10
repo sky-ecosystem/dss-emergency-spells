@@ -59,7 +59,7 @@ Foundry deployment entrypoints and exact signatures are documented in [`script/R
 
 - `validate-v1-migration.sh` reconciles every historical V1 address with its current migration status and any incident-ready V2 replacement;
 - `validate-v2-manifest.sh` enforces the current artifact allowlist, review state, subject/parameter binding, batch dependencies, chronology, and lifecycle rules;
-- `validate-v2-deployment.sh` validates a direct deployment against a clean historical source root and live chain state;
+- `validate-v2-deployment.sh` validates a direct deployment against this repository's signed `src/` checkout and live chain state;
 - `validate-v2-batch-preflight.sh` authenticates the factory and selected leaves before deployment and prints the exact configuration hash;
 - `validate-v2-batch-postdeploy.sh` validates factory calldata and event, getters, runtime codehashes, constructor encoding, and deterministic address.
 

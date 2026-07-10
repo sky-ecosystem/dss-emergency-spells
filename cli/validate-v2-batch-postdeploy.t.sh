@@ -13,25 +13,25 @@ tmpdir=$(mktemp -d)
 trap 'rm -rf "$tmpdir"' EXIT
 
 CAST="$root/cli/mock-cast.sh" FORGE="$root/cli/mock-forge.sh" \
-    GIT="$root/cli/mock-git.sh" "$validator" "$manifest" mock:// "$root" "$batch" "$factory" "$tx" create2 \
+    GIT="$root/cli/mock-git.sh" "$validator" "$manifest" mock:// "$batch" "$factory" "$tx" create2 \
     "Incident batch" "$leaf1" "$leaf2"
 
 if CAST="$root/cli/mock-cast.sh" FORGE="$root/cli/mock-forge.sh" \
-    GIT="$root/cli/mock-git.sh" "$validator" "$manifest" mock:// "$root" "$batch" "$factory" "$tx" create2 \
+    GIT="$root/cli/mock-git.sh" "$validator" "$manifest" mock:// "$batch" "$factory" "$tx" create2 \
     "Wrong label" "$leaf1" "$leaf2" >/dev/null 2>&1; then
     echo "expected mismatched label to fail post-deployment validation" >&2
     exit 1
 fi
 
 if BROKEN_FACTORY_CALL=1 CAST="$root/cli/mock-cast.sh" FORGE="$root/cli/mock-forge.sh" \
-    GIT="$root/cli/mock-git.sh" "$validator" "$manifest" mock:// "$root" "$batch" "$factory" "$tx" create2 \
+    GIT="$root/cli/mock-git.sh" "$validator" "$manifest" mock:// "$batch" "$factory" "$tx" create2 \
     "Incident batch" "$leaf1" "$leaf2" >/dev/null 2>&1; then
     echo "expected mismatched factory calldata to fail post-deployment validation" >&2
     exit 1
 fi
 
 if BROKEN_EVENT=1 CAST="$root/cli/mock-cast.sh" FORGE="$root/cli/mock-forge.sh" \
-    GIT="$root/cli/mock-git.sh" "$validator" "$manifest" mock:// "$root" "$batch" "$factory" "$tx" create2 \
+    GIT="$root/cli/mock-git.sh" "$validator" "$manifest" mock:// "$batch" "$factory" "$tx" create2 \
     "Incident batch" "$leaf1" "$leaf2" >/dev/null 2>&1; then
     echo "expected an event from the wrong emitter to fail post-deployment validation" >&2
     exit 1
@@ -43,7 +43,7 @@ jq '
     | (.records[] | select(.kind == "leaf") | .operationalStatus) = "revoked"
 ' "$manifest" > "$tmpdir/revoked-history.json"
 CAST="$root/cli/mock-cast.sh" FORGE="$root/cli/mock-forge.sh" \
-    GIT="$root/cli/mock-git.sh" "$validator" "$tmpdir/revoked-history.json" mock:// "$root" "$batch" \
+    GIT="$root/cli/mock-git.sh" "$validator" "$tmpdir/revoked-history.json" mock:// "$batch" \
     "$factory" "$tx" create2 "Incident batch" "$leaf1" "$leaf2" >/dev/null
 
 echo "V2 batch post-deployment tests passed"
