@@ -1,6 +1,6 @@
 # Emergency Spells CLI
 
-`cli/emergency-spells` drafts and validates deployment records, verifies deployed contracts, prepares and verifies batches, and inspects deployed batch contents. Run it from the repository root.
+`cli/emergency-spells` drafts and validates deployment records, verifies deployed contracts, prepares and verifies batches, inspects deployed batch contents, and diagnoses registry-global execution failures. Run it from the repository root.
 
 ## Requirements
 
@@ -167,6 +167,31 @@ Emergency Spell | Batch: Incident batch (0x0000000000000000000000000000000000000
 ```
 
 If a description or leaf-list read fails, the command prints every available node, marks unavailable data in the tree, and exits with status 1. Inspection is read-only and does not establish manifest publication, review status, batch eligibility, or incident readiness.
+
+## Diagnose a registry-global spell
+
+Simulate `scheduleRange(i, i)` for every entry in a registry-global spell. The command pins all reads and simulations to the block printed in its output, reports every passing and failing index, and groups passing indices into contiguous ranges that can be submitted through `scheduleRange(start, end)`.
+
+```sh
+export ETH_RPC_URL=https://eth-mainnet.example
+
+cli/emergency-spells diagnose-registry \
+  --spell 0x0000000000000000000000000000000000000002
+```
+
+Example output:
+
+```text
+Registry diagnostic at block 12345678
+0x0000000000000000000000000000000000000002
+Registry: 0x0000000000000000000000000000000000000003
+├── [0] PASS
+├── [1] FAIL: cast failed: execution reverted
+└── [2] PASS
+Safe ranges: [0, 0], [2, 2]
+```
+
+The command exits with status 1 when any entry fails, after printing the complete scan. It does not submit transactions or authenticate the spell's deployment or review status. Treat the output as a snapshot: execute the safe ranges, investigate the excluded indices, and rerun the diagnostic against current state. Successful range transactions emit the spell's existing action-specific success events; events from reverted simulations or transactions are not canonical queryable logs.
 
 ## Exit status
 
