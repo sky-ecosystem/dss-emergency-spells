@@ -4,12 +4,12 @@ pragma solidity ^0.8.16;
 
 import {Test} from "forge-std/Test.sol";
 
-import {EmergencySpellBatchV2} from "../../src/EmergencySpellBatchV2.sol";
-import {SPBEAMHaltSpellV2} from "../../src/spbeam-halt/SPBEAMHaltSpellV2.sol";
-import {SplitterStopSpellV2} from "../../src/splitter-stop/SplitterStopSpellV2.sol";
-import {StUsdsRateSetterDissBudSpellV2} from "../../src/stusds/StUsdsRateSetterDissBudSpellV2.sol";
-import {StUsdsRateSetterHaltSpellV2} from "../../src/stusds/StUsdsRateSetterHaltSpellV2.sol";
-import {Param, StUsdsWipeParamSpellV2} from "../../src/stusds/StUsdsWipeParamSpellV2.sol";
+import {EmergencySpellBatchV2} from "./EmergencySpellBatchV2.sol";
+import {SPBEAMHaltSpellV2} from "./spbeam-halt/SPBEAMHaltSpellV2.sol";
+import {SplitterStopSpellV2} from "./splitter-stop/SplitterStopSpellV2.sol";
+import {StUsdsRateSetterDissBudSpellV2} from "./stusds/StUsdsRateSetterDissBudSpellV2.sol";
+import {StUsdsRateSetterHaltSpellV2} from "./stusds/StUsdsRateSetterHaltSpellV2.sol";
+import {Param, StUsdsWipeParamSpellV2} from "./stusds/StUsdsWipeParamSpellV2.sol";
 
 contract SPBEAMMockV2 {
     uint256 public bad;

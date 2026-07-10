@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 validator="$root/cli/validate-v1-migration.sh"
 legacy="$root/deployments/1/legacy-v1.json"
 v2="$root/deployments/1/v2.json"
@@ -50,7 +50,7 @@ jq '.counts.total = 73' "$migration" > "$tmpdir/wrong-counts.json"
 expect_invalid "$tmpdir/wrong-counts.json"
 
 jq '.records[0].artifact = "src/osm-stop/OsmStopSpellV2.sol:OsmStopSpellV2"' \
-    "$root/test/scripts/fixtures/v2-manifest-valid.json" > "$tmpdir/malformed-v2.json"
+    "$root/cli/fixtures/v2-manifest-valid.json" > "$tmpdir/malformed-v2.json"
 expect_invalid "$migration" "$tmpdir/malformed-v2.json"
 
 jq '
@@ -81,7 +81,7 @@ jq '
     | .counts.waitingForReviewedV2Replacement -= 1
     | .counts.supersededByV2 += 1
 ' "$migration" > "$tmpdir/superseded.json"
-"$validator" "$legacy" "$root/test/scripts/fixtures/v2-manifest-valid.json" "$tmpdir/superseded.json" >/dev/null
+"$validator" "$legacy" "$root/cli/fixtures/v2-manifest-valid.json" "$tmpdir/superseded.json" >/dev/null
 expect_invalid "$tmpdir/superseded.json"
 
 jq '
@@ -94,21 +94,21 @@ jq '
         "lineMom()(address)": "0x0000000000000000000000000000000000000021"
     }
 ' "$tmpdir/superseded.json" > "$tmpdir/wrong-family.json"
-expect_invalid "$tmpdir/wrong-family.json" "$root/test/scripts/fixtures/v2-manifest-valid.json"
+expect_invalid "$tmpdir/wrong-family.json" "$root/cli/fixtures/v2-manifest-valid.json"
 
 jq '.records[0].replacement.coverageReview.legacyAddress = "0x0000000000000000000000000000000000000001"' \
     "$tmpdir/superseded.json" > "$tmpdir/unbound-review.json"
-expect_invalid "$tmpdir/unbound-review.json" "$root/test/scripts/fixtures/v2-manifest-valid.json"
+expect_invalid "$tmpdir/unbound-review.json" "$root/cli/fixtures/v2-manifest-valid.json"
 
 jq '
     .records[0].replacement.coverageReview.legacySubject = "ETH-A"
     | .records[0].replacement.coverageReview.legacyParameter = "BUY"
 ' "$tmpdir/superseded.json" > "$tmpdir/wrong-legacy-scope.json"
-expect_invalid "$tmpdir/wrong-legacy-scope.json" "$root/test/scripts/fixtures/v2-manifest-valid.json"
+expect_invalid "$tmpdir/wrong-legacy-scope.json" "$root/cli/fixtures/v2-manifest-valid.json"
 
 jq '.records[0].replacement.coverageReview.replacementSubjects["spbeam()(address)"] = "0x0000000000000000000000000000000000000001"' \
     "$tmpdir/superseded.json" > "$tmpdir/wrong-replacement-scope.json"
-expect_invalid "$tmpdir/wrong-replacement-scope.json" "$root/test/scripts/fixtures/v2-manifest-valid.json"
+expect_invalid "$tmpdir/wrong-replacement-scope.json" "$root/cli/fixtures/v2-manifest-valid.json"
 
 jq '
     .records[0].migrationStatus = "retained-v1-exception"

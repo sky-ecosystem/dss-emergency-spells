@@ -4,14 +4,14 @@ pragma solidity ^0.8.16;
 
 import {Test} from "forge-std/Test.sol";
 
-import {GlobalLineWipeSpellV2} from "../../src/line-wipe/GlobalLineWipeSpellV2.sol";
+import {GlobalLineWipeSpellV2} from "./GlobalLineWipeSpellV2.sol";
 import {
     AutoLineGlobalMockV2,
     IlkRegistryMockV2,
     LineMomGlobalMockV2,
     MalformedGlobalTargetV2,
     VatGlobalMockV2
-} from "../mocks/GlobalSpellMocksV2.sol";
+} from "../GlobalSpellMocksV2.t.sol";
 
 contract GlobalLineWipeSpellV2Test is Test {
     address internal constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;

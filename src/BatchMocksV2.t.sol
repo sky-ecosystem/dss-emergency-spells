@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.16;
 
-import {EmergencySpellV2} from "../../src/EmergencySpellV2.sol";
+import {EmergencySpellV2} from "./EmergencySpellV2.sol";
 
 contract BatchTargetV2 {
     uint256 public value;

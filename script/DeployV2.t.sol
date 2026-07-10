@@ -10,7 +10,7 @@ import {
     EmergencySpellBatchV2DeployScript,
     GlobalClipBreakerSpellV2DeployScript,
     OsmStopSpellV2DeployScript
-} from "../script/DeployV2.s.sol";
+} from "./DeployV2.s.sol";
 import {EmergencySpellBatchV2} from "../src/EmergencySpellBatchV2.sol";
 import {ClipBreakerSpellV2} from "../src/clip-breaker/ClipBreakerSpellV2.sol";
 import {GlobalClipBreakerSpellV2} from "../src/clip-breaker/GlobalClipBreakerSpellV2.sol";

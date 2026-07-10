@@ -4,7 +4,7 @@ pragma solidity ^0.8.16;
 
 import {Test} from "forge-std/Test.sol";
 
-import {GlobalClipBreakerSpellV2} from "../../src/clip-breaker/GlobalClipBreakerSpellV2.sol";
+import {GlobalClipBreakerSpellV2} from "./GlobalClipBreakerSpellV2.sol";
 import {
     ClipGlobalMockV2,
     ClipperMomGlobalMockV2,
@@ -12,7 +12,7 @@ import {
     MalformedGlobalTargetV2,
     PermissiveClipGlobalMockV2,
     RevertingClipGlobalMockV2
-} from "../mocks/GlobalSpellMocksV2.sol";
+} from "../GlobalSpellMocksV2.t.sol";
 
 contract GlobalClipBreakerSpellV2Test is Test {
     address internal constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;

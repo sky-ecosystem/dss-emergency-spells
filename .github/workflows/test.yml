@@ -37,7 +37,7 @@ jobs:
 
       - name: Validate V2 deployment tooling
         run: |
-          for test_script in test/scripts/*.t.sh; do
+          for test_script in cli/*.t.sh; do
             "$test_script"
           done
 

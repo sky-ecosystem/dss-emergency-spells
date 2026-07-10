@@ -4,7 +4,7 @@ pragma solidity ^0.8.16;
 
 import {Test} from "forge-std/Test.sol";
 
-import {GlobalOsmStopSpellV2} from "../../src/osm-stop/GlobalOsmStopSpellV2.sol";
+import {GlobalOsmStopSpellV2} from "./GlobalOsmStopSpellV2.sol";
 import {
     IlkRegistryMockV2,
     MalformedGlobalTargetV2,
@@ -12,7 +12,7 @@ import {
     OsmMomGlobalMockV2,
     PermissiveOsmGlobalMockV2,
     RevertingOsmGlobalMockV2
-} from "../mocks/GlobalSpellMocksV2.sol";
+} from "../GlobalSpellMocksV2.t.sol";
 
 contract GlobalOsmStopSpellV2Test is Test {
     address internal constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;

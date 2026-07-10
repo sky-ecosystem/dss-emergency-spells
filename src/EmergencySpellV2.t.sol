@@ -4,7 +4,7 @@ pragma solidity ^0.8.16;
 
 import {Test} from "forge-std/Test.sol";
 
-import {EmergencySpellV2} from "../src/EmergencySpellV2.sol";
+import {EmergencySpellV2} from "./EmergencySpellV2.sol";
 
 contract ContractTarget {}
 

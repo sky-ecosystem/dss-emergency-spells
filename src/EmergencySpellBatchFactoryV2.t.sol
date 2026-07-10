@@ -4,9 +4,9 @@ pragma solidity ^0.8.16;
 
 import {Test} from "forge-std/Test.sol";
 
-import {EmergencySpellBatchV2} from "../src/EmergencySpellBatchV2.sol";
-import {EmergencySpellBatchFactoryV2} from "../src/EmergencySpellBatchFactoryV2.sol";
-import {BatchLeafV2, BatchTargetV2} from "./mocks/BatchMocksV2.sol";
+import {EmergencySpellBatchV2} from "./EmergencySpellBatchV2.sol";
+import {EmergencySpellBatchFactoryV2} from "./EmergencySpellBatchFactoryV2.sol";
+import {BatchLeafV2, BatchTargetV2} from "./BatchMocksV2.t.sol";
 
 contract EmergencySpellBatchFactoryV2Test is Test {
     address internal constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;

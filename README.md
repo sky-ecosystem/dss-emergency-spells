@@ -106,13 +106,15 @@ revocation rules are described in
 
 ## Testing
 
-Local tests do not require a fork:
+Unit tests are colocated with the Solidity and CLI sources they exercise.
+Only full Mainnet E2E tests live under `test/`. Local tests do not require a
+fork:
 
 ```sh
 forge build --sizes
 forge fmt --check
-forge test --no-match-path '*integration*'
-for test_script in test/scripts/*.t.sh; do "$test_script"; done
+forge test --no-match-path 'test/**'
+for test_script in cli/*.t.sh; do "$test_script"; done
 ```
 
 Mainnet integration tests require `ETH_RPC_URL`:

@@ -4,12 +4,12 @@ pragma solidity ^0.8.16;
 
 import {Test} from "forge-std/Test.sol";
 
-import {ClipBreakerSpellV2} from "../../src/clip-breaker/ClipBreakerSpellV2.sol";
-import {DdmDisableSpellV2} from "../../src/ddm-disable/DdmDisableSpellV2.sol";
-import {EmergencySpellBatchV2} from "../../src/EmergencySpellBatchV2.sol";
-import {LineWipeSpellV2} from "../../src/line-wipe/LineWipeSpellV2.sol";
-import {Flow, LitePsmHaltSpellV2} from "../../src/lite-psm-halt/LitePsmHaltSpellV2.sol";
-import {OsmStopSpellV2} from "../../src/osm-stop/OsmStopSpellV2.sol";
+import {ClipBreakerSpellV2} from "./clip-breaker/ClipBreakerSpellV2.sol";
+import {DdmDisableSpellV2} from "./ddm-disable/DdmDisableSpellV2.sol";
+import {EmergencySpellBatchV2} from "./EmergencySpellBatchV2.sol";
+import {LineWipeSpellV2} from "./line-wipe/LineWipeSpellV2.sol";
+import {Flow, LitePsmHaltSpellV2} from "./lite-psm-halt/LitePsmHaltSpellV2.sol";
+import {OsmStopSpellV2} from "./osm-stop/OsmStopSpellV2.sol";
 
 contract VatStateMockV2 {
     mapping(bytes32 => uint256) public line;
