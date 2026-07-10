@@ -16,6 +16,9 @@ docs/
 # Dotenv file
 .env
 
+# Local Git worktrees
+.worktrees/
+
 # Genhtml report
 *.html
 *.png
