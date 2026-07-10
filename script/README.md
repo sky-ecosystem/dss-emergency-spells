@@ -78,9 +78,13 @@ Use a convenience entrypoint only after every key it reads has been published in
 Before broadcasting a batch, run the preflight with the exact reviewed factory, label, mode, and ordered leaves. Record its configuration hash and, for `CREATE2`, its predicted address:
 
 ```sh
-cli/validate-v2-batch-preflight.sh \
-  deployments/<chain-id>/v2.json <rpc-url> <factory> \
-  <create|create2> <label> <leaf> [leaf ...]
+export ETH_RPC_URL=<rpc-url>
+cli/emergency-spells preflight-batch \
+  --manifest deployments/<chain-id>/v2.json \
+  --factory <factory> \
+  --mode <create|create2> \
+  --label <label> \
+  --leaves '[<leaf>,<leaf>]'
 ```
 
 Pass the printed configuration hash as the final deployment-script argument. The script rejects a leaf/label configuration that differs from the reviewed preflight output.
@@ -90,14 +94,22 @@ Use `CREATE2` only when the selected actions are order-independent and the leaf 
 After a direct leaf, global, or factory deployment, add the reviewed record to the V2 manifest and run the general deployment validator. For a factory-created batch, run the batch-specific post-deployment validator instead:
 
 ```sh
-cli/validate-v2-deployment.sh \
-  deployments/<chain-id>/v2.json <rpc-url> <deployed-address>
+cli/emergency-spells verify-deployment \
+  --manifest deployments/<chain-id>/v2.json \
+  --address <deployed-address>
 
-cli/validate-v2-batch-postdeploy.sh \
-  deployments/<chain-id>/v2.json <rpc-url> <batch> <factory> \
-  <deployment-tx> <create|create2> <label> <leaf> [leaf ...]
+cli/emergency-spells verify-batch \
+  --manifest deployments/<chain-id>/v2.json \
+  --batch <batch> \
+  --factory <factory> \
+  --tx <deployment-tx> \
+  --mode <create|create2> \
+  --label <label> \
+  --leaves '[<leaf>,<leaf>]'
 ```
 
 A successful deployment or factory event is not incident-response approval. The manifest must contain the applicable review and structured simulation attestation. The validators bind that attestation to the configuration but do not replay or truth-test its external trace; reviewers must verify the evidence criteria in [`deployments/README.md`](../deployments/README.md).
 
 Run the validator from a clean repository checkout at the record's exact signed `sourceCommit`. Before incident use, fetch and verify the latest canonical signed manifest commit and record it in the incident log. See [`deployments/README.md`](../deployments/README.md) for status transitions and the manual publication/revocation boundary.
+
+The CLI requires Python 3.12 or newer and has no Python package dependencies. It invokes `cast`, `forge`, and `git` as subprocesses; `CAST`, `FORGE`, and `GIT` can override those executable names when required by the environment.

@@ -4,13 +4,13 @@ Deployment records are split by chain ID and architecture generation.
 
 `1/legacy-v1.json` is a signed, versioned Mainnet snapshot copied from the V1 deployment section of `README.md` at the signed `v1-final` tag. It records historical operational artifacts; inclusion and snapshot status do not imply that an address is still authoritative.
 
-`1/v1-migration.json` is the current migration overlay for every address in that immutable snapshot. Its shape is documented by [`v1-migration.schema.json`](./v1-migration.schema.json), and its identity, status, ownership, evidence, counts, and V2 replacement bindings are enforced by [`validate-v1-migration.sh`](../cli/validate-v1-migration.sh). Run:
+`1/v1-migration.json` is the current migration overlay for every address in that immutable snapshot. Its shape is documented by [`v1-migration.schema.json`](./v1-migration.schema.json), and its identity, status, ownership, evidence, counts, and V2 replacement bindings are enforced by [`emergency-spells`](../cli/emergency-spells). Run:
 
 ```sh
-cli/validate-v1-migration.sh \
-  deployments/1/legacy-v1.json \
-  deployments/1/v2.json \
-  deployments/1/v1-migration.json
+cli/emergency-spells validate-migration \
+  --legacy deployments/1/legacy-v1.json \
+  --v2-manifest deployments/1/v2.json \
+  --migration deployments/1/v1-migration.json
 ```
 
 The current overlay uses these migration states:
@@ -23,7 +23,7 @@ The current overlay uses these migration states:
 
 The 49 entries classified active in the signed V1 snapshot initially use the waiting status. The 25 deprecated snapshot entries use `deprecated-v1`. Ownership is explicitly `unassigned` because the governance process has not resolved publication and revocation ownership. Do not infer an owner or mutate the historical snapshot to fill that gap. A migration status documents the canonical repository classification; it does not prove current Chief authorization, on-chain permissions, or incident readiness.
 
-`<chain-id>/v2.json` is the V2 implementation and review manifest. Its JSON shape is documented by [`v2.schema.json`](./v2.schema.json), and the canonical cross-field and contract allowlist rules are enforced by [`validate-v2-manifest.sh`](../cli/validate-v2-manifest.sh). In particular:
+`<chain-id>/v2.json` is the V2 implementation and review manifest. Its JSON shape is documented by [`v2.schema.json`](./v2.schema.json), and the canonical cross-field rules are enforced by [`emergency-spells`](../cli/emergency-spells). In particular:
 
 - only leaf records can be batch-eligible;
 - batch-eligible leaves require approved direct-use and batch-use reviews;
@@ -31,7 +31,8 @@ The 49 entries classified active in the signed V1 snapshot initially use the wai
 - globals, batches, and infrastructure are direct-use only;
 - addresses are unique within a manifest;
 - batch records include their ordered leaves, factory, deployment mode, configuration hash, getter readbacks, event check, and atomic simulation attestation;
-- every current V2 contract name resolves to one exact artifact, category, and complete set of public immutable readbacks.
+- every spell artifact identifies its declared contract under `src/` and records the shared `action()` and `pause()` interface readbacks;
+- adding a new concrete spell does not require changing the validator.
 
 Every V2 record contains the chain, contract category, address, runtime codehash, exact source commit, deployment transaction and block, constructor arguments, immutable getter readbacks, subjects and parameters, review status, and operational status. Subject and parameter keys are getter signatures, and their machine values must exactly match the corresponding immutable readbacks; free-form labels are not authoritative. Unknown historical V1 provenance stays explicit in the legacy record; it must not be inferred into a V2 record.
 

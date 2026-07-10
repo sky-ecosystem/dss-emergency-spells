@@ -23,6 +23,11 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
@@ -37,9 +42,8 @@ jobs:
 
       - name: Validate V2 deployment tooling
         run: |
-          for test_script in cli/*.t.sh; do
-            "$test_script"
-          done
+          python -m compileall -q cli
+          python -m unittest discover -s cli/emergency_spells -t . -v
 
       - name: Run Forge tests
         run: |

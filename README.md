@@ -57,11 +57,13 @@ No V2 constructor uses generic zero-address or bytecode-presence checks as an id
 
 Foundry deployment entrypoints and exact signatures are documented in [`script/README.md`](./script/README.md). Operational validation commands live under [`cli/`](./cli/):
 
-- `validate-v1-migration.sh` reconciles every historical V1 address with its current migration status and any incident-ready V2 replacement;
-- `validate-v2-manifest.sh` enforces the current artifact allowlist, review state, subject/parameter binding, batch dependencies, chronology, and lifecycle rules;
-- `validate-v2-deployment.sh` validates a direct deployment against this repository's signed `src/` checkout and live chain state;
-- `validate-v2-batch-preflight.sh` authenticates the factory and selected leaves before deployment and prints the exact configuration hash;
-- `validate-v2-batch-postdeploy.sh` validates factory calldata and event, getters, runtime codehashes, constructor encoding, and deterministic address.
+- `emergency-spells validate-migration` reconciles every historical V1 address with its current migration status and any incident-ready V2 replacement;
+- `emergency-spells validate-manifest` enforces shared spell-interface readbacks, review state, subject/parameter binding, batch dependencies, chronology, and lifecycle rules without maintaining a concrete spell allowlist;
+- `emergency-spells verify-deployment` validates a direct deployment against this repository's signed `src/` checkout and live chain state;
+- `emergency-spells preflight-batch` authenticates the factory and selected leaves before deployment and prints the exact configuration hash;
+- `emergency-spells verify-batch` validates factory calldata and event, getters, runtime codehashes, constructor encoding, and deterministic address.
+
+The CLI requires Python 3.12 or newer and uses only the Python standard library. Live-chain commands read the RPC endpoint from `ETH_RPC_URL` and invoke `cast`, `forge`, and `git` directly.
 
 Deployment records are published under [`deployments/`](./deployments/). The manifest is an operational security boundary: an address is not ready for incident response merely because it was deployed or listed. Review status, batch eligibility, simulation attestation, canonical manifest freshness, and revocation rules are described in [`deployments/README.md`](./deployments/README.md).
 
@@ -73,7 +75,8 @@ Unit tests are colocated with the Solidity and CLI sources they exercise. Only f
 forge build --sizes
 forge fmt --check
 forge test --no-match-path 'test/**'
-for test_script in cli/*.t.sh; do "$test_script"; done
+python3 -m compileall -q cli
+python3 -m unittest discover -s cli/emergency_spells -t . -v
 ```
 
 Mainnet integration tests require `ETH_RPC_URL`:

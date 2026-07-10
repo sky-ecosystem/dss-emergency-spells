@@ -19,6 +19,10 @@ docs/
 # Local Git worktrees
 .worktrees/
 
+# Python cache
+__pycache__/
+*.py[cod]
+
 # Genhtml report
 *.html
 *.png
