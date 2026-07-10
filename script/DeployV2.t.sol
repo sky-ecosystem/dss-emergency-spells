@@ -51,6 +51,7 @@ contract DeployV2ScriptsTest is Test {
     bytes32 internal constant EMERGENCY_SPELL_BATCH_FAB = "EMERGENCY_SPELL_BATCH_FAB";
     bytes32 internal constant ILK_REGISTRY = "ILK_REGISTRY";
     bytes32 internal constant LINE_MOM = "LINE_MOM";
+    bytes32 internal constant LITE_PSM_ILK = "LITE-PSM";
     bytes32 internal constant LITE_PSM_MOM = "LITE_PSM_MOM";
     bytes32 internal constant MCD_SPBEAM = "MCD_SPBEAM";
     bytes32 internal constant MCD_SPLIT = "MCD_SPLIT";
@@ -60,6 +61,7 @@ contract DeployV2ScriptsTest is Test {
     bytes32 internal constant SPBEAM_MOM = "SPBEAM_MOM";
     bytes32 internal constant SPLITTER_MOM = "SPLITTER_MOM";
     bytes32 internal constant STUSDS = "STUSDS";
+    bytes32 internal constant STUSDS_ILK = "STUSDS";
     bytes32 internal constant STUSDS_MOM = "STUSDS_MOM";
     bytes32 internal constant STUSDS_RATE_SETTER = "STUSDS_RATE_SETTER";
 
@@ -159,7 +161,7 @@ contract DeployV2ScriptsTest is Test {
         address litePsmMom = address(0x5001);
         address psm = address(0x5002);
         _mockChainlog(LITE_PSM_MOM, litePsmMom);
-        vm.mockCall(psm, abi.encodeWithSignature("ilk()"), abi.encode(bytes32("LITE-PSM")));
+        vm.mockCall(psm, abi.encodeWithSignature("ilk()"), abi.encode(LITE_PSM_ILK));
 
         LitePsmHaltSpellV2DeployScript deployer = new LitePsmHaltSpellV2DeployScript();
         LitePsmHaltSpellV2 sell = LitePsmHaltSpellV2(deployer.runSell(psm));
@@ -227,7 +229,7 @@ contract DeployV2ScriptsTest is Test {
         _mockChainlog(MCD_VAT, vat);
         vm.mockCall(stUsdsMom, abi.encodeWithSignature("stusds()"), abi.encode(stUsds));
         vm.mockCall(rateSetter, abi.encodeWithSignature("stusds()"), abi.encode(stUsds));
-        vm.mockCall(stUsds, abi.encodeWithSignature("ilk()"), abi.encode(bytes32("STUSDS")));
+        vm.mockCall(stUsds, abi.encodeWithSignature("ilk()"), abi.encode(STUSDS_ILK));
 
         StUsdsWipeParamSpellV2DeployScript wipeDeployer = new StUsdsWipeParamSpellV2DeployScript();
         StUsdsWipeParamSpellV2 cap = StUsdsWipeParamSpellV2(wipeDeployer.runCap());
