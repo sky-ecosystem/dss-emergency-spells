@@ -37,7 +37,7 @@ contract EmergencySpellBatchFactoryV2Test is Test {
         address caller = makeAddr("facilitator");
 
         vm.expectEmit(false, true, false, true, address(factory));
-        emit BatchDeployed(address(0), configHash, EmergencySpellBatchFactoryV2.DeploymentMode.Create);
+        emit BatchDeployed(address(0), configHash, EmergencySpellBatchFactoryV2.DeploymentMode.CREATE);
         vm.prank(caller);
         address deployed = factory.deploy(selectedLeaves, "Incident batch");
 
@@ -68,7 +68,7 @@ contract EmergencySpellBatchFactoryV2Test is Test {
 
         assertEq(predicted, independentlyCalculated);
         vm.expectEmit(true, true, false, true, address(factory));
-        emit BatchDeployed(predicted, configHash, EmergencySpellBatchFactoryV2.DeploymentMode.Create2);
+        emit BatchDeployed(predicted, configHash, EmergencySpellBatchFactoryV2.DeploymentMode.CREATE2);
         address deployed = factory.deployDeterministic(sorted, "Planned batch");
 
         assertEq(deployed, predicted);

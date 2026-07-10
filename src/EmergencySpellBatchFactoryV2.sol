@@ -21,8 +21,8 @@ import {EmergencySpellBatchV2} from "./EmergencySpellBatchV2.sol";
 /// @notice Permissionless deployment utility for V2 Batch Emergency Spells.
 contract EmergencySpellBatchFactoryV2 {
     enum DeploymentMode {
-        Create,
-        Create2
+        CREATE,
+        CREATE2
     }
 
     event BatchDeployed(address indexed batch, bytes32 indexed configHash, DeploymentMode mode);
@@ -30,7 +30,7 @@ contract EmergencySpellBatchFactoryV2 {
     function deploy(address[] calldata leaves, string calldata label) external returns (address batch) {
         bytes32 configHash = _configHash(leaves, label);
         batch = address(new EmergencySpellBatchV2(leaves, label));
-        emit BatchDeployed(batch, configHash, DeploymentMode.Create);
+        emit BatchDeployed(batch, configHash, DeploymentMode.CREATE);
     }
 
     function deployDeterministic(address[] calldata leaves, string calldata label) external returns (address batch) {
@@ -43,7 +43,7 @@ contract EmergencySpellBatchFactoryV2 {
         require(predicted.code.length == 0, "EmergencySpellBatchFactoryV2/already-deployed");
 
         batch = address(new EmergencySpellBatchV2{salt: configHash}(leaves, label));
-        emit BatchDeployed(batch, configHash, DeploymentMode.Create2);
+        emit BatchDeployed(batch, configHash, DeploymentMode.CREATE2);
     }
 
     function previewDeterministicAddress(address[] calldata leaves, string calldata label)
