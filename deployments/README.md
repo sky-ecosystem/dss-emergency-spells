@@ -1,5 +1,7 @@
 # Deployment records
 
+The [`suggested operational runbook`](../docs/runbook.md) describes a proposed division of responsibilities for module teams, ProSec, and Governance Facilitators. The schemas, manifests, and lifecycle rules in this directory remain authoritative for recorded deployment status.
+
 Deployment records are split by chain ID and architecture generation.
 
 `1/legacy-v1.json` is a signed, versioned Mainnet snapshot copied from the V1 deployment section of `README.md` at the signed `v1-final` tag. It records historical operational artifacts; inclusion and snapshot status do not imply that an address is still authoritative.

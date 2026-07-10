@@ -10,9 +10,6 @@ script/input/**/*.json
 !script/input/**/template-*.json
 script/output/**/*.json
 
-# Docs
-docs/
-
 # Dotenv file
 .env
 

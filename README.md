@@ -69,6 +69,8 @@ The CLI requires Python 3.12 or newer and uses only the Python standard library.
 
 Deployment records are published under [`deployments/`](./deployments/). The manifest is an operational security boundary: an address is not ready for incident response merely because it was deployed or listed. Review status, batch eligibility, simulation attestation, canonical manifest freshness, and revocation rules are described in [`deployments/README.md`](./deployments/README.md).
 
+The [`suggested operational runbook`](./docs/runbook.md) describes a discussion-oriented model for module handoff, ProSec deployment upkeep, incident use, and engineering enablement. It does not replace the manifest rules or establish governance authority.
+
 ## Testing
 
 Unit and integration tests are colocated with the Solidity, deployment-script, and CLI sources they exercise. Integration test files use the `*Integration.t.sol` suffix. Local tests do not require a fork:
