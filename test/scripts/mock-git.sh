@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [[ "$1" == "-C" ]]; then shift 2; fi
+
 case "$1" in
     rev-parse)
         if [[ "${BROKEN_SOURCE:-0}" == "1" ]]; then

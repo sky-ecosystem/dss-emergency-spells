@@ -24,7 +24,8 @@
         "vat()(address)": "0x0000000000000000000000000000000000000023"
       },
       "subjects": {
-        "ilk": "ETH-A"
+        "ilk()(bytes32)": "0x4554482d41000000000000000000000000000000000000000000000000000000",
+        "lineMom()(address)": "0x0000000000000000000000000000000000000021"
       },
       "parameters": {},
       "reviews": {
@@ -61,7 +62,8 @@
         "vat()(address)": "0x0000000000000000000000000000000000000023"
       },
       "subjects": {
-        "registry": "IlkRegistry"
+        "ilkRegistry()(address)": "0x0000000000000000000000000000000000000032",
+        "lineMom()(address)": "0x0000000000000000000000000000000000000033"
       },
       "parameters": {},
       "reviews": {
@@ -97,7 +99,9 @@
         "pause()(address)": "0x0000000000000000000000000000000000000012"
       },
       "subjects": {
-        "ilk": "ETH-A"
+        "ilk()(bytes32)": "0x4554482d41000000000000000000000000000000000000000000000000000000",
+        "osm()(address)": "0x0000000000000000000000000000000000000042",
+        "osmMom()(address)": "0x0000000000000000000000000000000000000041"
       },
       "parameters": {},
       "reviews": {
@@ -122,7 +126,7 @@
       "sourceCommit": "1111111111111111111111111111111111111111",
       "deployment": {
         "transactionHash": "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        "blockNumber": 5,
+        "blockNumber": 1,
         "constructorArguments": "0x"
       },
       "immutableReadbacks": {},

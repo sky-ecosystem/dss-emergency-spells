@@ -1,23 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -lt 8 ]]; then
-    echo "usage: $0 <v2-manifest.json> <rpc-url> <batch> <factory> <deployment-tx> <create|create2> <label> <leaf> [leaf ...]" >&2
+if [[ $# -lt 9 ]]; then
+    echo "usage: $0 <v2-manifest.json> <rpc-url> <source-root> <batch> <factory> <deployment-tx> <create|create2> <label> <leaf> [leaf ...]" >&2
     exit 2
 fi
 
 manifest=$1
 rpc_url=$2
-batch=$3
-factory=$4
-deployment_tx=$5
-mode=$6
-label=$7
-shift 7
+source_root=$3
+batch=$4
+factory=$5
+deployment_tx=$6
+mode=$7
+label=$8
+shift 8
 leaves=("$@")
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-"$root/scripts/validate-v2-batch-preflight.sh" "$manifest" "$rpc_url" "$factory" "$mode" "$label" "${leaves[@]}" >/dev/null
+"$root/cli/validate-v2-manifest.sh" "$manifest" >/dev/null
 
 cast_bin=${CAST:-cast}
 forge_bin=${FORGE:-forge}
@@ -25,10 +26,36 @@ git_bin=${GIT:-git}
 command -v "$cast_bin" >/dev/null || { echo "validate-v2-batch-postdeploy: cast is required" >&2; exit 2; }
 command -v "$git_bin" >/dev/null || { echo "validate-v2-batch-postdeploy: git is required" >&2; exit 2; }
 
+manifest_chain_id=$(jq -r '.chainId' "$manifest")
+live_chain_id=$($cast_bin chain-id --rpc-url "$rpc_url")
+if [[ "$live_chain_id" != "$manifest_chain_id" ]]; then
+    echo "validate-v2-batch-postdeploy: RPC chain ID does not match manifest" >&2
+    exit 1
+fi
+
+factory_normalized=${factory,,}
+factory_matches=$(jq --arg address "$factory_normalized" '[.records[] | select((.address | ascii_downcase) == $address and .kind == "infrastructure" and .contractName == "EmergencySpellBatchFactoryV2")] | length' "$manifest")
+if [[ "$factory_matches" -ne 1 ]]; then
+    echo "validate-v2-batch-postdeploy: expected factory record not found" >&2
+    exit 1
+fi
+"$root/cli/validate-v2-deployment.sh" "$manifest" "$rpc_url" "$source_root" "$factory" >/dev/null
+
 leaves_json=$(printf '%s\n' "${leaves[@]}" | jq -R . | jq -s 'map(ascii_downcase)')
 batch_normalized=${batch,,}
-factory_normalized=${factory,,}
 tx_normalized=${deployment_tx,,}
+
+for leaf in "${leaves[@]}"; do
+    leaf_normalized=${leaf,,}
+    expected_leaf_codehash=$(jq -r --arg address "$leaf_normalized" '
+        .records[] | select((.address | ascii_downcase) == $address and .kind == "leaf") | .runtimeCodehash
+    ' "$manifest")
+    actual_leaf_codehash=$($cast_bin codehash "$leaf" --rpc-url "$rpc_url")
+    if [[ -z "$expected_leaf_codehash" || "${actual_leaf_codehash,,}" != "${expected_leaf_codehash,,}" ]]; then
+        echo "validate-v2-batch-postdeploy: leaf runtime codehash mismatch: $leaf" >&2
+        exit 1
+    fi
+done
 
 matches=$(jq --arg address "$batch_normalized" '[.records[] | select((.address | ascii_downcase) == $address)] | length' "$manifest")
 if [[ "$matches" -ne 1 ]]; then
@@ -61,8 +88,8 @@ fi
 source_commit=$(jq -r --arg address "$batch_normalized" '
     .records[] | select((.address | ascii_downcase) == $address) | .sourceCommit
 ' "$manifest")
-if [[ "$($git_bin rev-parse HEAD)" != "$source_commit" ]]; then
-    echo "validate-v2-batch-postdeploy: checkout does not match batch sourceCommit" >&2
+if [[ "$($git_bin -C "$source_root" rev-parse HEAD)" != "$source_commit" ]]; then
+    echo "validate-v2-batch-postdeploy: source root does not match batch sourceCommit" >&2
     exit 1
 fi
 
@@ -202,7 +229,7 @@ if [[ "$mode" == "create2" ]]; then
     batch_artifact=$(jq -r --arg address "$batch_normalized" '
         .records[] | select((.address | ascii_downcase) == $address) | .artifact
     ' "$manifest")
-    creation_code=$($forge_bin inspect "$batch_artifact" bytecode)
+    creation_code=$($forge_bin inspect --root "$source_root" --force "$batch_artifact" bytecode)
     init_code="0x${creation_code#0x}${encoded#0x}"
     predicted=$($cast_bin create2 --deployer "$factory" --salt "$expected_config_hash" --init-code "$init_code")
     if [[ "${predicted,,}" != "$batch_normalized" ]]; then

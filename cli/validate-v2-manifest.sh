@@ -18,35 +18,35 @@ jq -e '
     def spellBase: ["action()(address)", "pause()(address)"];
     def spec:
         if .contractName == "EmergencySpellBatchFactoryV2" then
-            {artifact: "src/EmergencySpellBatchFactoryV2.sol:EmergencySpellBatchFactoryV2", kind: "infrastructure", readbacks: []}
+            {artifact: "src/EmergencySpellBatchFactoryV2.sol:EmergencySpellBatchFactoryV2", kind: "infrastructure", readbacks: [], subjects: [], parameters: []}
         elif .contractName == "EmergencySpellBatchV2" then
-            {artifact: "src/EmergencySpellBatchV2.sol:EmergencySpellBatchV2", kind: "batch", readbacks: (spellBase + ["configHash()(bytes32)"])}
+            {artifact: "src/EmergencySpellBatchV2.sol:EmergencySpellBatchV2", kind: "batch", readbacks: (spellBase + ["configHash()(bytes32)"]), subjects: [], parameters: []}
         elif .contractName == "LineWipeSpellV2" then
-            {artifact: "src/line-wipe/LineWipeSpellV2.sol:LineWipeSpellV2", kind: "leaf", readbacks: (spellBase + ["lineMom()(address)", "autoLine()(address)", "vat()(address)", "ilk()(bytes32)"])}
+            {artifact: "src/line-wipe/LineWipeSpellV2.sol:LineWipeSpellV2", kind: "leaf", readbacks: (spellBase + ["lineMom()(address)", "autoLine()(address)", "vat()(address)", "ilk()(bytes32)"]), subjects: ["lineMom()(address)", "ilk()(bytes32)"], parameters: []}
         elif .contractName == "GlobalLineWipeSpellV2" then
-            {artifact: "src/line-wipe/GlobalLineWipeSpellV2.sol:GlobalLineWipeSpellV2", kind: "registry-global", readbacks: (spellBase + ["ilkRegistry()(address)", "lineMom()(address)", "autoLine()(address)", "vat()(address)"])}
+            {artifact: "src/line-wipe/GlobalLineWipeSpellV2.sol:GlobalLineWipeSpellV2", kind: "registry-global", readbacks: (spellBase + ["ilkRegistry()(address)", "lineMom()(address)", "autoLine()(address)", "vat()(address)"]), subjects: ["ilkRegistry()(address)", "lineMom()(address)"], parameters: []}
         elif .contractName == "ClipBreakerSpellV2" then
-            {artifact: "src/clip-breaker/ClipBreakerSpellV2.sol:ClipBreakerSpellV2", kind: "leaf", readbacks: (spellBase + ["clipperMom()(address)", "clip()(address)", "ilk()(bytes32)"])}
+            {artifact: "src/clip-breaker/ClipBreakerSpellV2.sol:ClipBreakerSpellV2", kind: "leaf", readbacks: (spellBase + ["clipperMom()(address)", "clip()(address)", "ilk()(bytes32)"]), subjects: ["clipperMom()(address)", "clip()(address)", "ilk()(bytes32)"], parameters: []}
         elif .contractName == "GlobalClipBreakerSpellV2" then
-            {artifact: "src/clip-breaker/GlobalClipBreakerSpellV2.sol:GlobalClipBreakerSpellV2", kind: "registry-global", readbacks: (spellBase + ["ilkRegistry()(address)", "clipperMom()(address)"])}
+            {artifact: "src/clip-breaker/GlobalClipBreakerSpellV2.sol:GlobalClipBreakerSpellV2", kind: "registry-global", readbacks: (spellBase + ["ilkRegistry()(address)", "clipperMom()(address)"]), subjects: ["ilkRegistry()(address)", "clipperMom()(address)"], parameters: []}
         elif .contractName == "DdmDisableSpellV2" then
-            {artifact: "src/ddm-disable/DdmDisableSpellV2.sol:DdmDisableSpellV2", kind: "leaf", readbacks: (spellBase + ["ddmMom()(address)", "plan()(address)", "ilk()(bytes32)"])}
+            {artifact: "src/ddm-disable/DdmDisableSpellV2.sol:DdmDisableSpellV2", kind: "leaf", readbacks: (spellBase + ["ddmMom()(address)", "plan()(address)", "ilk()(bytes32)"]), subjects: ["ddmMom()(address)", "plan()(address)", "ilk()(bytes32)"], parameters: []}
         elif .contractName == "LitePsmHaltSpellV2" then
-            {artifact: "src/lite-psm-halt/LitePsmHaltSpellV2.sol:LitePsmHaltSpellV2", kind: "leaf", readbacks: (spellBase + ["litePsmMom()(address)", "psm()(address)", "flow()(uint8)", "ilk()(bytes32)"])}
+            {artifact: "src/lite-psm-halt/LitePsmHaltSpellV2.sol:LitePsmHaltSpellV2", kind: "leaf", readbacks: (spellBase + ["litePsmMom()(address)", "psm()(address)", "flow()(uint8)", "ilk()(bytes32)"]), subjects: ["litePsmMom()(address)", "psm()(address)", "ilk()(bytes32)"], parameters: ["flow()(uint8)"]}
         elif .contractName == "OsmStopSpellV2" then
-            {artifact: "src/osm-stop/OsmStopSpellV2.sol:OsmStopSpellV2", kind: "leaf", readbacks: (spellBase + ["osmMom()(address)", "osm()(address)", "ilk()(bytes32)"])}
+            {artifact: "src/osm-stop/OsmStopSpellV2.sol:OsmStopSpellV2", kind: "leaf", readbacks: (spellBase + ["osmMom()(address)", "osm()(address)", "ilk()(bytes32)"]), subjects: ["osmMom()(address)", "osm()(address)", "ilk()(bytes32)"], parameters: []}
         elif .contractName == "GlobalOsmStopSpellV2" then
-            {artifact: "src/osm-stop/GlobalOsmStopSpellV2.sol:GlobalOsmStopSpellV2", kind: "registry-global", readbacks: (spellBase + ["ilkRegistry()(address)", "osmMom()(address)"])}
+            {artifact: "src/osm-stop/GlobalOsmStopSpellV2.sol:GlobalOsmStopSpellV2", kind: "registry-global", readbacks: (spellBase + ["ilkRegistry()(address)", "osmMom()(address)"]), subjects: ["ilkRegistry()(address)", "osmMom()(address)"], parameters: []}
         elif .contractName == "SPBEAMHaltSpellV2" then
-            {artifact: "src/spbeam-halt/SPBEAMHaltSpellV2.sol:SPBEAMHaltSpellV2", kind: "leaf", readbacks: (spellBase + ["spbeamMom()(address)", "spbeam()(address)"])}
+            {artifact: "src/spbeam-halt/SPBEAMHaltSpellV2.sol:SPBEAMHaltSpellV2", kind: "leaf", readbacks: (spellBase + ["spbeamMom()(address)", "spbeam()(address)"]), subjects: ["spbeamMom()(address)", "spbeam()(address)"], parameters: []}
         elif .contractName == "SplitterStopSpellV2" then
-            {artifact: "src/splitter-stop/SplitterStopSpellV2.sol:SplitterStopSpellV2", kind: "leaf", readbacks: (spellBase + ["splitterMom()(address)", "splitter()(address)"])}
+            {artifact: "src/splitter-stop/SplitterStopSpellV2.sol:SplitterStopSpellV2", kind: "leaf", readbacks: (spellBase + ["splitterMom()(address)", "splitter()(address)"]), subjects: ["splitterMom()(address)", "splitter()(address)"], parameters: []}
         elif .contractName == "StUsdsRateSetterDissBudSpellV2" then
-            {artifact: "src/stusds/StUsdsRateSetterDissBudSpellV2.sol:StUsdsRateSetterDissBudSpellV2", kind: "leaf", readbacks: (spellBase + ["stUsdsMom()(address)", "rateSetter()(address)", "stUsds()(address)", "bud()(address)"])}
+            {artifact: "src/stusds/StUsdsRateSetterDissBudSpellV2.sol:StUsdsRateSetterDissBudSpellV2", kind: "leaf", readbacks: (spellBase + ["stUsdsMom()(address)", "rateSetter()(address)", "stUsds()(address)", "bud()(address)"]), subjects: ["stUsdsMom()(address)", "rateSetter()(address)", "stUsds()(address)"], parameters: ["bud()(address)"]}
         elif .contractName == "StUsdsRateSetterHaltSpellV2" then
-            {artifact: "src/stusds/StUsdsRateSetterHaltSpellV2.sol:StUsdsRateSetterHaltSpellV2", kind: "leaf", readbacks: (spellBase + ["stUsdsMom()(address)", "rateSetter()(address)", "stUsds()(address)"])}
+            {artifact: "src/stusds/StUsdsRateSetterHaltSpellV2.sol:StUsdsRateSetterHaltSpellV2", kind: "leaf", readbacks: (spellBase + ["stUsdsMom()(address)", "rateSetter()(address)", "stUsds()(address)"]), subjects: ["stUsdsMom()(address)", "rateSetter()(address)", "stUsds()(address)"], parameters: []}
         elif .contractName == "StUsdsWipeParamSpellV2" then
-            {artifact: "src/stusds/StUsdsWipeParamSpellV2.sol:StUsdsWipeParamSpellV2", kind: "leaf", readbacks: (spellBase + ["stUsdsMom()(address)", "rateSetter()(address)", "stUsds()(address)", "vat()(address)", "param()(uint8)", "ilk()(bytes32)"])}
+            {artifact: "src/stusds/StUsdsWipeParamSpellV2.sol:StUsdsWipeParamSpellV2", kind: "leaf", readbacks: (spellBase + ["stUsdsMom()(address)", "rateSetter()(address)", "stUsds()(address)", "vat()(address)", "param()(uint8)", "ilk()(bytes32)"]), subjects: ["stUsdsMom()(address)", "rateSetter()(address)", "stUsds()(address)", "ilk()(bytes32)"], parameters: ["param()(uint8)"]}
         else null end;
     def review:
         type == "object"
@@ -81,6 +81,10 @@ jq -e '
         and (.configHash | bytes32)
         and (.factory | address)
         and (.deploymentMode | IN("create", "create2"))
+        and (if .deploymentMode == "create2" then
+                 (.orderedLeaves | map(ascii_downcase)) as $ordered
+                 | all(range(1; $ordered | length); $ordered[. - 1] < $ordered[.])
+             else true end)
         and (.getterReadbacks | type == "object" and ([keys[]] - ["label", "leaves", "configHash"] | length == 0))
         and (.getterReadbacks.label | nonempty)
         and (.getterReadbacks.leaves | type == "array" and length > 0 and all(.[]; address))
@@ -107,8 +111,13 @@ jq -e '
         and (.immutableReadbacks | type == "object" and all(to_entries[]; (.key | nonempty) and (.value | nonempty)))
         and ((.immutableReadbacks | keys | sort) == ($spec.readbacks | sort))
         and (.subjects | type == "object")
-        and (if .kind == "leaf" or .kind == "registry-global" then (.subjects | length > 0) else true end)
         and (.parameters | type == "object")
+        and ((.subjects | keys | sort) == ($spec.subjects | sort))
+        and ((.parameters | keys | sort) == ($spec.parameters | sort))
+        and (all($spec.subjects[];
+            . as $key | $record.subjects[$key] == $record.immutableReadbacks[$key]))
+        and (all($spec.parameters[];
+            . as $key | $record.parameters[$key] == $record.immutableReadbacks[$key]))
         and (.reviews | type == "object" and ([keys[]] - ["directUse", "batchUse"] | length == 0) and (.directUse | review) and (.batchUse | review))
         and (.batchEligible | type == "boolean")
         and (.operationalStatus | IN("deployed", "reviewed", "incident-ready", "revoked", "superseded"))
@@ -150,12 +159,32 @@ jq -e '
         if .kind == "batch" then
             . as $batchRecord
             | (.batch.factory | ascii_downcase) as $factory
-            | any($manifest.records[];
-                (.address | ascii_downcase) == $factory
-                and .contractName == "EmergencySpellBatchFactoryV2"
-                and .kind == "infrastructure"
-                and .operationalStatus == "incident-ready"
-                and .sourceCommit == $batchRecord.sourceCommit)
+            | (any($manifest.records[];
+                   (.address | ascii_downcase) == $factory
+                   and .contractName == "EmergencySpellBatchFactoryV2"
+                   and .kind == "infrastructure"
+                   and .sourceCommit == $batchRecord.sourceCommit
+                   and .deployment.blockNumber <= $batchRecord.deployment.blockNumber))
+              and (all($batchRecord.batch.orderedLeaves[];
+                   (. | ascii_downcase) as $leaf
+                   | any($manifest.records[];
+                       (.address | ascii_downcase) == $leaf
+                       and .kind == "leaf"
+                       and .deployment.blockNumber <= $batchRecord.deployment.blockNumber)))
+              and (if $batchRecord.operationalStatus == "incident-ready" then
+                       (any($manifest.records[];
+                           (.address | ascii_downcase) == $factory
+                           and .operationalStatus == "incident-ready"
+                           and .reviews.directUse.status == "approved"))
+                       and (all($batchRecord.batch.orderedLeaves[];
+                           (. | ascii_downcase) as $leaf
+                           | any($manifest.records[];
+                               (.address | ascii_downcase) == $leaf
+                               and .operationalStatus == "incident-ready"
+                               and .batchEligible
+                               and .reviews.directUse.status == "approved"
+                               and .reviews.batchUse.status == "approved")))
+                   else true end)
         else true end)
 ' "$manifest" >/dev/null || {
     echo "validate-v2-manifest: invalid manifest: $manifest" >&2

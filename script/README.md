@@ -43,9 +43,9 @@ label, mode, and ordered leaves. Record its configuration hash and, for
 `CREATE2`, its predicted address:
 
 ```sh
-scripts/validate-v2-batch-preflight.sh \
-  deployments/<chain-id>/v2.json <rpc-url> <factory> <create|create2> <label> \
-  <leaf> [leaf ...]
+cli/validate-v2-batch-preflight.sh \
+  deployments/<chain-id>/v2.json <rpc-url> <source-root> <factory> \
+  <create|create2> <label> <leaf> [leaf ...]
 ```
 
 Pass the printed configuration hash as the final deployment-script argument.
@@ -62,12 +62,12 @@ the V2 manifest and run the general deployment validator. For a factory-created
 batch, run the batch-specific post-deployment validator instead:
 
 ```sh
-scripts/validate-v2-deployment.sh \
-  deployments/<chain-id>/v2.json <rpc-url> <deployed-address>
+cli/validate-v2-deployment.sh \
+  deployments/<chain-id>/v2.json <rpc-url> <source-root> <deployed-address>
 
-scripts/validate-v2-batch-postdeploy.sh \
-  deployments/<chain-id>/v2.json <rpc-url> <batch> <factory> <deployment-tx> \
-  <create|create2> <label> <leaf> [leaf ...]
+cli/validate-v2-batch-postdeploy.sh \
+  deployments/<chain-id>/v2.json <rpc-url> <source-root> <batch> <factory> \
+  <deployment-tx> <create|create2> <label> <leaf> [leaf ...]
 ```
 
 A successful deployment or factory event is not incident-response approval.
@@ -76,8 +76,9 @@ attestation. The validators bind that attestation to the configuration but do
 not replay or truth-test its external trace; reviewers must verify the evidence
 criteria in [`deployments/README.md`](../deployments/README.md).
 
-Deployment validators must run from a clean checkout at each record's exact
-signed `sourceCommit`. Before incident use, fetch and verify the latest canonical
-signed manifest commit and record it in the incident log. See
+Run the latest canonical signed CLI and pass a separate clean `source-root`
+checked out at the record's exact signed `sourceCommit`. Before incident use,
+fetch and verify the latest canonical signed manifest commit and record it in
+the incident log. See
 [`deployments/README.md`](../deployments/README.md) for status transitions and
 the manual publication/revocation boundary.

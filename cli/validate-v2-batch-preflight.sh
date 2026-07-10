@@ -1,26 +1,31 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -lt 6 ]]; then
-    echo "usage: $0 <v2-manifest.json> <rpc-url> <factory> <create|create2> <label> <leaf> [leaf ...]" >&2
+if [[ $# -lt 7 ]]; then
+    echo "usage: $0 <v2-manifest.json> <rpc-url> <source-root> <factory> <create|create2> <label> <leaf> [leaf ...]" >&2
     exit 2
 fi
 
 manifest=$1
 rpc_url=$2
-factory=$3
-mode=$4
-label=$5
-shift 5
+source_root=$3
+factory=$4
+mode=$5
+label=$6
+shift 6
 leaves=("$@")
 
 case "$mode" in
     create | create2) ;;
     *) echo "validate-v2-batch-preflight: mode must be create or create2" >&2; exit 2 ;;
 esac
+if [[ -z "$label" ]]; then
+    echo "validate-v2-batch-preflight: label must not be empty" >&2
+    exit 1
+fi
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-"$root/scripts/validate-v2-manifest.sh" "$manifest" >/dev/null
+"$root/cli/validate-v2-manifest.sh" "$manifest" >/dev/null
 
 cast_bin=${CAST:-cast}
 command -v "$cast_bin" >/dev/null || {
@@ -53,7 +58,7 @@ if [[ "$factory_ready" != "true" ]]; then
     echo "validate-v2-batch-preflight: factory is not incident-ready infrastructure" >&2
     exit 1
 fi
-"$root/scripts/validate-v2-deployment.sh" "$manifest" "$rpc_url" "$factory" >/dev/null
+"$root/cli/validate-v2-deployment.sh" "$manifest" "$rpc_url" "$source_root" "$factory" >/dev/null
 
 declare -A selected
 previous=

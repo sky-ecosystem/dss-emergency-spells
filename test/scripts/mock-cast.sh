@@ -87,7 +87,7 @@ case "$command" in
             if [[ "${BROKEN_RECEIPT_ADDRESS:-0}" == "1" ]]; then contract=0x0000000000000000000000000000000000000099; fi
             echo "{\"status\":\"0x1\",\"transactionHash\":\"0x2222222222222222222222222222222222222222222222222222222222222222\",\"blockNumber\":\"0x1\",\"contractAddress\":\"$contract\",\"logs\":[]}"
         elif [[ "$1" == "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" ]]; then
-            echo '{"status":"0x1","transactionHash":"0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff","blockNumber":"0x5","contractAddress":"0x00000000000000000000000000000000000000f1","logs":[]}'
+            echo '{"status":"0x1","transactionHash":"0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff","blockNumber":"0x1","contractAddress":"0x00000000000000000000000000000000000000f1","logs":[]}'
         else
             emitter=0x00000000000000000000000000000000000000f1
             if [[ "${BROKEN_EVENT:-0}" == "1" ]]; then emitter=0x00000000000000000000000000000000000000f2; fi

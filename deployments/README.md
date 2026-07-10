@@ -10,7 +10,7 @@ that an address is still authoritative.
 `<chain-id>/v2.json` is the V2 implementation and review manifest. Its JSON
 shape is documented by [`v2.schema.json`](./v2.schema.json), and the canonical
 cross-field and contract allowlist rules are enforced by
-[`validate-v2-manifest.sh`](../scripts/validate-v2-manifest.sh). In particular:
+[`validate-v2-manifest.sh`](../cli/validate-v2-manifest.sh). In particular:
 
 - only leaf records can be batch-eligible;
 - batch-eligible leaves require approved direct-use and batch-use reviews;
@@ -27,8 +27,10 @@ cross-field and contract allowlist rules are enforced by
 Every V2 record contains the chain, contract category, address, runtime
 codehash, exact source commit, deployment transaction and block, constructor
 arguments, immutable getter readbacks, subjects and parameters, review status,
-and operational status. Unknown historical V1 provenance stays explicit in the
-legacy record; it must not be inferred into a V2 record.
+and operational status. Subject and parameter keys are getter signatures, and
+their machine values must exactly match the corresponding immutable readbacks;
+free-form labels are not authoritative. Unknown historical V1 provenance stays
+explicit in the legacy record; it must not be inferred into a V2 record.
 
 A V2 leaf or batch must not be treated as reviewed or incident-ready merely
 because it appears in the manifest. Use the deployment validators documented in
@@ -43,7 +45,11 @@ The intended lifecycle is `deployed` → `reviewed` → `incident-ready`.
 artifact. Every transition requires a signed repository commit and evidence in
 the applicable review fields. An `incident-ready` record requires approved
 direct-use review. Batch-eligible leaves additionally require approved batch-use
-review.
+review. Revoking or superseding a leaf requires every incident-ready batch that
+contains it to be revoked or superseded in the same manifest update. A ready
+batch likewise requires its recorded factory to remain incident-ready. Revoked
+batches remain valid historical records and can still be revalidated against
+their retained leaf and factory provenance.
 
 The governance process has not yet assigned a permanent owner for publication
 and revocation. Until it does, this remains an explicit manual control: the
@@ -53,11 +59,11 @@ confirm that the worktree and submodules are clean, and record that manifest
 commit in the incident log. A stale local manifest is never sufficient evidence
 after canonical status may have changed.
 
-Deployment validation runs from the exact signed `sourceCommit` recorded for the
-artifact. Because deployment records are normally published later, operators
-should obtain the canonical manifest from its signed commit as an external file
-and pass it to the validator while checked out at `sourceCommit`. The validator
-rejects a different or dirty source checkout.
+Deployment validation uses the latest canonical signed CLI and a separate
+`source-root` checked out at the exact signed `sourceCommit` recorded for the
+artifact. The CLI validates the current manifest rules while Git and Foundry
+verify the clean historical source root and force a fresh compilation. This
+keeps long-lived factory validation compatible with leaf types added later.
 
 The structured atomic-simulation object is an attestation, not an on-chain
 proof. Tooling binds it to the batch address, configuration hash, chain, and
