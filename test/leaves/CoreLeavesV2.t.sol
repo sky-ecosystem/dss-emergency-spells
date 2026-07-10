@@ -258,11 +258,16 @@ contract CoreLeavesV2Test is Test {
     }
 
     function testDescriptionsIdentifyExplicitSubjects() public view {
-        assertEq(lineSpell.description(), "Emergency Spell | Line Wipe: ETH-A");
-        assertEq(clipSpell.description(), "Emergency Spell | Set Clip Breaker: ETH-A");
-        assertEq(osmSpell.description(), "Emergency Spell | OSM Stop: ETH-A");
-        assertEq(ddmSpell.description(), "Emergency Spell | Disable DDM Plan: DIRECT-SPARK-DAI");
-        assertEq(litePsmSpell.description(), "Emergency Spell | LITE-PSM-USDC-A | halt: BOTH");
+        assertEq(lineSpell.description(), string(abi.encodePacked("Emergency Spell | Line Wipe: ", ILK)));
+        assertEq(clipSpell.description(), string(abi.encodePacked("Emergency Spell | Set Clip Breaker: ", ILK)));
+        assertEq(osmSpell.description(), string(abi.encodePacked("Emergency Spell | OSM Stop: ", ILK)));
+        assertEq(
+            ddmSpell.description(), string(abi.encodePacked("Emergency Spell | Disable DDM Plan: ", ddmSpell.ilk()))
+        );
+        assertEq(
+            litePsmSpell.description(),
+            string(abi.encodePacked("Emergency Spell | ", litePsmSpell.ilk(), " | halt: BOTH"))
+        );
     }
 
     function testDoneReportsOnlyEmergencyEndState() public view {

@@ -3,7 +3,6 @@
 pragma solidity ^0.8.16;
 
 import {EmergencySpellV2} from "../EmergencySpellV2.sol";
-import {DescriptionLibV2} from "../libraries/DescriptionLibV2.sol";
 
 interface OsmMomLike {
     function osms(bytes32 ilk) external view returns (address);
@@ -29,7 +28,7 @@ contract OsmStopSpellV2 is EmergencySpellV2 {
     }
 
     function description() external view override returns (string memory) {
-        return string.concat("Emergency Spell | OSM Stop: ", DescriptionLibV2.toString(ilk));
+        return string(abi.encodePacked("Emergency Spell | OSM Stop: ", ilk));
     }
 
     function done() external view override returns (bool) {

@@ -3,7 +3,6 @@
 pragma solidity ^0.8.16;
 
 import {EmergencySpellV2} from "../EmergencySpellV2.sol";
-import {DescriptionLibV2} from "../libraries/DescriptionLibV2.sol";
 
 enum Flow {
     SELL,
@@ -39,7 +38,7 @@ contract LitePsmHaltSpellV2 is EmergencySpellV2 {
     }
 
     function description() external view override returns (string memory) {
-        return string.concat("Emergency Spell | ", DescriptionLibV2.toString(ilk), " | halt: ", _flowToString(flow));
+        return string(abi.encodePacked("Emergency Spell | ", ilk, " | halt: ", _flowToString(flow)));
     }
 
     function done() external view override returns (bool) {

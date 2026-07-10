@@ -3,7 +3,6 @@
 pragma solidity ^0.8.16;
 
 import {EmergencySpellV2} from "../EmergencySpellV2.sol";
-import {DescriptionLibV2} from "../libraries/DescriptionLibV2.sol";
 
 interface LineMomLike {
     function autoLine() external view returns (address);
@@ -41,7 +40,7 @@ contract LineWipeSpellV2 is EmergencySpellV2 {
     }
 
     function description() external view override returns (string memory) {
-        return string.concat("Emergency Spell | Line Wipe: ", DescriptionLibV2.toString(ilk));
+        return string(abi.encodePacked("Emergency Spell | Line Wipe: ", ilk));
     }
 
     function done() external view override returns (bool) {

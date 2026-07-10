@@ -3,7 +3,6 @@
 pragma solidity ^0.8.16;
 
 import {EmergencySpellV2} from "../EmergencySpellV2.sol";
-import {DescriptionLibV2} from "../libraries/DescriptionLibV2.sol";
 
 interface ClipperMomLike {
     function setBreaker(address clip, uint256 level, uint256 delay) external;
@@ -31,7 +30,7 @@ contract ClipBreakerSpellV2 is EmergencySpellV2 {
     }
 
     function description() external view override returns (string memory) {
-        return string.concat("Emergency Spell | Set Clip Breaker: ", DescriptionLibV2.toString(ilk));
+        return string(abi.encodePacked("Emergency Spell | Set Clip Breaker: ", ilk));
     }
 
     function done() external view override returns (bool) {

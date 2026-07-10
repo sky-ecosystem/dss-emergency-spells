@@ -3,7 +3,6 @@
 pragma solidity ^0.8.16;
 
 import {EmergencySpellV2} from "../EmergencySpellV2.sol";
-import {DescriptionLibV2} from "../libraries/DescriptionLibV2.sol";
 
 interface DdmMomLike {
     function disable(address plan) external;
@@ -28,7 +27,7 @@ contract DdmDisableSpellV2 is EmergencySpellV2 {
     }
 
     function description() external view override returns (string memory) {
-        return string.concat("Emergency Spell | Disable DDM Plan: ", DescriptionLibV2.toString(ilk));
+        return string(abi.encodePacked("Emergency Spell | Disable DDM Plan: ", ilk));
     }
 
     function done() external view override returns (bool) {
