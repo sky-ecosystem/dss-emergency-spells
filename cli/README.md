@@ -19,6 +19,20 @@ export GIT=git
 
 Use `cli/emergency-spells --help` or `cli/emergency-spells <command> --help` for the current command-line interface.
 
+## Readable aliases
+
+Canonical flags use the names from [`deployments/v2.schema.json`](../deployments/v2.schema.json). The following shorter aliases are equivalent:
+
+| Canonical               | Alias         |
+| ----------------------- | ------------- |
+| `--v2-manifest`         | `--v2`        |
+| `--migration`           | `--mig`       |
+| `--transaction-hash`    | `--tx`        |
+| `--deployment-mode`     | `--mode`      |
+| `--ordered-leaves`      | `--leaves`    |
+| `--parameters`          | `--params`    |
+| `--immutable-readbacks` | `--readbacks` |
+
 ## Validate a V2 manifest
 
 Validate the manifest schema, shared spell interface, review state, subject and parameter bindings, batch dependencies, deployment chronology, and lifecycle rules. This command does not access the network.
@@ -132,20 +146,6 @@ cli/emergency-spells verify-batch \
 ```
 
 The arguments must exactly match the published batch record.
-
-## Readable aliases
-
-Canonical flags use the names from [`deployments/v2.schema.json`](../deployments/v2.schema.json). The following shorter aliases are equivalent:
-
-| Canonical               | Alias         |
-| ----------------------- | ------------- |
-| `--v2-manifest`         | `--v2`        |
-| `--migration`           | `--mig`       |
-| `--transaction-hash`    | `--tx`        |
-| `--deployment-mode`     | `--mode`      |
-| `--ordered-leaves`      | `--leaves`    |
-| `--parameters`          | `--params`    |
-| `--immutable-readbacks` | `--readbacks` |
 
 ## Inspect a deployed batch
 
