@@ -5,14 +5,81 @@ pragma solidity ^0.8.16;
 import {Test} from "forge-std/Test.sol";
 
 import {GlobalOsmStopSpellV2} from "./GlobalOsmStopSpellV2.sol";
-import {
-    IlkRegistryMockV2,
-    MalformedGlobalTargetV2,
-    OsmGlobalMockV2,
-    OsmMomGlobalMockV2,
-    PermissiveOsmGlobalMockV2,
-    RevertingOsmGlobalMockV2
-} from "../GlobalSpellMocksV2.t.sol";
+
+contract IlkRegistryMockV2 {
+    bytes32[] private _ilks;
+    mapping(bytes32 => address) public xlip;
+
+    function add(bytes32 ilk) external {
+        _ilks.push(ilk);
+    }
+
+    function setXlip(bytes32 ilk, address clip) external {
+        xlip[ilk] = clip;
+    }
+
+    function count() external view returns (uint256) {
+        return _ilks.length;
+    }
+
+    function list() external view returns (bytes32[] memory) {
+        return _ilks;
+    }
+
+    function list(uint256 start, uint256 end) external view returns (bytes32[] memory selected) {
+        require(start <= end && end < _ilks.length, "IlkRegistryMockV2/invalid-range");
+        selected = new bytes32[](end - start + 1);
+        for (uint256 i; i < selected.length; ++i) {
+            selected[i] = _ilks[start + i];
+        }
+    }
+}
+
+interface StoppableLike {
+    function stop() external;
+}
+
+contract OsmGlobalMockV2 {
+    uint256 public stopped;
+
+    function stop() external {
+        stopped = 1;
+    }
+}
+
+contract RevertingOsmGlobalMockV2 {
+    uint256 public stopped;
+
+    function stop() external pure {
+        require(false, "RevertingOsmGlobalMockV2/stop-failed");
+    }
+}
+
+contract PermissiveOsmGlobalMockV2 {
+    uint256 public stopped;
+
+    fallback() external {}
+}
+
+contract OsmMomGlobalMockV2 {
+    mapping(bytes32 => address) public osms;
+    mapping(address => bool) public authorized;
+
+    function rely(address caller) external {
+        authorized[caller] = true;
+    }
+
+    function setOsm(bytes32 ilk, address osm) external {
+        osms[ilk] = osm;
+    }
+
+    function stop(bytes32 ilk) external {
+        require(authorized[msg.sender], "OsmMomGlobalMockV2/not-authorized");
+        StoppableLike(osms[ilk]).stop();
+    }
+}
+
+contract MalformedGlobalTargetV2 {}
 
 contract GlobalOsmStopSpellV2Test is Test {
     address internal constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;

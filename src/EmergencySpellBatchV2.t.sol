@@ -7,7 +7,63 @@ import {Vm} from "forge-std/Vm.sol";
 
 import {EmergencySpellBatchV2} from "./EmergencySpellBatchV2.sol";
 import {EmergencySpellV2} from "./EmergencySpellV2.sol";
-import {BatchLeafV2, BatchTargetV2, RevertingBatchLeafV2} from "./BatchMocksV2.t.sol";
+
+contract BatchTargetV2 {
+    uint256 public value;
+    address public caller;
+
+    event ValueSet(uint256 value, address caller);
+
+    function setValue(uint256 value_) external {
+        value = value_;
+        caller = msg.sender;
+        emit ValueSet(value_, msg.sender);
+    }
+}
+
+contract BatchLeafV2 is EmergencySpellV2 {
+    BatchTargetV2 public immutable target;
+    uint256 public immutable value;
+
+    constructor(address target_, uint256 value_) {
+        target = BatchTargetV2(target_);
+        value = value_;
+    }
+
+    function description() external pure override returns (string memory) {
+        return "Emergency Spell | Test Leaf";
+    }
+
+    function done() external view override returns (bool) {
+        return target.value() == value;
+    }
+
+    function _emergencyActions() internal override {
+        target.setValue(value);
+    }
+}
+
+contract RevertingBatchLeafV2 is EmergencySpellV2 {
+    error LeafFailure(uint256 reason);
+
+    uint256 public immutable reason;
+
+    constructor(uint256 reason_) {
+        reason = reason_;
+    }
+
+    function description() external pure override returns (string memory) {
+        return "Emergency Spell | Reverting Test Leaf";
+    }
+
+    function done() external pure override returns (bool) {
+        return false;
+    }
+
+    function _emergencyActions() internal view override {
+        revert LeafFailure(reason);
+    }
+}
 
 contract EmergencySpellBatchV2Test is Test {
     address internal constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;

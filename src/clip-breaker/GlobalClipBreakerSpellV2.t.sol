@@ -5,14 +5,76 @@ pragma solidity ^0.8.16;
 import {Test} from "forge-std/Test.sol";
 
 import {GlobalClipBreakerSpellV2} from "./GlobalClipBreakerSpellV2.sol";
-import {
-    ClipGlobalMockV2,
-    ClipperMomGlobalMockV2,
-    IlkRegistryMockV2,
-    MalformedGlobalTargetV2,
-    PermissiveClipGlobalMockV2,
-    RevertingClipGlobalMockV2
-} from "../GlobalSpellMocksV2.t.sol";
+
+contract IlkRegistryMockV2 {
+    bytes32[] private _ilks;
+    mapping(bytes32 => address) public xlip;
+
+    function add(bytes32 ilk) external {
+        _ilks.push(ilk);
+    }
+
+    function setXlip(bytes32 ilk, address clip) external {
+        xlip[ilk] = clip;
+    }
+
+    function count() external view returns (uint256) {
+        return _ilks.length;
+    }
+
+    function list() external view returns (bytes32[] memory) {
+        return _ilks;
+    }
+
+    function list(uint256 start, uint256 end) external view returns (bytes32[] memory selected) {
+        require(start <= end && end < _ilks.length, "IlkRegistryMockV2/invalid-range");
+        selected = new bytes32[](end - start + 1);
+        for (uint256 i; i < selected.length; ++i) {
+            selected[i] = _ilks[start + i];
+        }
+    }
+}
+
+interface BreakerSettableLike {
+    function setStopped(uint256 level) external;
+}
+
+contract ClipGlobalMockV2 {
+    uint256 public stopped;
+
+    function setStopped(uint256 level) external {
+        stopped = level;
+    }
+}
+
+contract RevertingClipGlobalMockV2 {
+    uint256 public stopped;
+
+    function setStopped(uint256) external pure {
+        require(false, "RevertingClipGlobalMockV2/set-failed");
+    }
+}
+
+contract PermissiveClipGlobalMockV2 {
+    uint256 public stopped;
+
+    fallback() external {}
+}
+
+contract ClipperMomGlobalMockV2 {
+    mapping(address => bool) public authorized;
+
+    function rely(address caller) external {
+        authorized[caller] = true;
+    }
+
+    function setBreaker(address clip, uint256 level, uint256) external {
+        require(authorized[msg.sender], "ClipperMomGlobalMockV2/not-authorized");
+        BreakerSettableLike(clip).setStopped(level);
+    }
+}
+
+contract MalformedGlobalTargetV2 {}
 
 contract GlobalClipBreakerSpellV2Test is Test {
     address internal constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;

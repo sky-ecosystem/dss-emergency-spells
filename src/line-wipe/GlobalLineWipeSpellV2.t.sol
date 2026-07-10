@@ -5,13 +5,135 @@ pragma solidity ^0.8.16;
 import {Test} from "forge-std/Test.sol";
 
 import {GlobalLineWipeSpellV2} from "./GlobalLineWipeSpellV2.sol";
-import {
-    AutoLineGlobalMockV2,
-    IlkRegistryMockV2,
-    LineMomGlobalMockV2,
-    MalformedGlobalTargetV2,
-    VatGlobalMockV2
-} from "../GlobalSpellMocksV2.t.sol";
+
+contract IlkRegistryMockV2 {
+    bytes32[] private _ilks;
+    mapping(bytes32 => address) public xlip;
+
+    function add(bytes32 ilk) external {
+        _ilks.push(ilk);
+    }
+
+    function setXlip(bytes32 ilk, address clip) external {
+        xlip[ilk] = clip;
+    }
+
+    function count() external view returns (uint256) {
+        return _ilks.length;
+    }
+
+    function list() external view returns (bytes32[] memory) {
+        return _ilks;
+    }
+
+    function list(uint256 start, uint256 end) external view returns (bytes32[] memory selected) {
+        require(start <= end && end < _ilks.length, "IlkRegistryMockV2/invalid-range");
+        selected = new bytes32[](end - start + 1);
+        for (uint256 i; i < selected.length; ++i) {
+            selected[i] = _ilks[start + i];
+        }
+    }
+}
+
+contract VatGlobalMockV2 {
+    mapping(bytes32 => uint256) public line;
+
+    function setLine(bytes32 ilk, uint256 line_) external {
+        line[ilk] = line_;
+    }
+
+    function ilks(bytes32 ilk)
+        external
+        view
+        returns (uint256 Art, uint256 rate, uint256 spot, uint256 line_, uint256 dust)
+    {
+        return (0, 0, 0, line[ilk], 0);
+    }
+}
+
+contract AutoLineGlobalMockV2 {
+    struct Config {
+        uint256 maxLine;
+        uint256 gap;
+        uint48 ttl;
+        uint48 last;
+        uint48 lastInc;
+    }
+
+    mapping(bytes32 => Config) internal configs;
+    mapping(bytes32 => bool) public revertOnRead;
+
+    function set(bytes32 ilk) external {
+        configs[ilk] = Config({maxLine: 1, gap: 2, ttl: 3, last: 4, lastInc: 5});
+    }
+
+    function clear(bytes32 ilk) external {
+        delete configs[ilk];
+    }
+
+    function setRevertOnRead(bytes32 ilk, bool value) external {
+        revertOnRead[ilk] = value;
+    }
+
+    function ilks(bytes32 ilk)
+        external
+        view
+        returns (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc)
+    {
+        require(!revertOnRead[ilk], "AutoLineGlobalMockV2/read-failed");
+        Config memory config = configs[ilk];
+        return (config.maxLine, config.gap, config.ttl, config.last, config.lastInc);
+    }
+}
+
+contract LineMomGlobalMockV2 {
+    address public immutable autoLine;
+    address public immutable vat;
+
+    mapping(address => bool) public authorized;
+    mapping(bytes32 => uint256) internal enrolled;
+    mapping(bytes32 => bool) public noopOnWipe;
+    mapping(bytes32 => bool) public revertOnWipe;
+
+    constructor(address autoLine_, address vat_) {
+        autoLine = autoLine_;
+        vat = vat_;
+    }
+
+    function rely(address caller) external {
+        authorized[caller] = true;
+    }
+
+    function enroll(bytes32 ilk) external {
+        enrolled[ilk] = 1;
+        AutoLineGlobalMockV2(autoLine).set(ilk);
+        VatGlobalMockV2(vat).setLine(ilk, 6);
+    }
+
+    function setRevertOnWipe(bytes32 ilk, bool value) external {
+        revertOnWipe[ilk] = value;
+    }
+
+    function setNoopOnWipe(bytes32 ilk, bool value) external {
+        noopOnWipe[ilk] = value;
+    }
+
+    function ilks(bytes32 ilk) external view returns (uint256) {
+        return enrolled[ilk];
+    }
+
+    function wipe(bytes32 ilk) external returns (uint256) {
+        require(authorized[msg.sender], "LineMomGlobalMockV2/not-authorized");
+        require(!revertOnWipe[ilk], "LineMomGlobalMockV2/wipe-failed");
+        if (noopOnWipe[ilk]) return 0;
+        delete enrolled[ilk];
+        AutoLineGlobalMockV2(autoLine).clear(ilk);
+        VatGlobalMockV2(vat).setLine(ilk, 0);
+        return 0;
+    }
+}
+
+contract MalformedGlobalTargetV2 {}
 
 contract GlobalLineWipeSpellV2Test is Test {
     address internal constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
