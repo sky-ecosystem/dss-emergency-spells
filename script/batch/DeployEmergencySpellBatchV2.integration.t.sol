@@ -7,8 +7,8 @@ import {DssTest} from "dss-test/DssTest.sol";
 import {
     EmergencySpellBatchFactoryV2DeployScript,
     EmergencySpellBatchV2DeployScript
-} from "../../../script/batch/DeployEmergencySpellBatchV2.s.sol";
-import {EmergencySpellBatchV2} from "../../../src/EmergencySpellBatchV2.sol";
+} from "./DeployEmergencySpellBatchV2.s.sol";
+import {EmergencySpellBatchV2} from "../../src/EmergencySpellBatchV2.sol";
 
 contract DeployEmergencySpellBatchV2IntegrationTest is DssTest {
     address internal constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;

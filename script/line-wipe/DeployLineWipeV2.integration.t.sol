@@ -4,12 +4,9 @@ pragma solidity ^0.8.16;
 
 import {DssInstance, DssTest, MCD} from "dss-test/DssTest.sol";
 
-import {
-    GlobalLineWipeSpellV2DeployScript,
-    LineWipeSpellV2DeployScript
-} from "../../../script/line-wipe/DeployLineWipeV2.s.sol";
-import {GlobalLineWipeSpellV2} from "../../../src/line-wipe/GlobalLineWipeSpellV2.sol";
-import {LineWipeSpellV2} from "../../../src/line-wipe/LineWipeSpellV2.sol";
+import {GlobalLineWipeSpellV2DeployScript, LineWipeSpellV2DeployScript} from "./DeployLineWipeV2.s.sol";
+import {GlobalLineWipeSpellV2} from "../../src/line-wipe/GlobalLineWipeSpellV2.sol";
+import {LineWipeSpellV2} from "../../src/line-wipe/LineWipeSpellV2.sol";
 
 contract DeployLineWipeV2IntegrationTest is DssTest {
     address internal constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;

@@ -70,12 +70,12 @@ Deployment records are published under [`deployments/`](./deployments/). The man
 
 ## Testing
 
-Unit tests are colocated with the Solidity and CLI sources they exercise. Only full Mainnet E2E tests live under `test/`. Local tests do not require a fork:
+Unit tests and subject-specific integration tests are colocated with the Solidity, deployment-script, and CLI sources they exercise. Integration test files use the `*.integration.t.sol` suffix. Only cross-component Mainnet E2E tests live under `test/`. Local tests do not require a fork:
 
 ```sh
 forge build --sizes
 forge fmt --check
-forge test --no-match-path 'test/**'
+forge test --no-match-path '**/*.integration.t.sol'
 python3 -m compileall -q cli
 python3 -m unittest discover -s cli/emergency_spells -t . -v
 ```
@@ -83,7 +83,7 @@ python3 -m unittest discover -s cli/emergency_spells -t . -v
 Mainnet integration tests require `ETH_RPC_URL`:
 
 ```sh
-forge test --match-path 'test/**/*.integration.t.sol'
+forge test --match-path '**/*.integration.t.sol'
 forge test --match-path 'test/globals/GlobalSpellsV2.integration.t.sol'
 ```
 

@@ -4,12 +4,9 @@ pragma solidity ^0.8.16;
 
 import {DssInstance, DssTest, MCD} from "dss-test/DssTest.sol";
 
-import {
-    ClipBreakerSpellV2DeployScript,
-    GlobalClipBreakerSpellV2DeployScript
-} from "../../../script/clip-breaker/DeployClipBreakerV2.s.sol";
-import {ClipBreakerSpellV2} from "../../../src/clip-breaker/ClipBreakerSpellV2.sol";
-import {GlobalClipBreakerSpellV2} from "../../../src/clip-breaker/GlobalClipBreakerSpellV2.sol";
+import {ClipBreakerSpellV2DeployScript, GlobalClipBreakerSpellV2DeployScript} from "./DeployClipBreakerV2.s.sol";
+import {ClipBreakerSpellV2} from "../../src/clip-breaker/ClipBreakerSpellV2.sol";
+import {GlobalClipBreakerSpellV2} from "../../src/clip-breaker/GlobalClipBreakerSpellV2.sol";
 
 interface IlkRegistryForClipDeploy {
     function xlip(bytes32 ilk) external view returns (address);

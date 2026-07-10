@@ -4,12 +4,9 @@ pragma solidity ^0.8.16;
 
 import {DssInstance, DssTest, MCD} from "dss-test/DssTest.sol";
 
-import {
-    GlobalOsmStopSpellV2DeployScript,
-    OsmStopSpellV2DeployScript
-} from "../../../script/osm-stop/DeployOsmStopV2.s.sol";
-import {GlobalOsmStopSpellV2} from "../../../src/osm-stop/GlobalOsmStopSpellV2.sol";
-import {OsmStopSpellV2} from "../../../src/osm-stop/OsmStopSpellV2.sol";
+import {GlobalOsmStopSpellV2DeployScript, OsmStopSpellV2DeployScript} from "./DeployOsmStopV2.s.sol";
+import {GlobalOsmStopSpellV2} from "../../src/osm-stop/GlobalOsmStopSpellV2.sol";
+import {OsmStopSpellV2} from "../../src/osm-stop/OsmStopSpellV2.sol";
 
 interface OsmMomForDeploy {
     function osms(bytes32 ilk) external view returns (address);

@@ -4,8 +4,8 @@ pragma solidity ^0.8.16;
 
 import {DssInstance, DssTest, MCD} from "dss-test/DssTest.sol";
 
-import {LitePsmHaltSpellV2DeployScript} from "../../../script/lite-psm-halt/DeployLitePsmHaltV2.s.sol";
-import {Flow, LitePsmHaltSpellV2} from "../../../src/lite-psm-halt/LitePsmHaltSpellV2.sol";
+import {LitePsmHaltSpellV2DeployScript} from "./DeployLitePsmHaltV2.s.sol";
+import {Flow, LitePsmHaltSpellV2} from "../../src/lite-psm-halt/LitePsmHaltSpellV2.sol";
 
 contract DeployLitePsmHaltV2IntegrationTest is DssTest {
     address internal constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;

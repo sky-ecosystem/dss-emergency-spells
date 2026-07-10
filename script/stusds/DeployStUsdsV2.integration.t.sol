@@ -8,10 +8,10 @@ import {
     StUsdsRateSetterDissBudSpellV2DeployScript,
     StUsdsRateSetterHaltSpellV2DeployScript,
     StUsdsWipeParamSpellV2DeployScript
-} from "../../../script/stusds/DeployStUsdsV2.s.sol";
-import {StUsdsRateSetterDissBudSpellV2} from "../../../src/stusds/StUsdsRateSetterDissBudSpellV2.sol";
-import {StUsdsRateSetterHaltSpellV2} from "../../../src/stusds/StUsdsRateSetterHaltSpellV2.sol";
-import {Param, StUsdsWipeParamSpellV2} from "../../../src/stusds/StUsdsWipeParamSpellV2.sol";
+} from "./DeployStUsdsV2.s.sol";
+import {StUsdsRateSetterDissBudSpellV2} from "../../src/stusds/StUsdsRateSetterDissBudSpellV2.sol";
+import {StUsdsRateSetterHaltSpellV2} from "../../src/stusds/StUsdsRateSetterHaltSpellV2.sol";
+import {Param, StUsdsWipeParamSpellV2} from "../../src/stusds/StUsdsWipeParamSpellV2.sol";
 
 contract DeployStUsdsV2IntegrationTest is DssTest {
     address internal constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;

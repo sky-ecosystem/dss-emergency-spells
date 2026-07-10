@@ -4,8 +4,8 @@ pragma solidity ^0.8.16;
 
 import {DssInstance, DssTest, MCD} from "dss-test/DssTest.sol";
 
-import {SPBEAMHaltSpellV2DeployScript} from "../../../script/spbeam-halt/DeploySPBEAMHaltV2.s.sol";
-import {SPBEAMHaltSpellV2} from "../../../src/spbeam-halt/SPBEAMHaltSpellV2.sol";
+import {SPBEAMHaltSpellV2DeployScript} from "./DeploySPBEAMHaltV2.s.sol";
+import {SPBEAMHaltSpellV2} from "../../src/spbeam-halt/SPBEAMHaltSpellV2.sol";
 
 contract DeploySPBEAMHaltV2IntegrationTest is DssTest {
     address internal constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;

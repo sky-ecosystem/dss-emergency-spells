@@ -4,8 +4,8 @@ pragma solidity ^0.8.16;
 
 import {DssInstance, DssTest, MCD} from "dss-test/DssTest.sol";
 
-import {DdmDisableSpellV2DeployScript} from "../../../script/ddm-disable/DeployDdmDisableV2.s.sol";
-import {DdmDisableSpellV2} from "../../../src/ddm-disable/DdmDisableSpellV2.sol";
+import {DdmDisableSpellV2DeployScript} from "./DeployDdmDisableV2.s.sol";
+import {DdmDisableSpellV2} from "../../src/ddm-disable/DdmDisableSpellV2.sol";
 
 interface DdmHubForDeploy {
     function plan(bytes32 ilk) external view returns (address);

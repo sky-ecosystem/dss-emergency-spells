@@ -4,8 +4,8 @@ pragma solidity ^0.8.16;
 
 import {DssInstance, DssTest, MCD} from "dss-test/DssTest.sol";
 
-import {SplitterStopSpellV2DeployScript} from "../../../script/splitter-stop/DeploySplitterStopV2.s.sol";
-import {SplitterStopSpellV2} from "../../../src/splitter-stop/SplitterStopSpellV2.sol";
+import {SplitterStopSpellV2DeployScript} from "./DeploySplitterStopV2.s.sol";
+import {SplitterStopSpellV2} from "../../src/splitter-stop/SplitterStopSpellV2.sol";
 
 contract DeploySplitterStopV2IntegrationTest is DssTest {
     address internal constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
