@@ -1,8 +1,9 @@
 import argparse
+import json
 import sys
 from pathlib import Path
 
-from .batch import preflight_batch, verify_batch
+from .batch import inspect_batch, preflight_batch, verify_batch
 from .common import (
     DependencyError,
     Runner,
@@ -48,6 +49,11 @@ def _parser():
 
     batch = commands.add_parser("verify-batch", help="verify a deployed batch")
     _batch_arguments(batch, include_deployment=True)
+
+    inspection = commands.add_parser(
+        "inspect-batch", help="show a deployed batch and its ordered leaves"
+    )
+    inspection.add_argument("--batch", required=True)
     return parser
 
 
@@ -63,6 +69,28 @@ def _batch_arguments(parser, include_deployment):
     parser.add_argument("--leaves", required=True, help="Foundry-style address array")
 
 
+def _display_description(description):
+    if description is None:
+        return "[description unavailable]"
+    return json.dumps(description, ensure_ascii=False)[1:-1]
+
+
+def _render_batch_inspection(result):
+    print(f"{_display_description(result['description'])} ({result['address']})")
+    if result["leaves_unavailable"]:
+        print("└── [leaves unavailable]")
+        return
+    if not result["leaves"]:
+        print("└── [no leaves]")
+        return
+    last = len(result["leaves"]) - 1
+    for index, leaf in enumerate(result["leaves"]):
+        branch = "└──" if index == last else "├──"
+        print(
+            f"{branch} [{index}] {_display_description(leaf['description'])} ({leaf['address']})"
+        )
+
+
 def _execute(arguments, runner):
     command = arguments.command
     if command == "validate-manifest":
@@ -76,6 +104,15 @@ def _execute(arguments, runner):
             load_json(arguments.migration),
         )
         print(f"Validated V1 migration status: {arguments.migration}")
+        return
+
+    if command == "inspect-batch":
+        result = inspect_batch(arguments.batch, require_rpc_url(), runner)
+        _render_batch_inspection(result)
+        if result["errors"]:
+            raise ValidationError(
+                "batch inspection incomplete: " + "; ".join(result["errors"])
+            )
         return
 
     manifest = load_json(arguments.manifest)

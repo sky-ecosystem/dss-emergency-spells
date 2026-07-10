@@ -108,6 +108,14 @@ cli/emergency-spells verify-batch \
   --leaves '[<leaf>,<leaf>]'
 ```
 
+Inspect a deployed batch and its leaves directly from chain:
+
+```sh
+cli/emergency-spells inspect-batch --batch <batch>
+```
+
+Inspection preserves execution order and displays every available description and address. An incomplete read produces a partial tree and exits nonzero. This command does not establish manifest publication, review status, or batch eligibility.
+
 A successful deployment or factory event is not incident-response approval. The manifest must contain the applicable review and structured simulation attestation. The validators bind that attestation to the configuration but do not replay or truth-test its external trace; reviewers must verify the evidence criteria in [`deployments/README.md`](../deployments/README.md).
 
 Run the validator from a clean repository checkout at the record's exact signed `sourceCommit`. Before incident use, fetch and verify the latest canonical signed manifest commit and record it in the incident log. See [`deployments/README.md`](../deployments/README.md) for status transitions and the manual publication/revocation boundary.

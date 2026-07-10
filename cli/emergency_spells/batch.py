@@ -1,9 +1,64 @@
-from .common import ValidationError, parse_leaves
+from .common import ADDRESS_RE, ValidationError, parse_leaves
 from .deployment import _json_output, _same_hex, verify_deployment
 from .manifest import _require, validate_manifest
 
 
 FACTORY_NAME = "EmergencySpellBatchFactoryV2"
+
+
+def _read_description(address, rpc_url, runner):
+    value = _json_output(
+        runner.run(
+            "cast", "call", address, "description()(string)", "--rpc-url", rpc_url
+        ),
+        f"description readback for {address}",
+    )
+    if not isinstance(value, str):
+        raise ValidationError(f"description readback for {address}: must be a string")
+    return value
+
+
+def inspect_batch(batch_address, rpc_url, runner):
+    if ADDRESS_RE.fullmatch(batch_address) is None:
+        raise ValidationError("batch: must be an address")
+
+    result = {
+        "address": batch_address,
+        "description": None,
+        "leaves": [],
+        "leaves_unavailable": False,
+        "errors": [],
+    }
+    try:
+        result["description"] = _read_description(batch_address, rpc_url, runner)
+    except ValidationError as error:
+        result["errors"].append(f"{batch_address} description(): {error}")
+
+    try:
+        leaves_readback = runner.run(
+            "cast",
+            "call",
+            batch_address,
+            "leaves()(address[])",
+            "--rpc-url",
+            rpc_url,
+        )
+        leaves = (
+            [] if leaves_readback.strip() == "[]" else parse_leaves(leaves_readback)
+        )
+    except ValidationError as error:
+        result["leaves_unavailable"] = True
+        result["errors"].append(f"{batch_address} leaves(): {error}")
+        return result
+
+    for leaf_address in leaves:
+        leaf = {"address": leaf_address, "description": None}
+        try:
+            leaf["description"] = _read_description(leaf_address, rpc_url, runner)
+        except ValidationError as error:
+            result["errors"].append(f"{leaf_address} description(): {error}")
+        result["leaves"].append(leaf)
+    return result
 
 
 def _leaves_argument(leaves):

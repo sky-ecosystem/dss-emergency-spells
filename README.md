@@ -61,7 +61,8 @@ Foundry deployment entrypoints and exact signatures are documented in [`script/R
 - `emergency-spells validate-manifest` enforces shared spell-interface readbacks, review state, subject/parameter binding, batch dependencies, chronology, and lifecycle rules without maintaining a concrete spell allowlist;
 - `emergency-spells verify-deployment` validates a direct deployment against this repository's signed `src/` checkout and live chain state;
 - `emergency-spells preflight-batch` authenticates the factory and selected leaves before deployment and prints the exact configuration hash;
-- `emergency-spells verify-batch` validates factory calldata and event, getters, runtime codehashes, constructor encoding, and deterministic address.
+- `emergency-spells verify-batch` validates factory calldata and event, getters, runtime codehashes, constructor encoding, and deterministic address;
+- `emergency-spells inspect-batch` displays a deployed batch and its ordered leaf descriptions as an on-chain tree.
 
 The CLI requires Python 3.12 or newer and uses only the Python standard library. Live-chain commands read the RPC endpoint from `ETH_RPC_URL` and invoke `cast`, `forge`, and `git` directly.
 

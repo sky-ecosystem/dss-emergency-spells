@@ -3,7 +3,7 @@ import json
 import unittest
 from pathlib import Path
 
-from .batch import preflight_batch, verify_batch
+from .batch import inspect_batch, preflight_batch, verify_batch
 from .common import ValidationError
 
 
@@ -104,6 +104,27 @@ class FakeRunner:
         raise AssertionError((tool, arguments))
 
 
+class InspectionRunner:
+    def __init__(self, leaves=(LEAF1, LEAF2)):
+        self.leaves = leaves
+        self.descriptions = {
+            BATCH: "Emergency Spell | Batch: Incident batch",
+            LEAF1: "Emergency Spell | Line Wipe: ETH-A",
+            LEAF2: "Emergency Spell | OSM Stop: ETH-A",
+        }
+        self.failures = set()
+        self.calls = []
+
+    def run(self, tool, *arguments):
+        address, signature = arguments[1], arguments[2]
+        self.calls.append((address, signature))
+        if (address, signature) in self.failures:
+            raise ValidationError(f"cast failed for {address} {signature}")
+        if signature == "leaves()(address[])":
+            return f"[{','.join(self.leaves)}]"
+        return json.dumps(self.descriptions[address])
+
+
 class BatchPreflightTests(unittest.TestCase):
     def test_accepts_create_order_and_predicts_create2(self):
         create = preflight_batch(
@@ -148,6 +169,80 @@ class BatchPreflightTests(unittest.TestCase):
                     FakeRunner(),
                     ROOT,
                 )
+
+
+class BatchInspectionTests(unittest.TestCase):
+    def test_reads_batch_and_leaf_descriptions_in_execution_order(self):
+        runner = InspectionRunner()
+
+        result = inspect_batch(BATCH, "mock://", runner)
+
+        self.assertEqual(
+            result,
+            {
+                "address": BATCH,
+                "description": "Emergency Spell | Batch: Incident batch",
+                "leaves": [
+                    {
+                        "address": LEAF1,
+                        "description": "Emergency Spell | Line Wipe: ETH-A",
+                    },
+                    {
+                        "address": LEAF2,
+                        "description": "Emergency Spell | OSM Stop: ETH-A",
+                    },
+                ],
+                "leaves_unavailable": False,
+                "errors": [],
+            },
+        )
+        self.assertEqual(
+            runner.calls,
+            [
+                (BATCH, "description()(string)"),
+                (BATCH, "leaves()(address[])"),
+                (LEAF1, "description()(string)"),
+                (LEAF2, "description()(string)"),
+            ],
+        )
+
+    def test_keeps_reading_after_leaf_description_failure(self):
+        runner = InspectionRunner()
+        runner.failures.add((LEAF1, "description()(string)"))
+
+        result = inspect_batch(BATCH, "mock://", runner)
+
+        self.assertIsNone(result["leaves"][0]["description"])
+        self.assertEqual(
+            result["leaves"][1]["description"],
+            "Emergency Spell | OSM Stop: ETH-A",
+        )
+        self.assertEqual(len(result["errors"]), 1)
+
+    def test_returns_partial_result_when_batch_reads_fail(self):
+        runner = InspectionRunner()
+        runner.failures.add((BATCH, "description()(string)"))
+        result = inspect_batch(BATCH, "mock://", runner)
+        self.assertIsNone(result["description"])
+        self.assertEqual(len(result["leaves"]), 2)
+        self.assertEqual(len(result["errors"]), 1)
+
+        runner = InspectionRunner()
+        runner.failures.add((BATCH, "leaves()(address[])"))
+        result = inspect_batch(BATCH, "mock://", runner)
+        self.assertTrue(result["leaves_unavailable"])
+        self.assertEqual(result["leaves"], [])
+        self.assertEqual(len(result["errors"]), 1)
+
+    def test_accepts_empty_leaf_readback(self):
+        result = inspect_batch(BATCH, "mock://", InspectionRunner(leaves=()))
+        self.assertEqual(result["leaves"], [])
+        self.assertFalse(result["leaves_unavailable"])
+        self.assertEqual(result["errors"], [])
+
+    def test_rejects_invalid_batch_address(self):
+        with self.assertRaisesRegex(ValidationError, "batch: must be an address"):
+            inspect_batch("not-an-address", "mock://", InspectionRunner())
 
 
 class BatchVerificationTests(unittest.TestCase):

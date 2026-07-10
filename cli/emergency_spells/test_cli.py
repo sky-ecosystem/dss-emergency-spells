@@ -54,6 +54,107 @@ class CliTests(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("ETH_RPC_URL", error)
 
+        with patch.dict(os.environ, {}, clear=True):
+            code, _, error = self.run_cli(
+                [
+                    "inspect-batch",
+                    "--batch",
+                    "0x00000000000000000000000000000000000000b1",
+                ]
+            )
+        self.assertEqual(code, 2)
+        self.assertIn("ETH_RPC_URL", error)
+
+    @patch("cli.emergency_spells.cli.inspect_batch")
+    def test_renders_batch_inspection_tree(self, inspect):
+        inspect.return_value = {
+            "address": "0x00000000000000000000000000000000000000b1",
+            "description": "Emergency Spell | Batch:\nIncident batch",
+            "leaves": [
+                {
+                    "address": "0x0000000000000000000000000000000000000011",
+                    "description": "Emergency Spell | Line Wipe: ETH-A",
+                },
+                {
+                    "address": "0x0000000000000000000000000000000000000022",
+                    "description": "Emergency Spell | OSM Stop: ETH-A",
+                },
+            ],
+            "leaves_unavailable": False,
+            "errors": [],
+        }
+        with patch.dict(os.environ, {"ETH_RPC_URL": "mock://"}):
+            code, output, error = self.run_cli(
+                [
+                    "inspect-batch",
+                    "--batch",
+                    "0x00000000000000000000000000000000000000b1",
+                ]
+            )
+        self.assertEqual(code, 0)
+        self.assertEqual(error, "")
+        self.assertEqual(
+            output,
+            "Emergency Spell | Batch:\\nIncident batch (0x00000000000000000000000000000000000000b1)\n"
+            "├── [0] Emergency Spell | Line Wipe: ETH-A (0x0000000000000000000000000000000000000011)\n"
+            "└── [1] Emergency Spell | OSM Stop: ETH-A (0x0000000000000000000000000000000000000022)\n",
+        )
+
+    @patch("cli.emergency_spells.cli.inspect_batch")
+    def test_renders_partial_tree_and_exits_one(self, inspect):
+        inspect.return_value = {
+            "address": "0x00000000000000000000000000000000000000b1",
+            "description": None,
+            "leaves": [
+                {
+                    "address": "0x0000000000000000000000000000000000000011",
+                    "description": None,
+                }
+            ],
+            "leaves_unavailable": False,
+            "errors": ["batch description failed", "leaf description failed"],
+        }
+        with patch.dict(os.environ, {"ETH_RPC_URL": "mock://"}):
+            code, output, error = self.run_cli(
+                [
+                    "inspect-batch",
+                    "--batch",
+                    "0x00000000000000000000000000000000000000b1",
+                ]
+            )
+        self.assertEqual(code, 1)
+        self.assertEqual(
+            output,
+            "[description unavailable] (0x00000000000000000000000000000000000000b1)\n"
+            "└── [0] [description unavailable] (0x0000000000000000000000000000000000000011)\n",
+        )
+        self.assertIn("batch description failed; leaf description failed", error)
+
+    @patch("cli.emergency_spells.cli.inspect_batch")
+    def test_renders_unavailable_or_empty_leaf_lists(self, inspect):
+        base = {
+            "address": "0x00000000000000000000000000000000000000b1",
+            "description": "Emergency Spell | Batch: Incident batch",
+            "leaves": [],
+            "leaves_unavailable": True,
+            "errors": ["leaves failed"],
+        }
+        inspect.return_value = base
+        with patch.dict(os.environ, {"ETH_RPC_URL": "mock://"}):
+            code, output, _ = self.run_cli(
+                ["inspect-batch", "--batch", base["address"]]
+            )
+        self.assertEqual(code, 1)
+        self.assertIn("└── [leaves unavailable]", output)
+
+        inspect.return_value = dict(base, leaves_unavailable=False, errors=[])
+        with patch.dict(os.environ, {"ETH_RPC_URL": "mock://"}):
+            code, output, _ = self.run_cli(
+                ["inspect-batch", "--batch", base["address"]]
+            )
+        self.assertEqual(code, 0)
+        self.assertIn("└── [no leaves]", output)
+
     @patch("cli.emergency_spells.cli.preflight_batch")
     def test_accepts_one_foundry_style_leaves_argument(self, preflight):
         preflight.return_value = {"configHash": "0x" + "11" * 32}
