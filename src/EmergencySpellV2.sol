@@ -19,7 +19,7 @@ interface ChainlogLike {
     function getAddress(bytes32 key) external view returns (address);
 }
 
-interface DssEmergencySpellLike {
+interface EmergencySpellLike {
     // DssExec-compatible surface.
     function action() external view returns (address);
     function cast() external;
@@ -43,12 +43,12 @@ interface DssEmergencySpellLike {
 
 /// @notice Compatibility surface shared by V2 Emergency Spells.
 /// @dev Batch-eligible descendants must keep their execution paths free of normal storage reads and writes.
-abstract contract EmergencySpellV2 is DssEmergencySpellLike {
+abstract contract EmergencySpellV2 is EmergencySpellLike {
     ChainlogLike internal constant _log = ChainlogLike(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
     address public constant override log = address(_log);
 
     uint256 public constant override eta = 0;
-    bytes public constant override sig = abi.encodeWithSelector(DssEmergencySpellLike.execute.selector);
+    bytes public constant override sig = abi.encodeWithSelector(EmergencySpellLike.execute.selector);
     uint256 public constant override expiration = type(uint256).max;
     uint256 internal constant _nextCastTime = type(uint256).max;
     bool public constant override officeHours = false;

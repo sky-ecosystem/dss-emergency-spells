@@ -15,7 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 pragma solidity ^0.8.16;
 
-import {DssEmergencySpellLike, EmergencySpellV2} from "./EmergencySpellV2.sol";
+import {EmergencySpellLike, EmergencySpellV2} from "./EmergencySpellV2.sol";
 
 /// @notice Executes an ordered set of reviewed Emergency Spell leaves atomically through delegatecall.
 /// @dev This contract uses normal storage and is direct-use only. It must never be selected as a batch leaf.
@@ -53,14 +53,14 @@ contract EmergencySpellBatchV2 is EmergencySpellV2 {
 
     function done() external view override returns (bool) {
         for (uint256 i; i < _leaves.length; ++i) {
-            if (!DssEmergencySpellLike(_leaves[i]).done()) return false;
+            if (!EmergencySpellLike(_leaves[i]).done()) return false;
         }
         return true;
     }
 
     function _emergencyActions() internal override {
         address[] memory selectedLeaves = _leaves;
-        bytes memory scheduleCall = abi.encodeCall(DssEmergencySpellLike.schedule, ());
+        bytes memory scheduleCall = abi.encodeCall(EmergencySpellLike.schedule, ());
 
         for (uint256 i; i < selectedLeaves.length; ++i) {
             address leaf = selectedLeaves[i];
