@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "chainId": 1,
+  "architecture": "legacy-v1",
+  "source": {
+    "tag": "v1-final",
+    "commit": "45651a4ecee20b80e55d941d295dbdf6fa4ea5e6",
+    "document": "README.md",
+    "section": "Deployments"
+  },
+  "counts": {
+    "active": 49,
+    "deprecated": 25,
+    "total": 74
+  },
+  "active": [
+    { "name": "SPBEAMHaltSpell", "kind": "standalone", "address": "0xDECF4A7E4b9CAa3c3751D163866941a888618Ac0" },
+    { "name": "SplitterStopSpell", "kind": "standalone", "address": "0x12531afC02aC18a9597Cfe8a889b7B948243a60b" },
+    { "name": "MultiClipBreakerSpell", "kind": "registry-global", "address": "0x828824dBC62Fba126C76E0Abe79AE28E5393C2cb" },
+    { "name": "MultiLineWipeSpell", "kind": "registry-global", "address": "0x4B5f856B59448304585C2AA009802A16946DDb0f" },
+    { "name": "MultiOsmStopSpell", "kind": "registry-global", "address": "0x3021dEdB0bC677F43A23Fcd1dE91A07e5195BaE8" },
+
+    { "name": "GroupedClipBreakerFactory", "kind": "factory", "address": "0x867852d30bb3cb1411fb4e404fae28ef742b1023" },
+    { "name": "GroupedLineWipeFactory", "kind": "factory", "address": "0x8646f8778b58a0df118facedf522181ba7277529" },
+    { "name": "SingleDdmDisableFactory", "kind": "factory", "address": "0x8BA0f6C4009Ea915706e1bCfB1d879E34587dC69" },
+    { "name": "SingleOsmStopFactory", "kind": "factory", "address": "0x83211c74131bA2B3de7538f588f1c2f309e81eF0" },
+    { "name": "SingleLitePsmHaltFactory", "kind": "factory", "address": "0xB261b73698F6dBC03cB1E998A3176bdD81C3514A" },
+    { "name": "StUsdsRateSetterDissBudFactory", "kind": "factory", "address": "0xb3Fd827F58989cFacFE50d2F8e86A1113b6066D1" },
+    { "name": "StUsdsWipeParamFactory", "kind": "factory", "address": "0x768D5Ce639c7E7d51E1244E2634d6149bd0d8096" },
+
+    { "name": "GroupedClipBreakerSpell", "kind": "grouped", "subject": "ETH-A,ETH-B,ETH-C", "address": "0x7d50528DE0F6117dA4e7bDC3dc15EDF78f8f175f" },
+    { "name": "GroupedClipBreakerSpell", "kind": "grouped", "subject": "LSE-MKR-A", "address": "0xc75Bc88b5d1A220E982AabAd3142f75B14D0009b" },
+    { "name": "GroupedClipBreakerSpell", "kind": "grouped", "subject": "WBTC-A,WBTC-B,WBTC-C", "address": "0x8d1E22d6490FEf486309C6430140b9f1f12D31ED" },
+    { "name": "GroupedClipBreakerSpell", "kind": "grouped", "subject": "WSTETH-A,WSTETH-B", "address": "0xa383fF9F207202A7A4C750E2395B8793f9D2Ff84" },
+
+    { "name": "SingleDdmDisableSpell", "kind": "leaf", "subject": "DIRECT-SPARK-DAI", "address": "0xf10d37FC47e966508A62d4874dC69c7Ed62fd11B" },
+    { "name": "SingleDdmDisableSpell", "kind": "leaf", "subject": "DIRECT-SPARK-MORPHO-DAI", "address": "0xD6513162b30D0BEC7e9E81c4F2Ce2C07d7D2a372" },
+    { "name": "SingleDdmDisableSpell", "kind": "leaf", "subject": "DIRECT-SPK-AAVE-LIDO-USDS", "address": "0x36cbC441C671f75BB5aE1150b12106D1D921d53c" },
+
+    { "name": "GroupedLineWipeSpell", "kind": "grouped", "subject": "ALLOCATOR-SPARK-A", "address": "0x68220D37eA40A60ACDa21cb607085225280dc2DB" },
+    { "name": "GroupedLineWipeSpell", "kind": "grouped", "subject": "ALLOCATOR-BLOOM-A", "address": "0xd12Aebe605b37391F8741C2C10A32D4Fa6A9D544" },
+    { "name": "GroupedLineWipeSpell", "kind": "grouped", "subject": "ALLOCATOR-GROVE-A", "address": "0xacf5448b041cE943E31d6527E3A337973934C482" },
+    { "name": "GroupedLineWipeSpell", "kind": "grouped", "subject": "ALLOCATOR-NOVA-A", "address": "0x401702b6B6fEEb4C19658e178B8cAa90d96E94D3" },
+    { "name": "GroupedLineWipeSpell", "kind": "grouped", "subject": "ALLOCATOR-OBEX-A", "address": "0x2113592be9e40318C87320c36ba1eEAc9522ee3e" },
+    { "name": "GroupedLineWipeSpell", "kind": "grouped", "subject": "ALLOCATOR-PATTERN-A", "address": "0x65231a74915fc154DC84Ac7a067B4835C8D049bF" },
+    { "name": "GroupedLineWipeSpell", "kind": "grouped", "subject": "ALLOCATOR-PRYSM-A", "address": "0xEe72cE730dd4aa1b559e9986fba6205B00F6e8ab" },
+    { "name": "GroupedLineWipeSpell", "kind": "grouped", "subject": "ALLOCATOR-INTERVAL-A", "address": "0x3a92B3D880eC6eF00E788eDf69e7f961C4652F68" },
+    { "name": "GroupedLineWipeSpell", "kind": "grouped", "subject": "ALLOCATOR-BLOOM-A,ALLOCATOR-GROVE-A", "address": "0x5eaFAC6e6866999982F18Af18924Bd2E57E074fd" },
+    { "name": "GroupedLineWipeSpell", "kind": "grouped", "subject": "ALLOCATOR-SPARK-A,ALLOCATOR-BLOOM-A,ALLOCATOR-GROVE-A,ALLOCATOR-NOVA-A,ALLOCATOR-OBEX-A,ALLOCATOR-PATTERN-A,ALLOCATOR-PRYSM-A,ALLOCATOR-INTERVAL-A", "address": "0x131EaFa844C28a9fF14F173114dA4D4a7e9c4204" },
+    { "name": "GroupedLineWipeSpell", "kind": "grouped", "subject": "ETH-A,ETH-B,ETH-C", "address": "0x07bc4A6F65A7965856aFff5af67a702220367d5f" },
+    { "name": "GroupedLineWipeSpell", "kind": "grouped", "subject": "WBTC-A,WBTC-B,WBTC-C", "address": "0xC9c4e0C7F769Ec16a39e3fc016e2A4Dc639EAa74" },
+    { "name": "GroupedLineWipeSpell", "kind": "grouped", "subject": "WSTETH-A,WSTETH-B", "address": "0x1a1F368e99F22dED25ECfeA2A87a7590771b6ED0" },
+
+    { "name": "SingleLitePsmHaltSpell", "kind": "leaf", "subject": "LITE-PSM-USDC-A", "parameter": "BOTH", "address": "0x83Ff10f34076293Ea354Ba2Bef1374bBad023B73" },
+    { "name": "SingleLitePsmHaltSpell", "kind": "leaf", "subject": "LITE-PSM-USDC-A", "parameter": "BUY", "address": "0xBFd0B1ae2698E5567cd07A62c217114457B81EDD" },
+    { "name": "SingleLitePsmHaltSpell", "kind": "leaf", "subject": "LITE-PSM-USDC-A", "parameter": "SELL", "address": "0x1573C9Cb707e3031115b6b7cD1cd4ED34906b7A3" },
+
+    { "name": "SingleOsmStopSpell", "kind": "leaf", "subject": "ETH-A", "address": "0x3a03F35ba1F5e015a288feD50cEB5342d4989E85" },
+    { "name": "SingleOsmStopSpell", "kind": "leaf", "subject": "ETH-B", "address": "0xb5f5F6CdCddD391402a2E71c2380d2f64372c49B" },
+    { "name": "SingleOsmStopSpell", "kind": "leaf", "subject": "ETH-C", "address": "0x690a6a9236E80Bd331e635Ad696be45C89a418ec" },
+    { "name": "SingleOsmStopSpell", "kind": "leaf", "subject": "LSE-MKR-A", "address": "0x9a4039d5abeDa765A3B295c51Db511861428109a" },
+    { "name": "SingleOsmStopSpell", "kind": "leaf", "subject": "WBTC-A", "address": "0xa1295912d6b535e30Df9aE4077256d0A989F4863" },
+    { "name": "SingleOsmStopSpell", "kind": "leaf", "subject": "WBTC-B", "address": "0x3eC627D7A4F5b88cD13E67d55885B0Bf09B4a3b0" },
+    { "name": "SingleOsmStopSpell", "kind": "leaf", "subject": "WBTC-C", "address": "0x3d045508697681F021980B41759CDB8aB5C5AFb8" },
+    { "name": "SingleOsmStopSpell", "kind": "leaf", "subject": "WSTETH-A", "address": "0xC8F4544334B9ACBcd6DDE5c2283d53b48ad762BC" },
+    { "name": "SingleOsmStopSpell", "kind": "leaf", "subject": "WSTETH-B", "address": "0xD1ce9F89c7f1e6Ec698bc840676efbFfC1373daa" },
+
+    { "name": "StUsdsRateSetterDissBudSpell", "kind": "leaf", "subject": "stUSDS", "parameter": "0xBB865F94B8A92E57f79fCc89Dfd4dcf0D3fDEA16", "address": "0x8e1a1bb9537e355cB4B2B2f8aFeBB31dBC158a83" },
+    { "name": "StUsdsRateSetterHaltSpell", "kind": "leaf", "subject": "stUSDS", "address": "0x91808ABeCd82495a4a7bf27d80C8c1e89de9effb" },
+    { "name": "StUsdsWipeParamSpell", "kind": "leaf", "subject": "stUSDS", "parameter": "BOTH", "address": "0x845C2e308b953D61f321dAb19206ba14549BD73b" },
+    { "name": "StUsdsWipeParamSpell", "kind": "leaf", "subject": "stUSDS", "parameter": "CAP", "address": "0xc41578939B8dFF7210F9544c2E97A10fb5d83E7d" },
+    { "name": "StUsdsWipeParamSpell", "kind": "leaf", "subject": "stUSDS", "parameter": "LINE", "address": "0xD4cD97EB11F3aF42DC2Ea1a83B7e401F34513143" }
+  ],
+  "deprecated": [
+    { "name": "SingleClipBreakerSpell", "kind": "leaf", "subject": "ETH-A", "address": "0xa1122011E26d160b263295476e294A17560213D1" },
+    { "name": "SingleClipBreakerSpell", "kind": "leaf", "subject": "ETH-B", "address": "0x1efe035022c63ACB53f3662bcb18683F522d2811" },
+    { "name": "SingleClipBreakerSpell", "kind": "leaf", "subject": "ETH-C", "address": "0xDef93051a647C5c3C5ce0B32C32B4394b4a55a85" },
+    { "name": "SingleClipBreakerSpell", "kind": "leaf", "subject": "LSE-MKR-A", "address": "0x9CF8Bd21814B57b9Ca5B368efb00A551682b7823" },
+    { "name": "SingleClipBreakerSpell", "kind": "leaf", "subject": "WBTC-A", "address": "0x43Aa7ED6BA07274104f5Ea0e08E6C236B02Bc636" },
+    { "name": "SingleClipBreakerSpell", "kind": "leaf", "subject": "WBTC-B", "address": "0x0ffE29C34da1C4760a1409DE19045a5ca41a7912" },
+    { "name": "SingleClipBreakerSpell", "kind": "leaf", "subject": "WBTC-C", "address": "0x9d5F59D4a599888E77899Afa8cc4bEd2334557d3" },
+    { "name": "SingleClipBreakerSpell", "kind": "leaf", "subject": "WSTETH-A", "address": "0x4e95dBC199c52F3Fb6Cfff1514099fF6A3942E56" },
+    { "name": "SingleClipBreakerSpell", "kind": "leaf", "subject": "WSTETH-B", "address": "0x052eDfA59F7eA13f27B0E886a0f89e88BA7b7Ea3" },
+
+    { "name": "SingleLineWipeSpell", "kind": "leaf", "subject": "ALLOCATOR-SPARK-A", "address": "0xFaF2Cd3a76EBEFB257BE0ea7dF5D222acDDA6734" },
+    { "name": "SingleLineWipeSpell", "kind": "leaf", "subject": "ETH-A", "address": "0x46BAeb8fb770f9bcfb5cF9A696F80fcEe6D0dcfE" },
+    { "name": "SingleLineWipeSpell", "kind": "leaf", "subject": "ETH-B", "address": "0x9E8516f7Ba14429917343c7Bc4c9d7378d298DDF" },
+    { "name": "SingleLineWipeSpell", "kind": "leaf", "subject": "ETH-C", "address": "0x0b6D27cf223D6e9ED2e55D5ADcF1909bbcEcFA32" },
+    { "name": "SingleLineWipeSpell", "kind": "leaf", "subject": "LSE-MKR-A", "address": "0xeeb0D6bdBa6b74E1813C8e8AAD3c927e5d86F87D" },
+    { "name": "SingleLineWipeSpell", "kind": "leaf", "subject": "RWA001-A", "address": "0xE4bcBe6a8A4564c9C7ECED4F5a827cc106352602" },
+    { "name": "SingleLineWipeSpell", "kind": "leaf", "subject": "RWA002-A", "address": "0x944F013edF4886bD0871391EFFc98911B8F0821f" },
+    { "name": "SingleLineWipeSpell", "kind": "leaf", "subject": "RWA009-A", "address": "0x46cbB3f96cC07205Dc8EE495615f144E288c8815" },
+    { "name": "SingleLineWipeSpell", "kind": "leaf", "subject": "RWA012-A", "address": "0xd9314ff8f9DCB2e7C1434155800B54d02Ae7f6f5" },
+    { "name": "SingleLineWipeSpell", "kind": "leaf", "subject": "RWA013-A", "address": "0x4ed518908dF1BD4b1C8a48602e4FADf2Fd248D9f" },
+    { "name": "SingleLineWipeSpell", "kind": "leaf", "subject": "RWA015-A", "address": "0x9A0A0700253cBb7372E3A6659fb8Be11866F32FA" },
+    { "name": "SingleLineWipeSpell", "kind": "leaf", "subject": "WBTC-A", "address": "0xd960050a502A27bBF33228E033782CB35B72e74D" },
+    { "name": "SingleLineWipeSpell", "kind": "leaf", "subject": "WBTC-B", "address": "0x47f20D5e95D8477a9dF2D483414Bce28b87B10Eb" },
+    { "name": "SingleLineWipeSpell", "kind": "leaf", "subject": "WBTC-C", "address": "0x1BC7cA708d882a82bdB1ade4838BeDB90144127c" },
+    { "name": "SingleLineWipeSpell", "kind": "leaf", "subject": "WSTETH-A", "address": "0x6A7710534E840a64ba709775ab9F23a6894bECa4" },
+    { "name": "SingleLineWipeSpell", "kind": "leaf", "subject": "WSTETH-B", "address": "0x79D7e31520FCD7bB5bf25fa13b2028cB5a32699D" }
+  ]
+}
