@@ -12,6 +12,7 @@ contract EmergencySpellBatchFactoryV2 {
         Create2Sorted
     }
 
+    error BatchAlreadyDeployed(address batch);
     error LeavesNotStrictlyIncreasing(uint256 index, address previous, address current);
 
     event BatchDeployed(address indexed batch, bytes32 indexed configHash, DeploymentMode mode);
@@ -56,6 +57,9 @@ contract EmergencySpellBatchFactoryV2 {
         returns (address batch)
     {
         bytes32 configHash = _configHash(leaves, label);
+        address predicted = _predictDeterministicAddress(leaves, label);
+        if (predicted.code.length != 0) revert BatchAlreadyDeployed(predicted);
+
         batch = address(new EmergencySpellBatchV2{salt: configHash}(leaves, label));
         emit BatchDeployed(batch, configHash, mode);
     }

@@ -119,14 +119,14 @@ contract EmergencySpellBatchFactoryV2Test is Test {
         address deployed = factory.deployDeterministic(sorted, "Same configuration");
 
         assertEq(deployed, factory.predictDeterministicSortedAddress(sorted, "Same configuration"));
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(EmergencySpellBatchFactoryV2.BatchAlreadyDeployed.selector, deployed));
         factory.deployDeterministicSorted(sorted, "Same configuration");
     }
 
     function testDuplicateExplicitDeploymentReverts() public {
-        factory.deployDeterministic(selectedLeaves, "Duplicate deployment");
+        address deployed = factory.deployDeterministic(selectedLeaves, "Duplicate deployment");
 
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(EmergencySpellBatchFactoryV2.BatchAlreadyDeployed.selector, deployed));
         factory.deployDeterministic(selectedLeaves, "Duplicate deployment");
     }
 
