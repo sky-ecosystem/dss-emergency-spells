@@ -8,11 +8,5 @@ solc = '0.8.16'
 optimizer = false
 evm_version = "shanghai"
 
-fs_permissions = [
-    { access = "read", path = "./out/" },
-    { access = "read", path = "./script/input/" },
-    { access = "read-write", path = "./script/output/" }
-]
-
 [rpc_endpoints]
 mainnet = "${ETH_RPC_URL}"
