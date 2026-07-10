@@ -50,8 +50,8 @@ if [[ "$($git_bin -C "$source_root" rev-parse HEAD)" != "$source_commit" ]]; the
     echo "validate-v2-deployment: source root does not match sourceCommit" >&2
     exit 1
 fi
-if [[ -n "$($git_bin -C "$source_root" status --porcelain --untracked-files=no)" ]]; then
-    echo "validate-v2-deployment: source root has tracked or submodule changes" >&2
+if [[ -n "$($git_bin -C "$source_root" status --porcelain --untracked-files=all)" ]]; then
+    echo "validate-v2-deployment: source root has tracked, untracked, or submodule changes" >&2
     exit 1
 fi
 $git_bin -C "$source_root" verify-commit "$source_commit" >/dev/null 2>&1 || {

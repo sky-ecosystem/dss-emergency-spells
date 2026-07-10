@@ -12,6 +12,13 @@ case "$1" in
         fi
         ;;
     status)
+        if [[ " $* " != *" --untracked-files=all "* ]]; then
+            echo "mock-git: source status must include untracked files" >&2
+            exit 2
+        fi
+        if [[ "${UNTRACKED_SOURCE:-0}" == "1" ]]; then
+            echo "?? remappings.txt"
+        fi
         ;;
     verify-commit)
         ;;

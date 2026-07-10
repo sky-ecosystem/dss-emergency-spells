@@ -33,4 +33,10 @@ if BROKEN_RECEIPT_ADDRESS=1 CAST="$root/test/scripts/mock-cast.sh" FORGE="$root/
     exit 1
 fi
 
+if UNTRACKED_SOURCE=1 CAST="$root/test/scripts/mock-cast.sh" FORGE="$root/test/scripts/mock-forge.sh" \
+    GIT="$root/test/scripts/mock-git.sh" "$validator" "$manifest" mock:// "$root" "$spell" >/dev/null 2>&1; then
+    echo "expected an untracked source-root build input to fail validation" >&2
+    exit 1
+fi
+
 echo "V2 deployment validation tests passed"
