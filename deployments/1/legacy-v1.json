@@ -8,6 +8,10 @@
     "document": "README.md",
     "section": "Deployments"
   },
+  "statusSemantics": {
+    "active": "Not marked deprecated in the README at v1-final; never a current-authority signal.",
+    "deprecated": "Marked deprecated in the README at v1-final; a historical snapshot classification."
+  },
   "counts": {
     "active": 49,
     "deprecated": 25,
