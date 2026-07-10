@@ -5,9 +5,7 @@ pragma solidity ^0.8.16;
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssInstance, DssTest, MCD} from "dss-test/DssTest.sol";
 
-import {GlobalClipBreakerSpellV2} from "../../src/clip-breaker/GlobalClipBreakerSpellV2.sol";
-import {GlobalLineWipeSpellV2} from "../../src/line-wipe/GlobalLineWipeSpellV2.sol";
-import {GlobalOsmStopSpellV2} from "../../src/osm-stop/GlobalOsmStopSpellV2.sol";
+import {GlobalClipBreakerSpellV2} from "./GlobalClipBreakerSpellV2.sol";
 
 interface IlkRegistryLike {
     function count() external view returns (uint256);
@@ -21,7 +19,7 @@ interface ClipLike {
     function wards(address who) external view returns (uint256);
 }
 
-contract GlobalSpellsV2IntegrationTest is DssTest {
+contract GlobalClipBreakerSpellV2IntegrationTest is DssTest {
     using stdStorage for StdStorage;
 
     address internal constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
@@ -42,23 +40,14 @@ contract GlobalSpellsV2IntegrationTest is DssTest {
         vm.makePersistent(chief);
     }
 
-    function testGlobalLineWipeV2OnMainnet() public {
-        GlobalLineWipeSpellV2 spell = new GlobalLineWipeSpellV2(ilkRegistry, dss.chainlog.getAddress("LINE_MOM"));
-        _elect(address(spell));
-
-        assertFalse(spell.done());
-        spell.schedule();
-        assertTrue(spell.done());
-    }
-
     function testGlobalClipBreakerV2AtomicFailureAndRangeIsolationOnMainnet() public {
         address clipperMom = dss.chainlog.getAddress("CLIPPER_MOM");
         GlobalClipBreakerSpellV2 spell = new GlobalClipBreakerSpellV2(ilkRegistry, clipperMom);
-        _elect(address(spell));
+        stdstore.target(chief).sig("hat()").checked_write(address(spell));
         IlkRegistryLike registry = IlkRegistryLike(ilkRegistry);
         bytes32[] memory isolatedIlk = registry.list(PSM_GUSD_INDEX, PSM_GUSD_INDEX);
         uint256 count = registry.count();
-        address ethA = IlkRegistryLike(ilkRegistry).xlip("ETH-A");
+        address ethA = registry.xlip("ETH-A");
 
         assertEq(isolatedIlk.length, 1);
         assertEq(isolatedIlk[0], PSM_GUSD_ILK);
@@ -106,18 +95,5 @@ contract GlobalSpellsV2IntegrationTest is DssTest {
             assertEq(ClipLike(clip).stopped(), 3);
         }
         assertEq(spell.done(), !incompleteBlockedTarget);
-    }
-
-    function testGlobalOsmStopV2OnMainnet() public {
-        GlobalOsmStopSpellV2 spell = new GlobalOsmStopSpellV2(ilkRegistry, dss.chainlog.getAddress("OSM_MOM"));
-        _elect(address(spell));
-
-        assertFalse(spell.done());
-        spell.schedule();
-        assertTrue(spell.done());
-    }
-
-    function _elect(address spell) internal {
-        stdstore.target(chief).sig("hat()").checked_write(spell);
     }
 }

@@ -70,7 +70,7 @@ Deployment records are published under [`deployments/`](./deployments/). The man
 
 ## Testing
 
-Unit tests and subject-specific integration tests are colocated with the Solidity, deployment-script, and CLI sources they exercise. Integration test files use the `*.integration.t.sol` suffix. Only cross-component Mainnet E2E tests live under `test/`. Local tests do not require a fork:
+Unit and integration tests are colocated with the Solidity, deployment-script, and CLI sources they exercise. Integration test files use the `*.integration.t.sol` suffix. Local tests do not require a fork:
 
 ```sh
 forge build --sizes
@@ -84,10 +84,10 @@ Mainnet integration tests require `ETH_RPC_URL`:
 
 ```sh
 forge test --match-path '**/*.integration.t.sol'
-forge test --match-path 'test/globals/GlobalSpellsV2.integration.t.sol'
+forge test --match-path 'src/clip-breaker/GlobalClipBreakerSpellV2.integration.t.sol'
 ```
 
-The second command is listed explicitly because the global suite performs dynamic live-registry isolation and may be run separately during review.
+The second command is listed explicitly because the global clip-breaker suite performs dynamic live-registry isolation and may be run separately during review.
 
 ## V1 history
 
