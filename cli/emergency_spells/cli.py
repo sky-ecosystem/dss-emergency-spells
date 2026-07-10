@@ -10,9 +10,11 @@ from .common import (
     ValidationError,
     load_json,
     parse_leaves,
+    parse_string_array,
     require_rpc_url,
 )
 from .deployment import verify_deployment
+from .draft import draft_batch, draft_deployment
 from .manifest import validate_manifest
 from .migration import validate_migration
 
@@ -33,8 +35,8 @@ def _parser():
         "validate-migration", help="validate V1 migration status"
     )
     migration.add_argument("--legacy", required=True)
-    migration.add_argument("--v2-manifest", required=True)
-    migration.add_argument("--migration", required=True)
+    migration.add_argument("--v2-manifest", "--v2", required=True)
+    migration.add_argument("--migration", "--mig", required=True)
 
     deployment = commands.add_parser(
         "verify-deployment", help="verify a direct deployment"
@@ -54,6 +56,51 @@ def _parser():
         "inspect-batch", help="show a deployed batch and its ordered leaves"
     )
     inspection.add_argument("--batch", required=True)
+
+    draft = commands.add_parser(
+        "draft-deployment", help="generate a direct deployment record draft"
+    )
+    draft.add_argument("--artifact", required=True)
+    draft.add_argument(
+        "--kind",
+        required=True,
+        choices=("leaf", "registry-global", "infrastructure"),
+    )
+    draft.add_argument(
+        "--transaction-hash", "--tx", dest="transaction_hash", required=True
+    )
+    draft.add_argument("--subjects", default="[]")
+    draft.add_argument("--parameters", "--params", default="[]")
+    draft.add_argument(
+        "--immutable-readbacks",
+        "--readbacks",
+        dest="immutable_readbacks",
+        default="[]",
+    )
+
+    batch_draft = commands.add_parser(
+        "draft-batch", help="generate a batch deployment record draft"
+    )
+    batch_draft.add_argument("--manifest", required=True)
+    batch_draft.add_argument("--factory", required=True)
+    batch_draft.add_argument(
+        "--transaction-hash", "--tx", dest="transaction_hash", required=True
+    )
+    batch_draft.add_argument(
+        "--deployment-mode",
+        "--mode",
+        dest="deployment_mode",
+        required=True,
+        choices=("create", "create2"),
+    )
+    batch_draft.add_argument("--label", required=True)
+    batch_draft.add_argument(
+        "--ordered-leaves",
+        "--leaves",
+        dest="ordered_leaves",
+        required=True,
+        help="Foundry-style address array",
+    )
     return parser
 
 
@@ -63,10 +110,24 @@ def _batch_arguments(parser, include_deployment):
         parser.add_argument("--batch", required=True)
     parser.add_argument("--factory", required=True)
     if include_deployment:
-        parser.add_argument("--tx", required=True)
-    parser.add_argument("--mode", required=True, choices=("create", "create2"))
+        parser.add_argument(
+            "--transaction-hash", "--tx", dest="transaction_hash", required=True
+        )
+    parser.add_argument(
+        "--deployment-mode",
+        "--mode",
+        dest="deployment_mode",
+        required=True,
+        choices=("create", "create2"),
+    )
     parser.add_argument("--label", required=True)
-    parser.add_argument("--leaves", required=True, help="Foundry-style address array")
+    parser.add_argument(
+        "--ordered-leaves",
+        "--leaves",
+        dest="ordered_leaves",
+        required=True,
+        help="Foundry-style address array",
+    )
 
 
 def _display_description(description):
@@ -115,6 +176,38 @@ def _execute(arguments, runner):
             )
         return
 
+    if command == "draft-deployment":
+        result = draft_deployment(
+            artifact=arguments.artifact,
+            kind=arguments.kind,
+            transaction_hash=arguments.transaction_hash,
+            subjects=parse_string_array(arguments.subjects, "--subjects"),
+            parameters=parse_string_array(arguments.parameters, "--parameters"),
+            immutable_readbacks=parse_string_array(
+                arguments.immutable_readbacks, "--immutable-readbacks"
+            ),
+            rpc_url=require_rpc_url(),
+            runner=runner,
+            root=ROOT,
+        )
+        print(json.dumps(result, indent=2))
+        return
+
+    if command == "draft-batch":
+        result = draft_batch(
+            manifest=load_json(arguments.manifest),
+            factory_address=arguments.factory,
+            transaction_hash=arguments.transaction_hash,
+            deployment_mode=arguments.deployment_mode,
+            label=arguments.label,
+            ordered_leaves=parse_leaves(arguments.ordered_leaves),
+            rpc_url=require_rpc_url(),
+            runner=runner,
+            root=ROOT,
+        )
+        print(json.dumps(result, indent=2))
+        return
+
     manifest = load_json(arguments.manifest)
     rpc_url = require_rpc_url()
     if command == "verify-deployment":
@@ -122,20 +215,20 @@ def _execute(arguments, runner):
         print(f"Validated V2 deployment: {arguments.address}")
         return
 
-    leaves = parse_leaves(arguments.leaves)
+    ordered_leaves = parse_leaves(arguments.ordered_leaves)
     if command == "preflight-batch":
         result = preflight_batch(
             manifest,
             arguments.factory,
-            arguments.mode,
+            arguments.deployment_mode,
             arguments.label,
-            leaves,
+            ordered_leaves,
             rpc_url,
             runner,
             ROOT,
         )
         print(
-            f"Validated V2 batch preflight: {len(leaves)} leaf/leaves ({arguments.mode})"
+            f"Validated V2 batch preflight: {len(ordered_leaves)} leaf/leaves ({arguments.deployment_mode})"
         )
         print(f"Config hash: {result['configHash']}")
         if "predictedBatch" in result:
@@ -145,10 +238,10 @@ def _execute(arguments, runner):
         manifest,
         arguments.batch,
         arguments.factory,
-        arguments.tx,
-        arguments.mode,
+        arguments.transaction_hash,
+        arguments.deployment_mode,
         arguments.label,
-        leaves,
+        ordered_leaves,
         rpc_url,
         runner,
         ROOT,

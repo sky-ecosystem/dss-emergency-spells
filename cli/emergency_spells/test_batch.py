@@ -27,7 +27,12 @@ class FakeRunner:
     def run(self, tool, *arguments):
         command = arguments[0]
         if tool == "git":
-            return {"rev-parse": "1" * 40, "status": "", "verify-commit": ""}[command]
+            return {
+                "rev-parse": "1" * 40,
+                "status": "",
+                "verify-commit": "",
+                "diff": "",
+            }[command]
         if tool == "forge":
             return (
                 "0x6000"

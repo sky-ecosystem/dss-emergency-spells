@@ -91,7 +91,33 @@ Pass the printed configuration hash as the final deployment-script argument. The
 
 Use `CREATE2` only when the selected actions are order-independent and the leaf addresses have already been placed in strictly increasing order. Use `CREATE` when execution order is semantically meaningful; it preserves the reviewed order. Never sort a meaningful action sequence merely to make it deterministic.
 
-After a direct leaf, global, or factory deployment, add the reviewed record to the V2 manifest and run the general deployment validator. For a factory-created batch, run the batch-specific post-deployment validator instead:
+After a direct leaf, global, or factory deployment, generate a record draft from the deployment transaction:
+
+```sh
+cli/emergency-spells draft-deployment \
+  --artifact <src/path/Contract.sol:Contract> \
+  --kind <leaf|registry-global|infrastructure> \
+  --tx <deployment-tx> \
+  --subjects '[<getter-signature>]' \
+  --params '[]' \
+  --readbacks '[<getter-signature>]'
+```
+
+For a factory-created batch, generate the record from the factory transaction and the manifest's published factory and leaves:
+
+```sh
+cli/emergency-spells draft-batch \
+  --manifest deployments/<chain-id>/v2.json \
+  --factory <factory> \
+  --tx <deployment-tx> \
+  --mode <create|create2> \
+  --label <label> \
+  --leaves '[<leaf>,<leaf>]'
+```
+
+Both commands print JSON to standard output and never edit the manifest. Redirect the draft to a temporary file, review it, add it to `records`, and complete its review evidence. Batch drafts also require the atomic-simulation placeholders to be completed. Raw drafts are intentionally invalid until this review work is done.
+
+Run the general deployment validator after publishing a direct record. For a factory-created batch, run the batch-specific post-deployment validator instead:
 
 ```sh
 cli/emergency-spells verify-deployment \
@@ -118,7 +144,7 @@ Inspection preserves execution order and displays every available description an
 
 A successful deployment or factory event is not incident-response approval. The manifest must contain the applicable review and structured simulation attestation. The validators bind that attestation to the configuration but do not replay or truth-test its external trace; reviewers must verify the evidence criteria in [`deployments/README.md`](../deployments/README.md).
 
-Run the validator from a clean repository checkout at the record's exact signed `sourceCommit`. Before incident use, fetch and verify the latest canonical signed manifest commit and record it in the incident log. See [`deployments/README.md`](../deployments/README.md) for status transitions and the manual publication/revocation boundary.
+Run the validator from a clean repository whose build inputs match the record's signed `sourceCommit`. Documentation and manifest commits may follow that source commit, but `src/`, `foundry.toml`, `.gitmodules`, `lib/`, and `remappings.txt` must remain unchanged. Before incident use, fetch and verify the latest canonical signed manifest commit and record it in the incident log. See [`deployments/README.md`](../deployments/README.md) for the complete publication workflow, status transitions, and manual publication/revocation boundary.
 
 The CLI requires Python 3.12 or newer and has no Python package dependencies. It invokes `cast`, `forge`, and `git` as subprocesses; `CAST`, `FORGE`, and `GIT` can override those executable names when required by the environment.
 

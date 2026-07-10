@@ -73,11 +73,22 @@ def _config_hash(leaves, label, runner):
 
 
 def preflight_batch(
-    manifest, factory_address, mode, label, leaves, rpc_url, runner, root
+    manifest,
+    factory_address,
+    deployment_mode,
+    label,
+    ordered_leaves,
+    rpc_url,
+    runner,
+    root,
 ):
-    _require(mode in {"create", "create2"}, "mode", "must be create or create2")
+    _require(
+        deployment_mode in {"create", "create2"},
+        "deploymentMode",
+        "must be create or create2",
+    )
     _require(bool(label), "label", "must not be empty")
-    _require(bool(leaves), "leaves", "must not be empty")
+    _require(bool(ordered_leaves), "orderedLeaves", "must not be empty")
     by_address = validate_manifest(manifest)
     factory = by_address.get(factory_address.lower())
     ready = (
@@ -90,17 +101,19 @@ def preflight_batch(
     _require(ready, "factory", "is not incident-ready batch infrastructure")
     verify_deployment(manifest, factory_address, rpc_url, runner, root)
 
-    normalized = [leaf.lower() for leaf in leaves]
+    normalized = [leaf.lower() for leaf in ordered_leaves]
     _require(
-        len(normalized) == len(set(normalized)), "leaves", "contains a duplicate leaf"
+        len(normalized) == len(set(normalized)),
+        "orderedLeaves",
+        "contains a duplicate leaf",
     )
-    if mode == "create2":
+    if deployment_mode == "create2":
         _require(
             normalized == sorted(normalized),
-            "leaves",
+            "orderedLeaves",
             "must be strictly ordered for create2",
         )
-    for leaf_address in leaves:
+    for leaf_address in ordered_leaves:
         leaf = by_address.get(leaf_address.lower())
         eligible = (
             leaf is not None
@@ -111,24 +124,26 @@ def preflight_batch(
             and leaf["operationalStatus"] == "incident-ready"
         )
         _require(
-            eligible, "leaves", f"{leaf_address} is not incident-ready for batch use"
+            eligible,
+            "orderedLeaves",
+            f"{leaf_address} is not incident-ready for batch use",
         )
         codehash = runner.run("cast", "codehash", leaf_address, "--rpc-url", rpc_url)
         _require(
             _same_hex(codehash, leaf["runtimeCodehash"]),
-            "leaves",
+            "orderedLeaves",
             f"runtime codehash mismatch for {leaf_address}",
         )
 
-    _encoded, config_hash = _config_hash(leaves, label, runner)
+    _encoded, config_hash = _config_hash(ordered_leaves, label, runner)
     result = {"configHash": config_hash}
-    if mode == "create2":
+    if deployment_mode == "create2":
         result["predictedBatch"] = runner.run(
             "cast",
             "call",
             factory_address,
             "previewDeterministicAddress(address[],string)(address)",
-            _leaves_argument(leaves),
+            _leaves_argument(ordered_leaves),
             label,
             "--rpc-url",
             rpc_url,
@@ -204,9 +219,9 @@ def verify_batch(
     batch_address,
     factory_address,
     transaction_hash,
-    mode,
+    deployment_mode,
     label,
-    leaves,
+    ordered_leaves,
     rpc_url,
     runner,
     root,
@@ -222,17 +237,17 @@ def verify_batch(
     )
     verify_deployment(manifest, factory_address, rpc_url, runner, root)
 
-    for leaf_address in leaves:
+    for leaf_address in ordered_leaves:
         leaf = by_address.get(leaf_address.lower())
         _require(
             leaf is not None and leaf["kind"] == "leaf",
-            "leaves",
+            "orderedLeaves",
             f"leaf record not found: {leaf_address}",
         )
         actual = runner.run("cast", "codehash", leaf_address, "--rpc-url", rpc_url)
         _require(
             _same_hex(actual, leaf["runtimeCodehash"]),
-            "leaves",
+            "orderedLeaves",
             f"runtime codehash mismatch for {leaf_address}",
         )
 
@@ -244,15 +259,15 @@ def verify_batch(
     configuration_matches = (
         _same_hex(record["deployment"]["transactionHash"], transaction_hash)
         and _same_hex(batch["factory"], factory_address)
-        and batch["deploymentMode"] == mode
+        and batch["deploymentMode"] == deployment_mode
         and batch["label"] == label
         and [leaf.lower() for leaf in batch["orderedLeaves"]]
-        == [leaf.lower() for leaf in leaves]
+        == [leaf.lower() for leaf in ordered_leaves]
         and batch["factoryEventVerified"]
     )
     _require(configuration_matches, "batch", "manifest configuration mismatch")
 
-    encoded, config_hash = _config_hash(leaves, label, runner)
+    encoded, config_hash = _config_hash(ordered_leaves, label, runner)
     _require(
         _same_hex(record["deployment"]["constructorArguments"], encoded),
         "deployment.constructorArguments",
@@ -264,7 +279,13 @@ def verify_batch(
         "does not match batch configuration",
     )
     _verify_batch_readbacks(
-        record, batch_address, leaves, label, config_hash, rpc_url, runner
+        record,
+        batch_address,
+        ordered_leaves,
+        label,
+        config_hash,
+        rpc_url,
+        runner,
     )
     actual_codehash = runner.run(
         "cast", "codehash", batch_address, "--rpc-url", rpc_url
@@ -277,11 +298,11 @@ def verify_batch(
 
     function = (
         "deployDeterministic(address[],string)"
-        if mode == "create2"
+        if deployment_mode == "create2"
         else "deploy(address[],string)"
     )
     expected_input = runner.run(
-        "cast", "calldata", function, _leaves_argument(leaves), label
+        "cast", "calldata", function, _leaves_argument(ordered_leaves), label
     )
     transaction = _json_output(
         runner.run("cast", "tx", transaction_hash, "--rpc-url", rpc_url, "--json"),
@@ -323,9 +344,16 @@ def verify_batch(
         "deployment.blockNumber",
         "does not match receipt",
     )
-    _verify_event(receipt, factory_address, batch_address, config_hash, mode, runner)
+    _verify_event(
+        receipt,
+        factory_address,
+        batch_address,
+        config_hash,
+        deployment_mode,
+        runner,
+    )
 
-    if mode == "create2":
+    if deployment_mode == "create2":
         creation_code = runner.run(
             "forge",
             "inspect",

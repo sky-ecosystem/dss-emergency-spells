@@ -32,6 +32,20 @@ def parse_leaves(value: str) -> list[str]:
     return leaves
 
 
+def parse_string_array(value: str, option: str) -> list[str]:
+    try:
+        items = json.loads(value)
+    except json.JSONDecodeError as error:
+        raise ValidationError(f"{option} must be a JSON string array") from error
+    if not isinstance(items, list) or any(
+        not isinstance(item, str) or not item for item in items
+    ):
+        raise ValidationError(f"{option} must be a JSON string array")
+    if len(items) != len(set(items)):
+        raise ValidationError(f"{option} contains a duplicate value")
+    return items
+
+
 def require_rpc_url() -> str:
     value = os.environ.get("ETH_RPC_URL", "")
     if not value:

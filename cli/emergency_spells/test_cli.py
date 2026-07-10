@@ -1,11 +1,12 @@
 import io
+import json
 import os
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
-from .cli import main
+from .cli import _parser, main
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -39,6 +40,213 @@ class CliTests(unittest.TestCase):
         )
         self.assertEqual(code, 0)
         self.assertIn("Validated V1 migration", output)
+
+    def test_schema_aligned_flags_and_readable_aliases_are_equivalent(self):
+        parser = _parser()
+        canonical = parser.parse_args(
+            [
+                "verify-batch",
+                "--manifest",
+                "manifest.json",
+                "--batch",
+                "0xbatch",
+                "--factory",
+                "0xfactory",
+                "--transaction-hash",
+                "0xtx",
+                "--deployment-mode",
+                "create2",
+                "--label",
+                "Incident batch",
+                "--ordered-leaves",
+                "[0x1,0x2]",
+            ]
+        )
+        aliases = parser.parse_args(
+            [
+                "verify-batch",
+                "--manifest",
+                "manifest.json",
+                "--batch",
+                "0xbatch",
+                "--factory",
+                "0xfactory",
+                "--tx",
+                "0xtx",
+                "--mode",
+                "create2",
+                "--label",
+                "Incident batch",
+                "--leaves",
+                "[0x1,0x2]",
+            ]
+        )
+        self.assertEqual(vars(canonical), vars(aliases))
+
+        canonical = parser.parse_args(
+            [
+                "draft-batch",
+                "--manifest",
+                "manifest.json",
+                "--factory",
+                "0xfactory",
+                "--transaction-hash",
+                "0xtx",
+                "--deployment-mode",
+                "create2",
+                "--label",
+                "Incident batch",
+                "--ordered-leaves",
+                "[0x1,0x2]",
+            ]
+        )
+        aliases = parser.parse_args(
+            [
+                "draft-batch",
+                "--manifest",
+                "manifest.json",
+                "--factory",
+                "0xfactory",
+                "--tx",
+                "0xtx",
+                "--mode",
+                "create2",
+                "--label",
+                "Incident batch",
+                "--leaves",
+                "[0x1,0x2]",
+            ]
+        )
+        self.assertEqual(vars(canonical), vars(aliases))
+        self.assertEqual(canonical.transaction_hash, "0xtx")
+        self.assertEqual(canonical.deployment_mode, "create2")
+        self.assertEqual(canonical.ordered_leaves, "[0x1,0x2]")
+
+        canonical = parser.parse_args(
+            [
+                "draft-deployment",
+                "--artifact",
+                "src/Test.sol:Test",
+                "--kind",
+                "leaf",
+                "--transaction-hash",
+                "0xtx",
+                "--subjects",
+                '["subject()(address)"]',
+                "--parameters",
+                '["parameter()(uint8)"]',
+                "--immutable-readbacks",
+                '["dependency()(address)"]',
+            ]
+        )
+        aliases = parser.parse_args(
+            [
+                "draft-deployment",
+                "--artifact",
+                "src/Test.sol:Test",
+                "--kind",
+                "leaf",
+                "--tx",
+                "0xtx",
+                "--subjects",
+                '["subject()(address)"]',
+                "--params",
+                '["parameter()(uint8)"]',
+                "--readbacks",
+                '["dependency()(address)"]',
+            ]
+        )
+        self.assertEqual(vars(canonical), vars(aliases))
+
+        canonical = parser.parse_args(
+            [
+                "validate-migration",
+                "--legacy",
+                "legacy.json",
+                "--v2-manifest",
+                "v2.json",
+                "--migration",
+                "migration.json",
+            ]
+        )
+        aliases = parser.parse_args(
+            [
+                "validate-migration",
+                "--legacy",
+                "legacy.json",
+                "--v2",
+                "v2.json",
+                "--mig",
+                "migration.json",
+            ]
+        )
+        self.assertEqual(vars(canonical), vars(aliases))
+
+    @patch("cli.emergency_spells.cli.draft_deployment")
+    def test_prints_direct_deployment_draft_as_json_only(self, draft):
+        draft.return_value = {"contractName": "Test", "operationalStatus": "deployed"}
+        with patch.dict(os.environ, {"ETH_RPC_URL": "mock://"}):
+            code, output, error = self.run_cli(
+                [
+                    "draft-deployment",
+                    "--artifact",
+                    "src/Test.sol:Test",
+                    "--kind",
+                    "leaf",
+                    "--tx",
+                    "0x" + "11" * 32,
+                    "--subjects",
+                    '["subject()(address)"]',
+                    "--params",
+                    "[]",
+                    "--readbacks",
+                    '["dependency()(address)"]',
+                ]
+            )
+        self.assertEqual(code, 0)
+        self.assertEqual(error, "")
+        self.assertEqual(json.loads(output), draft.return_value)
+        self.assertEqual(draft.call_args.kwargs["subjects"], ["subject()(address)"])
+        self.assertEqual(draft.call_args.kwargs["parameters"], [])
+        self.assertEqual(
+            draft.call_args.kwargs["immutable_readbacks"],
+            ["dependency()(address)"],
+        )
+
+    @patch("cli.emergency_spells.cli.draft_batch")
+    def test_prints_batch_draft_as_json_only(self, draft):
+        draft.return_value = {
+            "contractName": "EmergencySpellBatchV2",
+            "operationalStatus": "deployed",
+        }
+        with patch.dict(os.environ, {"ETH_RPC_URL": "mock://"}):
+            code, output, error = self.run_cli(
+                [
+                    "draft-batch",
+                    "--manifest",
+                    str(ROOT / "cli/fixtures/v2-manifest-valid.json"),
+                    "--factory",
+                    "0x00000000000000000000000000000000000000f1",
+                    "--tx",
+                    "0x" + "11" * 32,
+                    "--mode",
+                    "create2",
+                    "--label",
+                    "Incident batch",
+                    "--leaves",
+                    "[0x0000000000000000000000000000000000000011,0x0000000000000000000000000000000000000022]",
+                ]
+            )
+        self.assertEqual(code, 0)
+        self.assertEqual(error, "")
+        self.assertEqual(json.loads(output), draft.return_value)
+        self.assertEqual(
+            draft.call_args.kwargs["ordered_leaves"],
+            [
+                "0x0000000000000000000000000000000000000011",
+                "0x0000000000000000000000000000000000000022",
+            ],
+        )
 
     def test_live_commands_require_eth_rpc_url(self):
         with patch.dict(os.environ, {}, clear=True):

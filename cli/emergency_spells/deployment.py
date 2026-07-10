@@ -19,19 +19,26 @@ def _same_hex(left, right):
     )
 
 
-def verify_source(record, runner, root):
+def verify_source(record, runner):
     commit = record["sourceCommit"]
-    _require(
-        runner.run("git", "rev-parse", "HEAD") == commit,
-        "sourceCommit",
-        "repository HEAD does not match",
-    )
     _require(
         runner.run("git", "status", "--porcelain", "--untracked-files=all") == "",
         "sourceCommit",
         "repository has tracked, untracked, or submodule changes",
     )
     runner.run("git", "verify-commit", commit)
+    runner.run(
+        "git",
+        "diff",
+        "--quiet",
+        commit,
+        "--",
+        "src",
+        "foundry.toml",
+        ".gitmodules",
+        "lib",
+        "remappings.txt",
+    )
 
 
 def verify_deployment(manifest, address, rpc_url, runner, root, *, allow_batch=False):
@@ -51,7 +58,7 @@ def verify_deployment(manifest, address, rpc_url, runner, root, *, allow_batch=F
             "address: batch records must be verified with verify-batch"
         )
 
-    verify_source(record, runner, root)
+    verify_source(record, runner)
     creation_code = runner.run(
         "forge",
         "inspect",

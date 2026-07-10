@@ -6,6 +6,7 @@ from cli.emergency_spells.common import (
     DependencyError,
     ValidationError,
     parse_leaves,
+    parse_string_array,
     require_rpc_url,
 )
 
@@ -24,6 +25,22 @@ class ParseLeavesTest(unittest.TestCase):
         for value in ("", "[]", ADDRESS_A, f"[{ADDRESS_A},]", "[nope]"):
             with self.subTest(value=value), self.assertRaises(ValidationError):
                 parse_leaves(value)
+
+
+class ParseStringArrayTest(unittest.TestCase):
+    def test_parses_json_string_array(self):
+        self.assertEqual(
+            parse_string_array(
+                '["subject()(address)", "ilk()(bytes32)"]', "--subjects"
+            ),
+            ["subject()(address)", "ilk()(bytes32)"],
+        )
+        self.assertEqual(parse_string_array("[]", "--subjects"), [])
+
+    def test_rejects_malformed_non_string_and_duplicate_values(self):
+        for value in ('["unterminated]', "{}", "[1]", '[""]', '["same", "same"]'):
+            with self.subTest(value=value), self.assertRaises(ValidationError):
+                parse_string_array(value, "--subjects")
 
 
 class RpcUrlTest(unittest.TestCase):
