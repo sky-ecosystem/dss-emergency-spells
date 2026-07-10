@@ -1,0 +1,45 @@
+// SPDX-FileCopyrightText: © 2026 Dai Foundation <www.daifoundation.org>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+pragma solidity ^0.8.16;
+
+import {EmergencySpellV2} from "../EmergencySpellV2.sol";
+import {DescriptionLibV2} from "../libraries/DescriptionLibV2.sol";
+
+interface ClipperMomLikeV2 {
+    function setBreaker(address clip, uint256 level, uint256 delay) external;
+}
+
+interface ClipLikeV2 {
+    function stopped() external view returns (uint256);
+}
+
+/// @notice Sets one explicitly selected Clipper to the fully stopped breaker level.
+contract SingleClipBreakerSpellV2 is EmergencySpellV2 {
+    uint256 public constant BREAKER_LEVEL = 3;
+    uint256 public constant BREAKER_DELAY = 0;
+
+    ClipperMomLikeV2 public immutable clipperMom;
+    ClipLikeV2 public immutable clip;
+    bytes32 public immutable ilk;
+
+    event SetBreaker(address indexed clip);
+
+    constructor(address clipperMom_, address clip_, bytes32 ilk_) {
+        clipperMom = ClipperMomLikeV2(_requireContract(clipperMom_));
+        clip = ClipLikeV2(_requireContract(clip_));
+        ilk = ilk_;
+    }
+
+    function description() external view override returns (string memory) {
+        return string.concat("Emergency Spell | Set Clip Breaker: ", DescriptionLibV2.toString(ilk));
+    }
+
+    function done() external view override returns (bool) {
+        return clip.stopped() == BREAKER_LEVEL;
+    }
+
+    function _emergencyActions() internal override {
+        clipperMom.setBreaker(address(clip), BREAKER_LEVEL, BREAKER_DELAY);
+        emit SetBreaker(address(clip));
+    }
+}
