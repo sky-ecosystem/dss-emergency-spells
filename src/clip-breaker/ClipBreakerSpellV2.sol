@@ -5,28 +5,28 @@ pragma solidity ^0.8.16;
 import {EmergencySpellV2} from "../EmergencySpellV2.sol";
 import {DescriptionLibV2} from "../libraries/DescriptionLibV2.sol";
 
-interface ClipperMomLikeV2 {
+interface ClipperMomLike {
     function setBreaker(address clip, uint256 level, uint256 delay) external;
 }
 
-interface ClipLikeV2 {
+interface ClipLike {
     function stopped() external view returns (uint256);
 }
 
 /// @notice Sets one explicitly selected Clipper to the fully stopped breaker level.
-contract SingleClipBreakerSpellV2 is EmergencySpellV2 {
+contract ClipBreakerSpellV2 is EmergencySpellV2 {
     uint256 public constant BREAKER_LEVEL = 3;
     uint256 public constant BREAKER_DELAY = 0;
 
-    ClipperMomLikeV2 public immutable clipperMom;
-    ClipLikeV2 public immutable clip;
+    address public immutable clipperMom;
+    address public immutable clip;
     bytes32 public immutable ilk;
 
     event SetBreaker(address indexed clip);
 
     constructor(address clipperMom_, address clip_, bytes32 ilk_) {
-        clipperMom = ClipperMomLikeV2(_requireContract(clipperMom_));
-        clip = ClipLikeV2(_requireContract(clip_));
+        clipperMom = clipperMom_;
+        clip = clip_;
         ilk = ilk_;
     }
 
@@ -35,11 +35,11 @@ contract SingleClipBreakerSpellV2 is EmergencySpellV2 {
     }
 
     function done() external view override returns (bool) {
-        return clip.stopped() == BREAKER_LEVEL;
+        return ClipLike(clip).stopped() == BREAKER_LEVEL;
     }
 
     function _emergencyActions() internal override {
-        clipperMom.setBreaker(address(clip), BREAKER_LEVEL, BREAKER_DELAY);
-        emit SetBreaker(address(clip));
+        ClipperMomLike(clipperMom).setBreaker(clip, BREAKER_LEVEL, BREAKER_DELAY);
+        emit SetBreaker(clip);
     }
 }

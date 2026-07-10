@@ -19,12 +19,6 @@ contract EmergencySpellV2Harness is EmergencySpellV2 {
     }
 }
 
-contract ContractValidationHarness is EmergencySpellV2Harness {
-    constructor(address target) {
-        _requireContract(target);
-    }
-}
-
 contract EmergencySpellV2Test is Test {
     address internal constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
     bytes32 internal constant MCD_PAUSE = "MCD_PAUSE";
@@ -76,27 +70,10 @@ contract EmergencySpellV2Test is Test {
         }
     }
 
-    function testContractValidationAcceptsDeployedContract() public {
-        new ContractValidationHarness(address(new ContractTarget()));
-    }
-
-    function testContractValidationRejectsZeroAddress() public {
-        vm.expectRevert(abi.encodeWithSelector(EmergencySpellV2.InvalidContract.selector, address(0)));
-        new ContractValidationHarness(address(0));
-    }
-
-    function testContractValidationRejectsAddressWithoutCode() public {
-        address eoa = makeAddr("eoa");
-
-        vm.expectRevert(abi.encodeWithSelector(EmergencySpellV2.InvalidContract.selector, eoa));
-        new ContractValidationHarness(eoa);
-    }
-
-    function testConstructorRejectsInvalidPauseFromChainlog() public {
+    function testConstructorPreservesPauseReturnedByChainlog() public {
         address invalidPause = makeAddr("invalid-pause");
         vm.mockCall(CHAINLOG, abi.encodeWithSignature("getAddress(bytes32)", MCD_PAUSE), abi.encode(invalidPause));
 
-        vm.expectRevert(abi.encodeWithSelector(EmergencySpellV2.InvalidContract.selector, invalidPause));
-        new EmergencySpellV2Harness();
+        assertEq(new EmergencySpellV2Harness().pause(), invalidPause);
     }
 }

@@ -108,30 +108,23 @@ contract EmergencySpellBatchV2Test is Test {
     function testRejectsEmptyLeafSet() public {
         address[] memory leaves = new address[](0);
 
-        vm.expectRevert(EmergencySpellBatchV2.EmptyLeafSet.selector);
+        vm.expectRevert("EmergencySpellBatchV2/empty-leaf-set");
         new EmergencySpellBatchV2(leaves, "Empty");
     }
 
     function testRejectsEmptyLabel() public {
-        vm.expectRevert(EmergencySpellBatchV2.EmptyLabel.selector);
+        vm.expectRevert("EmergencySpellBatchV2/empty-label");
         new EmergencySpellBatchV2(selectedLeaves, "");
     }
 
-    function testRejectsZeroLeaf() public {
-        address[] memory leaves = new address[](1);
+    function testDoesNotValidateLeafAddresses() public {
+        address[] memory leaves = new address[](2);
         leaves[0] = address(0);
+        leaves[1] = makeAddr("eoa-leaf");
 
-        vm.expectRevert(abi.encodeWithSelector(EmergencySpellV2.InvalidContract.selector, address(0)));
-        new EmergencySpellBatchV2(leaves, "Zero");
-    }
+        EmergencySpellBatchV2 arbitraryBatch = new EmergencySpellBatchV2(leaves, "Arbitrary leaves");
 
-    function testRejectsAddressWithoutCode() public {
-        address invalidLeaf = makeAddr("invalid-leaf");
-        address[] memory leaves = new address[](1);
-        leaves[0] = invalidLeaf;
-
-        vm.expectRevert(abi.encodeWithSelector(EmergencySpellV2.InvalidContract.selector, invalidLeaf));
-        new EmergencySpellBatchV2(leaves, "EOA");
+        assertEq(arbitraryBatch.leaves(), leaves);
     }
 
     function testRejectsDuplicateLeaf() public {
@@ -139,7 +132,7 @@ contract EmergencySpellBatchV2Test is Test {
         leaves[0] = address(leafOne);
         leaves[1] = address(leafOne);
 
-        vm.expectRevert(abi.encodeWithSelector(EmergencySpellBatchV2.DuplicateLeaf.selector, address(leafOne)));
+        vm.expectRevert("EmergencySpellBatchV2/duplicate-leaf");
         new EmergencySpellBatchV2(leaves, "Duplicate");
     }
 }

@@ -47,97 +47,68 @@ contract EmergencySpellBatchFactoryV2Test is Test {
         assertEq(EmergencySpellBatchV2(deployed).configHash(), configHash);
     }
 
-    function testExplicitDeterministicPredictionAndDeployment() public {
-        address predicted = factory.predictDeterministicAddress(selectedLeaves, "Planned batch");
-        address independentlyCalculated = _independentCreate2Address(selectedLeaves, "Planned batch");
-        bytes32 configHash = keccak256(abi.encode(selectedLeaves, "Planned batch"));
-
-        assertEq(predicted, independentlyCalculated);
-        vm.expectEmit(true, true, false, true, address(factory));
-        emit BatchDeployed(predicted, configHash, EmergencySpellBatchFactoryV2.DeploymentMode.Create2Explicit);
-        address deployed = factory.deployDeterministic(selectedLeaves, "Planned batch");
-
-        assertEq(deployed, predicted);
-        assertEq(EmergencySpellBatchV2(deployed).leaves(), selectedLeaves);
-    }
-
-    function testExplicitDeterministicModePreservesOrder() public {
+    function testCreatePreservesArbitraryOrderAndCanRepeat() public {
         address[] memory reversed = new address[](2);
         reversed[0] = selectedLeaves[1];
         reversed[1] = selectedLeaves[0];
 
-        address deployed = factory.deployDeterministic(reversed, "Ordered action");
+        address first = factory.deploy(reversed, "Ordered action");
+        address second = factory.deploy(reversed, "Ordered action");
 
-        assertEq(EmergencySpellBatchV2(deployed).leaves(), reversed);
+        assertTrue(first != second);
+        assertEq(EmergencySpellBatchV2(first).leaves(), reversed);
+        assertEq(EmergencySpellBatchV2(second).leaves(), reversed);
     }
 
-    function testSortedDeterministicPredictionAndDeployment() public {
+    function testDeterministicPreviewAndDeployment() public {
         address[] memory sorted = _sortedLeaves();
-        address predicted = factory.predictDeterministicSortedAddress(sorted, "Canonical batch");
+        address predicted = factory.previewDeterministicAddress(sorted, "Planned batch");
+        address independentlyCalculated = _independentCreate2Address(sorted, "Planned batch");
+        bytes32 configHash = keccak256(abi.encode(sorted, "Planned batch"));
 
-        assertEq(predicted, _independentCreate2Address(sorted, "Canonical batch"));
+        assertEq(predicted, independentlyCalculated);
         vm.expectEmit(true, true, false, true, address(factory));
-        emit BatchDeployed(
-            predicted,
-            keccak256(abi.encode(sorted, "Canonical batch")),
-            EmergencySpellBatchFactoryV2.DeploymentMode.Create2Sorted
-        );
-        address deployed = factory.deployDeterministicSorted(sorted, "Canonical batch");
+        emit BatchDeployed(predicted, configHash, EmergencySpellBatchFactoryV2.DeploymentMode.Create2);
+        address deployed = factory.deployDeterministic(sorted, "Planned batch");
 
         assertEq(deployed, predicted);
+        assertEq(EmergencySpellBatchV2(deployed).leaves(), sorted);
     }
 
-    function testSortedPredictionRejectsUnsortedLeaves() public {
+    function testPreviewAndDeploymentRejectUnsortedLeaves() public {
         address[] memory sorted = _sortedLeaves();
-        address previous = sorted[1];
-        address current = sorted[0];
         (sorted[0], sorted[1]) = (sorted[1], sorted[0]);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                EmergencySpellBatchFactoryV2.LeavesNotStrictlyIncreasing.selector, 1, previous, current
-            )
-        );
-        factory.predictDeterministicSortedAddress(sorted, "Unsorted");
+        vm.expectRevert("EmergencySpellBatchFactoryV2/leaves-not-strictly-ordered");
+        factory.previewDeterministicAddress(sorted, "Unsorted");
+        vm.expectRevert("EmergencySpellBatchFactoryV2/leaves-not-strictly-ordered");
+        factory.deployDeterministic(sorted, "Unsorted");
     }
 
-    function testSortedDeploymentRejectsDuplicateLeaves() public {
+    function testPreviewAndDeploymentRejectDuplicateLeaves() public {
         address[] memory duplicates = new address[](2);
         duplicates[0] = address(leafOne);
         duplicates[1] = address(leafOne);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                EmergencySpellBatchFactoryV2.LeavesNotStrictlyIncreasing.selector, 1, address(leafOne), address(leafOne)
-            )
-        );
-        factory.deployDeterministicSorted(duplicates, "Duplicate");
+        vm.expectRevert("EmergencySpellBatchFactoryV2/leaves-not-strictly-ordered");
+        factory.previewDeterministicAddress(duplicates, "Duplicate");
+        vm.expectRevert("EmergencySpellBatchFactoryV2/leaves-not-strictly-ordered");
+        factory.deployDeterministic(duplicates, "Duplicate");
     }
 
-    function testDeterministicMethodsCollideForSameSortedConfiguration() public {
+    function testDuplicateDeterministicDeploymentRevertsWithAddress() public {
         address[] memory sorted = _sortedLeaves();
         address deployed = factory.deployDeterministic(sorted, "Same configuration");
 
-        assertEq(deployed, factory.predictDeterministicSortedAddress(sorted, "Same configuration"));
-        vm.expectRevert(abi.encodeWithSelector(EmergencySpellBatchFactoryV2.BatchAlreadyDeployed.selector, deployed));
-        factory.deployDeterministicSorted(sorted, "Same configuration");
+        assertEq(deployed, factory.previewDeterministicAddress(sorted, "Same configuration"));
+        vm.expectRevert("EmergencySpellBatchFactoryV2/already-deployed");
+        factory.deployDeterministic(sorted, "Same configuration");
     }
 
-    function testDuplicateExplicitDeploymentReverts() public {
-        address deployed = factory.deployDeterministic(selectedLeaves, "Duplicate deployment");
-
-        vm.expectRevert(abi.encodeWithSelector(EmergencySpellBatchFactoryV2.BatchAlreadyDeployed.selector, deployed));
-        factory.deployDeterministic(selectedLeaves, "Duplicate deployment");
-    }
-
-    function testOrderAndLabelChangeDeterministicAddress() public view {
-        address[] memory reversed = new address[](2);
-        reversed[0] = selectedLeaves[1];
-        reversed[1] = selectedLeaves[0];
-
-        address base = factory.predictDeterministicAddress(selectedLeaves, "Label A");
-        assertTrue(base != factory.predictDeterministicAddress(reversed, "Label A"));
-        assertTrue(base != factory.predictDeterministicAddress(selectedLeaves, "Label B"));
+    function testLabelChangesDeterministicAddress() public view {
+        address[] memory sorted = _sortedLeaves();
+        address base = factory.previewDeterministicAddress(sorted, "Label A");
+        assertTrue(base != factory.previewDeterministicAddress(sorted, "Label B"));
     }
 
     function _sortedLeaves() internal view returns (address[] memory sorted) {

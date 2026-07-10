@@ -4,35 +4,42 @@ pragma solidity ^0.8.16;
 
 import {EmergencySpellV2} from "../EmergencySpellV2.sol";
 
-interface StUsdsDissMomLikeV2 {
+interface StUsdsMomLike {
     function dissRateSetterBud(address rateSetter, address bud) external;
+    function stusds() external view returns (address);
 }
 
-interface StUsdsDissRateSetterLikeV2 {
+interface StUsdsRateSetterLike {
     function buds(address bud) external view returns (uint256);
+    function stusds() external view returns (address);
 }
 
 contract StUsdsRateSetterDissBudSpellV2 is EmergencySpellV2 {
     string public constant override description = "Emergency Spell | stUSDS | Diss Rate Setter Bud";
 
-    StUsdsDissMomLikeV2 public immutable stUsdsMom;
-    StUsdsDissRateSetterLikeV2 public immutable rateSetter;
+    address public immutable stUsdsMom;
+    address public immutable rateSetter;
+    address public immutable stUsds;
     address public immutable bud;
 
     event DissRateSetterBud(address indexed rateSetter, address bud);
 
     constructor(address stUsdsMom_, address rateSetter_, address bud_) {
-        stUsdsMom = StUsdsDissMomLikeV2(_requireContract(stUsdsMom_));
-        rateSetter = StUsdsDissRateSetterLikeV2(_requireContract(rateSetter_));
+        stUsdsMom = stUsdsMom_;
+        rateSetter = rateSetter_;
+        address expected = StUsdsMomLike(stUsdsMom_).stusds();
+        address actual = StUsdsRateSetterLike(rateSetter_).stusds();
+        require(actual == expected, "StUsdsRateSetterDissBudSpellV2/stusds-mismatch");
+        stUsds = expected;
         bud = bud_;
     }
 
     function done() external view override returns (bool) {
-        return rateSetter.buds(bud) == 0;
+        return StUsdsRateSetterLike(rateSetter).buds(bud) == 0;
     }
 
     function _emergencyActions() internal override {
-        stUsdsMom.dissRateSetterBud(address(rateSetter), bud);
-        emit DissRateSetterBud(address(rateSetter), bud);
+        StUsdsMomLike(stUsdsMom).dissRateSetterBud(rateSetter, bud);
+        emit DissRateSetterBud(rateSetter, bud);
     }
 }

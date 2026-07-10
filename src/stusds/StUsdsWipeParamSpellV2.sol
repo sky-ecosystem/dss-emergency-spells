@@ -4,29 +4,31 @@ pragma solidity ^0.8.16;
 
 import {EmergencySpellV2} from "../EmergencySpellV2.sol";
 
-enum StUsdsParamV2 {
+enum Param {
     CAP,
     LINE,
     BOTH
 }
 
-interface StUsdsWipeMomLikeV2 {
+interface StUsdsMomLike {
+    function stusds() external view returns (address);
     function zeroCap(address rateSetter) external;
     function zeroLine(address rateSetter) external;
 }
 
-interface StUsdsWipeRateSetterLikeV2 {
+interface StUsdsRateSetterLike {
     function maxCap() external view returns (uint256);
     function maxLine() external view returns (uint256);
+    function stusds() external view returns (address);
 }
 
-interface StUsdsLikeV2 {
+interface StUsdsLike {
     function cap() external view returns (uint256);
     function ilk() external view returns (bytes32);
     function line() external view returns (uint256);
 }
 
-interface StUsdsVatLikeV2 {
+interface VatLike {
     function ilks(bytes32 ilk)
         external
         view
@@ -34,23 +36,27 @@ interface StUsdsVatLikeV2 {
 }
 
 contract StUsdsWipeParamSpellV2 is EmergencySpellV2 {
-    StUsdsWipeMomLikeV2 public immutable stUsdsMom;
-    StUsdsWipeRateSetterLikeV2 public immutable rateSetter;
-    StUsdsLikeV2 public immutable stUsds;
-    StUsdsVatLikeV2 public immutable vat;
-    StUsdsParamV2 public immutable param;
+    address public immutable stUsdsMom;
+    address public immutable rateSetter;
+    address public immutable stUsds;
+    address public immutable vat;
+    Param public immutable param;
     bytes32 public immutable ilk;
 
     event ZeroCap();
     event ZeroLine();
 
-    constructor(address stUsdsMom_, address rateSetter_, address stUsds_, StUsdsParamV2 param_) {
-        stUsdsMom = StUsdsWipeMomLikeV2(_requireContract(stUsdsMom_));
-        rateSetter = StUsdsWipeRateSetterLikeV2(_requireContract(rateSetter_));
-        stUsds = StUsdsLikeV2(_requireContract(stUsds_));
-        vat = StUsdsVatLikeV2(_requireContract(_log.getAddress("MCD_VAT")));
+    constructor(address stUsdsMom_, address rateSetter_, address stUsds_, Param param_) {
+        stUsdsMom = stUsdsMom_;
+        rateSetter = rateSetter_;
+        stUsds = stUsds_;
+        vat = _log.getAddress("MCD_VAT");
+        address momSubject = StUsdsMomLike(stUsdsMom_).stusds();
+        require(momSubject == stUsds_, "StUsdsWipeParamSpellV2/stusds-mismatch");
+        address rateSetterSubject = StUsdsRateSetterLike(rateSetter_).stusds();
+        require(rateSetterSubject == stUsds_, "StUsdsWipeParamSpellV2/stusds-mismatch");
         param = param_;
-        ilk = stUsds.ilk();
+        ilk = StUsdsLike(stUsds_).ilk();
     }
 
     function description() external view override returns (string memory) {
@@ -58,29 +64,30 @@ contract StUsdsWipeParamSpellV2 is EmergencySpellV2 {
     }
 
     function done() external view override returns (bool) {
-        bool capDone = stUsds.cap() == 0 && rateSetter.maxCap() == 0;
-        if (param == StUsdsParamV2.CAP) return capDone;
+        bool capDone = StUsdsLike(stUsds).cap() == 0 && StUsdsRateSetterLike(rateSetter).maxCap() == 0;
+        if (param == Param.CAP) return capDone;
 
-        (,,, uint256 vatLine,) = vat.ilks(ilk);
-        bool lineDone = vatLine == 0 && stUsds.line() == 0 && rateSetter.maxLine() == 0;
-        if (param == StUsdsParamV2.LINE) return lineDone;
+        (,,, uint256 vatLine,) = VatLike(vat).ilks(ilk);
+        bool lineDone =
+            vatLine == 0 && StUsdsLike(stUsds).line() == 0 && StUsdsRateSetterLike(rateSetter).maxLine() == 0;
+        if (param == Param.LINE) return lineDone;
         return capDone && lineDone;
     }
 
     function _emergencyActions() internal override {
-        if (param == StUsdsParamV2.LINE || param == StUsdsParamV2.BOTH) {
-            stUsdsMom.zeroLine(address(rateSetter));
+        if (param == Param.LINE || param == Param.BOTH) {
+            StUsdsMomLike(stUsdsMom).zeroLine(rateSetter);
             emit ZeroLine();
         }
-        if (param == StUsdsParamV2.CAP || param == StUsdsParamV2.BOTH) {
-            stUsdsMom.zeroCap(address(rateSetter));
+        if (param == Param.CAP || param == Param.BOTH) {
+            StUsdsMomLike(stUsdsMom).zeroCap(rateSetter);
             emit ZeroCap();
         }
     }
 
-    function _paramToString(StUsdsParamV2 param_) internal pure returns (string memory) {
-        if (param_ == StUsdsParamV2.CAP) return "CAP";
-        if (param_ == StUsdsParamV2.LINE) return "LINE";
+    function _paramToString(Param param_) internal pure returns (string memory) {
+        if (param_ == Param.CAP) return "CAP";
+        if (param_ == Param.LINE) return "LINE";
         return "BOTH";
     }
 }

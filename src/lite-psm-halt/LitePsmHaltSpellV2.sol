@@ -5,17 +5,17 @@ pragma solidity ^0.8.16;
 import {EmergencySpellV2} from "../EmergencySpellV2.sol";
 import {DescriptionLibV2} from "../libraries/DescriptionLibV2.sol";
 
-enum FlowV2 {
+enum Flow {
     SELL,
     BUY,
     BOTH
 }
 
-interface LitePsmMomLikeV2 {
-    function halt(address psm, FlowV2 flow) external;
+interface LitePsmMomLike {
+    function halt(address psm, Flow flow) external;
 }
 
-interface LitePsmLikeV2 {
+interface LitePsmLike {
     function tin() external view returns (uint256);
     function tout() external view returns (uint256);
     function HALTED() external view returns (uint256);
@@ -23,19 +23,19 @@ interface LitePsmLikeV2 {
 }
 
 /// @notice Halts a fixed flow direction on one explicitly selected Lite PSM.
-contract SingleLitePsmHaltSpellV2 is EmergencySpellV2 {
-    LitePsmMomLikeV2 public immutable litePsmMom;
-    LitePsmLikeV2 public immutable psm;
-    FlowV2 public immutable flow;
+contract LitePsmHaltSpellV2 is EmergencySpellV2 {
+    address public immutable litePsmMom;
+    address public immutable psm;
+    Flow public immutable flow;
     bytes32 public immutable ilk;
 
-    event Halt(FlowV2 flow);
+    event Halt(Flow flow);
 
-    constructor(address litePsmMom_, address psm_, FlowV2 flow_) {
-        litePsmMom = LitePsmMomLikeV2(_requireContract(litePsmMom_));
-        psm = LitePsmLikeV2(_requireContract(psm_));
+    constructor(address litePsmMom_, address psm_, Flow flow_) {
+        litePsmMom = litePsmMom_;
+        psm = psm_;
         flow = flow_;
-        ilk = psm.ilk();
+        ilk = LitePsmLike(psm_).ilk();
     }
 
     function description() external view override returns (string memory) {
@@ -43,20 +43,20 @@ contract SingleLitePsmHaltSpellV2 is EmergencySpellV2 {
     }
 
     function done() external view override returns (bool) {
-        uint256 halted = psm.HALTED();
-        if (flow == FlowV2.SELL) return psm.tin() == halted;
-        if (flow == FlowV2.BUY) return psm.tout() == halted;
-        return psm.tin() == halted && psm.tout() == halted;
+        uint256 halted = LitePsmLike(psm).HALTED();
+        if (flow == Flow.SELL) return LitePsmLike(psm).tin() == halted;
+        if (flow == Flow.BUY) return LitePsmLike(psm).tout() == halted;
+        return LitePsmLike(psm).tin() == halted && LitePsmLike(psm).tout() == halted;
     }
 
     function _emergencyActions() internal override {
-        litePsmMom.halt(address(psm), flow);
+        LitePsmMomLike(litePsmMom).halt(psm, flow);
         emit Halt(flow);
     }
 
-    function _flowToString(FlowV2 flow_) internal pure returns (string memory) {
-        if (flow_ == FlowV2.SELL) return "SELL";
-        if (flow_ == FlowV2.BUY) return "BUY";
+    function _flowToString(Flow flow_) internal pure returns (string memory) {
+        if (flow_ == Flow.SELL) return "SELL";
+        if (flow_ == Flow.BUY) return "BUY";
         return "BOTH";
     }
 }

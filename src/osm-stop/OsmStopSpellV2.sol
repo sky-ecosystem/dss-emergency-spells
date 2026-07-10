@@ -5,28 +5,26 @@ pragma solidity ^0.8.16;
 import {EmergencySpellV2} from "../EmergencySpellV2.sol";
 import {DescriptionLibV2} from "../libraries/DescriptionLibV2.sol";
 
-interface OsmMomLikeV2 {
+interface OsmMomLike {
     function osms(bytes32 ilk) external view returns (address);
     function stop(bytes32 ilk) external;
 }
 
-interface OsmLikeV2 {
+interface OsmLike {
     function stopped() external view returns (uint256);
 }
 
 /// @notice Stops one explicitly selected OSM while pinning its expected OsmMom registration.
-contract SingleOsmStopSpellV2 is EmergencySpellV2 {
-    error OsmMismatch(address expected, address actual);
-
-    OsmMomLikeV2 public immutable osmMom;
-    OsmLikeV2 public immutable osm;
+contract OsmStopSpellV2 is EmergencySpellV2 {
+    address public immutable osmMom;
+    address public immutable osm;
     bytes32 public immutable ilk;
 
     event Stop(address indexed osm);
 
     constructor(address osmMom_, address osm_, bytes32 ilk_) {
-        osmMom = OsmMomLikeV2(_requireContract(osmMom_));
-        osm = OsmLikeV2(_requireContract(osm_));
+        osmMom = osmMom_;
+        osm = osm_;
         ilk = ilk_;
     }
 
@@ -35,14 +33,14 @@ contract SingleOsmStopSpellV2 is EmergencySpellV2 {
     }
 
     function done() external view override returns (bool) {
-        return osm.stopped() == 1;
+        return OsmLike(osm).stopped() == 1;
     }
 
     function _emergencyActions() internal override {
-        address registered = osmMom.osms(ilk);
-        if (registered != address(osm)) revert OsmMismatch(address(osm), registered);
+        address registered = OsmMomLike(osmMom).osms(ilk);
+        require(registered == osm, "OsmStopSpellV2/osm-mismatch");
 
-        osmMom.stop(ilk);
-        emit Stop(address(osm));
+        OsmMomLike(osmMom).stop(ilk);
+        emit Stop(osm);
     }
 }

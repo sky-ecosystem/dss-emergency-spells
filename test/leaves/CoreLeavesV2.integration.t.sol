@@ -5,23 +5,23 @@ pragma solidity ^0.8.16;
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssInstance, DssTest, MCD} from "dss-test/DssTest.sol";
 
-import {SingleClipBreakerSpellV2} from "../../src/clip-breaker/SingleClipBreakerSpellV2.sol";
-import {SingleDdmDisableSpellV2} from "../../src/ddm-disable/SingleDdmDisableSpellV2.sol";
+import {ClipBreakerSpellV2} from "../../src/clip-breaker/ClipBreakerSpellV2.sol";
+import {DdmDisableSpellV2} from "../../src/ddm-disable/DdmDisableSpellV2.sol";
 import {EmergencySpellBatchV2} from "../../src/EmergencySpellBatchV2.sol";
-import {EmergencySpellLikeV2} from "../../src/EmergencySpellV2.sol";
-import {SingleLineWipeSpellV2} from "../../src/line-wipe/SingleLineWipeSpellV2.sol";
-import {FlowV2, SingleLitePsmHaltSpellV2} from "../../src/lite-psm-halt/SingleLitePsmHaltSpellV2.sol";
-import {SingleOsmStopSpellV2} from "../../src/osm-stop/SingleOsmStopSpellV2.sol";
+import {DssEmergencySpellLike} from "../../src/EmergencySpellV2.sol";
+import {LineWipeSpellV2} from "../../src/line-wipe/LineWipeSpellV2.sol";
+import {Flow, LitePsmHaltSpellV2} from "../../src/lite-psm-halt/LitePsmHaltSpellV2.sol";
+import {OsmStopSpellV2} from "../../src/osm-stop/OsmStopSpellV2.sol";
 
-interface IlkRegistryForLeavesV2 {
+interface IlkRegistryForLeaves {
     function xlip(bytes32 ilk) external view returns (address);
 }
 
-interface OsmMomForLeavesV2 {
+interface OsmMomForLeaves {
     function osms(bytes32 ilk) external view returns (address);
 }
 
-interface DdmHubForLeavesV2 {
+interface DdmHubForLeaves {
     function plan(bytes32 ilk) external view returns (address);
 }
 
@@ -42,9 +42,9 @@ contract CoreLeavesV2IntegrationTest is DssTest {
         vm.makePersistent(chief);
     }
 
-    function testSingleLineWipeV2OnMainnet() public {
-        EmergencySpellLikeV2 spell =
-            EmergencySpellLikeV2(address(new SingleLineWipeSpellV2(dss.chainlog.getAddress("LINE_MOM"), ILK)));
+    function testLineWipeV2OnMainnet() public {
+        DssEmergencySpellLike spell =
+            DssEmergencySpellLike(address(new LineWipeSpellV2(dss.chainlog.getAddress("LINE_MOM"), ILK)));
         _elect(address(spell));
 
         assertFalse(spell.done());
@@ -52,11 +52,10 @@ contract CoreLeavesV2IntegrationTest is DssTest {
         assertTrue(spell.done());
     }
 
-    function testSingleClipBreakerV2OnMainnet() public {
-        address clip = IlkRegistryForLeavesV2(dss.chainlog.getAddress("ILK_REGISTRY")).xlip(ILK);
-        EmergencySpellLikeV2 spell = EmergencySpellLikeV2(
-            address(new SingleClipBreakerSpellV2(dss.chainlog.getAddress("CLIPPER_MOM"), clip, ILK))
-        );
+    function testClipBreakerV2OnMainnet() public {
+        address clip = IlkRegistryForLeaves(dss.chainlog.getAddress("ILK_REGISTRY")).xlip(ILK);
+        DssEmergencySpellLike spell =
+            DssEmergencySpellLike(address(new ClipBreakerSpellV2(dss.chainlog.getAddress("CLIPPER_MOM"), clip, ILK)));
         _elect(address(spell));
 
         assertFalse(spell.done());
@@ -64,10 +63,10 @@ contract CoreLeavesV2IntegrationTest is DssTest {
         assertTrue(spell.done());
     }
 
-    function testSingleOsmStopV2OnMainnet() public {
+    function testOsmStopV2OnMainnet() public {
         address osmMom = dss.chainlog.getAddress("OSM_MOM");
-        address osm = OsmMomForLeavesV2(osmMom).osms(ILK);
-        EmergencySpellLikeV2 spell = EmergencySpellLikeV2(address(new SingleOsmStopSpellV2(osmMom, osm, ILK)));
+        address osm = OsmMomForLeaves(osmMom).osms(ILK);
+        DssEmergencySpellLike spell = DssEmergencySpellLike(address(new OsmStopSpellV2(osmMom, osm, ILK)));
         _elect(address(spell));
 
         assertFalse(spell.done());
@@ -75,12 +74,11 @@ contract CoreLeavesV2IntegrationTest is DssTest {
         assertTrue(spell.done());
     }
 
-    function testSingleDdmDisableV2OnMainnet() public {
+    function testDdmDisableV2OnMainnet() public {
         bytes32 ilk = "DIRECT-SPARK-DAI";
-        address plan = DdmHubForLeavesV2(dss.chainlog.getAddress("DIRECT_HUB")).plan(ilk);
-        EmergencySpellLikeV2 spell = EmergencySpellLikeV2(
-            address(new SingleDdmDisableSpellV2(dss.chainlog.getAddress("DIRECT_MOM"), plan, ilk))
-        );
+        address plan = DdmHubForLeaves(dss.chainlog.getAddress("DIRECT_HUB")).plan(ilk);
+        DssEmergencySpellLike spell =
+            DssEmergencySpellLike(address(new DdmDisableSpellV2(dss.chainlog.getAddress("DIRECT_MOM"), plan, ilk)));
         _elect(address(spell));
 
         assertFalse(spell.done());
@@ -88,11 +86,11 @@ contract CoreLeavesV2IntegrationTest is DssTest {
         assertTrue(spell.done());
     }
 
-    function testSingleLitePsmHaltV2OnMainnet() public {
-        EmergencySpellLikeV2 spell = EmergencySpellLikeV2(
+    function testLitePsmHaltV2OnMainnet() public {
+        DssEmergencySpellLike spell = DssEmergencySpellLike(
             address(
-                new SingleLitePsmHaltSpellV2(
-                    dss.chainlog.getAddress("LITE_PSM_MOM"), dss.chainlog.getAddress("MCD_LITE_PSM_USDC_A"), FlowV2.BOTH
+                new LitePsmHaltSpellV2(
+                    dss.chainlog.getAddress("LITE_PSM_MOM"), dss.chainlog.getAddress("MCD_LITE_PSM_USDC_A"), Flow.BOTH
                 )
             )
         );
@@ -104,12 +102,12 @@ contract CoreLeavesV2IntegrationTest is DssTest {
     }
 
     function testBatchPreservesChiefAuthorizationOnMainnet() public {
-        address clip = IlkRegistryForLeavesV2(dss.chainlog.getAddress("ILK_REGISTRY")).xlip(ILK);
+        address clip = IlkRegistryForLeaves(dss.chainlog.getAddress("ILK_REGISTRY")).xlip(ILK);
         address osmMom = dss.chainlog.getAddress("OSM_MOM");
-        address osm = OsmMomForLeavesV2(osmMom).osms(ILK);
+        address osm = OsmMomForLeaves(osmMom).osms(ILK);
         address[] memory leaves = new address[](2);
-        leaves[0] = address(new SingleClipBreakerSpellV2(dss.chainlog.getAddress("CLIPPER_MOM"), clip, ILK));
-        leaves[1] = address(new SingleOsmStopSpellV2(osmMom, osm, ILK));
+        leaves[0] = address(new ClipBreakerSpellV2(dss.chainlog.getAddress("CLIPPER_MOM"), clip, ILK));
+        leaves[1] = address(new OsmStopSpellV2(osmMom, osm, ILK));
         EmergencySpellBatchV2 batch = new EmergencySpellBatchV2(leaves, "ETH-A clip and oracle stop");
         _elect(address(batch));
 

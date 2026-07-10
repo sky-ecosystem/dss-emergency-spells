@@ -5,12 +5,11 @@ pragma solidity ^0.8.16;
 import {Test} from "forge-std/Test.sol";
 
 import {EmergencySpellBatchV2} from "../../src/EmergencySpellBatchV2.sol";
-import {EmergencySpellV2} from "../../src/EmergencySpellV2.sol";
 import {SPBEAMHaltSpellV2} from "../../src/spbeam-halt/SPBEAMHaltSpellV2.sol";
 import {SplitterStopSpellV2} from "../../src/splitter-stop/SplitterStopSpellV2.sol";
 import {StUsdsRateSetterDissBudSpellV2} from "../../src/stusds/StUsdsRateSetterDissBudSpellV2.sol";
 import {StUsdsRateSetterHaltSpellV2} from "../../src/stusds/StUsdsRateSetterHaltSpellV2.sol";
-import {StUsdsParamV2, StUsdsWipeParamSpellV2} from "../../src/stusds/StUsdsWipeParamSpellV2.sol";
+import {Param, StUsdsWipeParamSpellV2} from "../../src/stusds/StUsdsWipeParamSpellV2.sol";
 
 contract SPBEAMMockV2 {
     uint256 public bad;
@@ -44,7 +43,7 @@ contract SplitterMockV2 {
 }
 
 contract SplitterMomMockV2 {
-    SplitterMockV2 internal immutable splitter;
+    SplitterMockV2 public immutable splitter;
     mapping(address => bool) public authorized;
     address public lastCaller;
 
@@ -82,10 +81,15 @@ contract StUsdsStateMockV2 {
 }
 
 contract StUsdsRateSetterMockV2 {
+    address public immutable stusds;
     mapping(address => uint256) public buds;
     uint8 public bad;
     uint256 public maxCap = 300;
     uint256 public maxLine = 400;
+
+    constructor(address stUsds_) {
+        stusds = stUsds_;
+    }
 
     function setBud(address bud, uint256 value) external {
         buds[bud] = value;
@@ -125,13 +129,13 @@ contract VatStUsdsMockV2 {
 }
 
 contract StUsdsMomMockV2 {
-    StUsdsStateMockV2 internal immutable stUsds;
+    StUsdsStateMockV2 public immutable stusds;
     VatStUsdsMockV2 internal immutable vat;
     mapping(address => bool) public authorized;
     address public lastCaller;
 
     constructor(address stUsds_, address vat_) {
-        stUsds = StUsdsStateMockV2(stUsds_);
+        stusds = StUsdsStateMockV2(stUsds_);
         vat = VatStUsdsMockV2(vat_);
     }
 
@@ -152,14 +156,14 @@ contract StUsdsMomMockV2 {
     function zeroCap(address rateSetter) external {
         _authorized();
         StUsdsRateSetterMockV2(rateSetter).zeroCap();
-        stUsds.zeroCap();
+        stusds.zeroCap();
     }
 
     function zeroLine(address rateSetter) external {
         _authorized();
         StUsdsRateSetterMockV2(rateSetter).zeroLine();
-        stUsds.zeroLine();
-        vat.setLine(stUsds.ilk(), 0);
+        stusds.zeroLine();
+        vat.setLine(stusds.ilk(), 0);
     }
 
     function _authorized() internal {
@@ -193,6 +197,9 @@ contract StandaloneLeavesV2Test is Test {
     StUsdsRateSetterHaltSpellV2 internal haltSpell;
     StUsdsWipeParamSpellV2 internal wipeSpell;
 
+    event ZeroCap();
+    event ZeroLine();
+
     function setUp() public {
         pause = new InvalidStandaloneTargetV2();
         vat = new VatStUsdsMockV2();
@@ -204,7 +211,7 @@ contract StandaloneLeavesV2Test is Test {
         splitter = new SplitterMockV2();
         splitterMom = new SplitterMomMockV2(address(splitter));
         stUsds = new StUsdsStateMockV2(STUSDS_ILK);
-        rateSetter = new StUsdsRateSetterMockV2();
+        rateSetter = new StUsdsRateSetterMockV2(address(stUsds));
         stUsdsMom = new StUsdsMomMockV2(address(stUsds), address(vat));
         bud = makeAddr("bud");
         rateSetter.setBud(bud, 1);
@@ -214,8 +221,7 @@ contract StandaloneLeavesV2Test is Test {
         splitterSpell = new SplitterStopSpellV2(address(splitterMom), address(splitter));
         dissSpell = new StUsdsRateSetterDissBudSpellV2(address(stUsdsMom), address(rateSetter), bud);
         haltSpell = new StUsdsRateSetterHaltSpellV2(address(stUsdsMom), address(rateSetter));
-        wipeSpell =
-            new StUsdsWipeParamSpellV2(address(stUsdsMom), address(rateSetter), address(stUsds), StUsdsParamV2.BOTH);
+        wipeSpell = new StUsdsWipeParamSpellV2(address(stUsdsMom), address(rateSetter), address(stUsds), Param.BOTH);
     }
 
     function testDescriptionsAndInitialEndStates() public view {
@@ -271,11 +277,11 @@ contract StandaloneLeavesV2Test is Test {
     }
 
     function testWipeParamVariants() public {
-        _assertWipeParam(StUsdsParamV2.CAP);
+        _assertWipeParam(Param.CAP);
         _resetWipeState();
-        _assertWipeParam(StUsdsParamV2.LINE);
+        _assertWipeParam(Param.LINE);
         _resetWipeState();
-        _assertWipeParam(StUsdsParamV2.BOTH);
+        _assertWipeParam(Param.BOTH);
     }
 
     function testWipeLineDoneIncludesVatRegression() public {
@@ -290,35 +296,36 @@ contract StandaloneLeavesV2Test is Test {
     function testUnexpectedInterfacesRevertInsteadOfReportingDone() public {
         InvalidStandaloneTargetV2 invalid = new InvalidStandaloneTargetV2();
         SPBEAMHaltSpellV2 invalidSpbeam = new SPBEAMHaltSpellV2(address(spbeamMom), address(invalid));
-        SplitterStopSpellV2 invalidSplitter = new SplitterStopSpellV2(address(splitterMom), address(invalid));
-        StUsdsRateSetterDissBudSpellV2 invalidDiss =
-            new StUsdsRateSetterDissBudSpellV2(address(stUsdsMom), address(invalid), bud);
-        StUsdsRateSetterHaltSpellV2 invalidHalt = new StUsdsRateSetterHaltSpellV2(address(stUsdsMom), address(invalid));
+        SplitterMomMockV2 invalidSplitterMom = new SplitterMomMockV2(address(invalid));
+        SplitterStopSpellV2 invalidSplitter = new SplitterStopSpellV2(address(invalidSplitterMom), address(invalid));
 
         vm.expectRevert();
         invalidSpbeam.done();
         vm.expectRevert();
         invalidSplitter.done();
         vm.expectRevert();
-        invalidDiss.done();
+        new StUsdsRateSetterDissBudSpellV2(address(stUsdsMom), address(invalid), bud);
         vm.expectRevert();
-        invalidHalt.done();
+        new StUsdsRateSetterHaltSpellV2(address(stUsdsMom), address(invalid));
         vm.expectRevert();
-        new StUsdsWipeParamSpellV2(address(stUsdsMom), address(rateSetter), address(invalid), StUsdsParamV2.BOTH);
+        new StUsdsWipeParamSpellV2(address(stUsdsMom), address(rateSetter), address(invalid), Param.BOTH);
     }
 
-    function testConstructorsRejectAddressesWithoutCode() public {
-        address invalid = makeAddr("invalid");
-        vm.expectRevert(abi.encodeWithSelector(EmergencySpellV2.InvalidContract.selector, invalid));
-        new SPBEAMHaltSpellV2(address(spbeamMom), invalid);
-        vm.expectRevert(abi.encodeWithSelector(EmergencySpellV2.InvalidContract.selector, invalid));
-        new SplitterStopSpellV2(address(splitterMom), invalid);
-        vm.expectRevert(abi.encodeWithSelector(EmergencySpellV2.InvalidContract.selector, invalid));
-        new StUsdsRateSetterDissBudSpellV2(address(stUsdsMom), invalid, bud);
-        vm.expectRevert(abi.encodeWithSelector(EmergencySpellV2.InvalidContract.selector, invalid));
-        new StUsdsRateSetterHaltSpellV2(address(stUsdsMom), invalid);
-        vm.expectRevert(abi.encodeWithSelector(EmergencySpellV2.InvalidContract.selector, invalid));
-        new StUsdsWipeParamSpellV2(address(stUsdsMom), address(rateSetter), invalid, StUsdsParamV2.BOTH);
+    function testRejectsMismatchedObjectGraphs() public {
+        SplitterMockV2 otherSplitter = new SplitterMockV2();
+        vm.expectRevert("SplitterStopSpellV2/splitter-mismatch");
+        new SplitterStopSpellV2(address(splitterMom), address(otherSplitter));
+
+        StUsdsStateMockV2 otherStUsds = new StUsdsStateMockV2("OTHER");
+        StUsdsRateSetterMockV2 otherRateSetter = new StUsdsRateSetterMockV2(address(otherStUsds));
+        vm.expectRevert("StUsdsRateSetterDissBudSpellV2/stusds-mismatch");
+        new StUsdsRateSetterDissBudSpellV2(address(stUsdsMom), address(otherRateSetter), bud);
+        vm.expectRevert("StUsdsRateSetterHaltSpellV2/stusds-mismatch");
+        new StUsdsRateSetterHaltSpellV2(address(stUsdsMom), address(otherRateSetter));
+        vm.expectRevert("StUsdsWipeParamSpellV2/stusds-mismatch");
+        new StUsdsWipeParamSpellV2(address(stUsdsMom), address(rateSetter), address(otherStUsds), Param.BOTH);
+        vm.expectRevert("StUsdsWipeParamSpellV2/stusds-mismatch");
+        new StUsdsWipeParamSpellV2(address(stUsdsMom), address(otherRateSetter), address(stUsds), Param.BOTH);
     }
 
     function _authorize(
@@ -359,18 +366,52 @@ contract StandaloneLeavesV2Test is Test {
         assertFalse(wipeSpell.done());
     }
 
-    function _assertWipeParam(StUsdsParamV2 param) internal {
+    function _assertWipeParam(Param param) internal {
         StUsdsWipeParamSpellV2 spell =
             new StUsdsWipeParamSpellV2(address(stUsdsMom), address(rateSetter), address(stUsds), param);
         stUsdsMom.rely(address(spell));
         assertFalse(spell.done());
+
+        if (param == Param.BOTH) {
+            vm.expectEmit(false, false, false, false, address(spell));
+            emit ZeroLine();
+            vm.expectEmit(false, false, false, false, address(spell));
+            emit ZeroCap();
+        }
         spell.schedule();
         assertTrue(spell.done());
+        _assertWipeResult(param);
+
+        spell.schedule();
+        assertTrue(spell.done());
+        _assertWipeResult(param);
+    }
+
+    function _assertWipeResult(Param param) internal view {
+        if (param == Param.CAP) {
+            assertEq(stUsds.cap(), 0);
+            assertEq(rateSetter.maxCap(), 0);
+            assertEq(stUsds.line(), 200);
+            assertEq(rateSetter.maxLine(), 400);
+            assertEq(vat.line(STUSDS_ILK), 500);
+        } else if (param == Param.LINE) {
+            assertEq(stUsds.cap(), 100);
+            assertEq(rateSetter.maxCap(), 300);
+            assertEq(stUsds.line(), 0);
+            assertEq(rateSetter.maxLine(), 0);
+            assertEq(vat.line(STUSDS_ILK), 0);
+        } else {
+            assertEq(stUsds.cap(), 0);
+            assertEq(rateSetter.maxCap(), 0);
+            assertEq(stUsds.line(), 0);
+            assertEq(rateSetter.maxLine(), 0);
+            assertEq(vat.line(STUSDS_ILK), 0);
+        }
     }
 
     function _resetWipeState() internal {
         stUsds = new StUsdsStateMockV2(STUSDS_ILK);
-        rateSetter = new StUsdsRateSetterMockV2();
+        rateSetter = new StUsdsRateSetterMockV2(address(stUsds));
         stUsdsMom = new StUsdsMomMockV2(address(stUsds), address(vat));
         vat.setLine(STUSDS_ILK, 500);
     }

@@ -4,33 +4,33 @@ pragma solidity ^0.8.16;
 
 import {EmergencySpellV2} from "../EmergencySpellV2.sol";
 
-interface SPBEAMMomLikeV2 {
+interface SPBEAMMomLike {
     function halt(address spbeam) external;
 }
 
-interface SPBEAMLikeV2 {
+interface SPBEAMLike {
     function bad() external view returns (uint256);
 }
 
 contract SPBEAMHaltSpellV2 is EmergencySpellV2 {
     string public constant override description = "Emergency Spell | Halt SPBEAM";
 
-    SPBEAMMomLikeV2 public immutable spbeamMom;
-    SPBEAMLikeV2 public immutable spbeam;
+    address public immutable spbeamMom;
+    address public immutable spbeam;
 
     event Halt();
 
     constructor(address spbeamMom_, address spbeam_) {
-        spbeamMom = SPBEAMMomLikeV2(_requireContract(spbeamMom_));
-        spbeam = SPBEAMLikeV2(_requireContract(spbeam_));
+        spbeamMom = spbeamMom_;
+        spbeam = spbeam_;
     }
 
     function done() external view override returns (bool) {
-        return spbeam.bad() == 1;
+        return SPBEAMLike(spbeam).bad() == 1;
     }
 
     function _emergencyActions() internal override {
-        spbeamMom.halt(address(spbeam));
+        SPBEAMMomLike(spbeamMom).halt(spbeam);
         emit Halt();
     }
 }

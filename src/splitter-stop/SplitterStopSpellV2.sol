@@ -4,33 +4,36 @@ pragma solidity ^0.8.16;
 
 import {EmergencySpellV2} from "../EmergencySpellV2.sol";
 
-interface SplitterMomLikeV2 {
+interface SplitterMomLike {
+    function splitter() external view returns (address);
     function stop() external;
 }
 
-interface SplitterLikeV2 {
+interface SplitterLike {
     function hop() external view returns (uint256);
 }
 
 contract SplitterStopSpellV2 is EmergencySpellV2 {
     string public constant override description = "Emergency Spell | Stop Splitter";
 
-    SplitterMomLikeV2 public immutable splitterMom;
-    SplitterLikeV2 public immutable splitter;
+    address public immutable splitterMom;
+    address public immutable splitter;
 
     event Stop();
 
     constructor(address splitterMom_, address splitter_) {
-        splitterMom = SplitterMomLikeV2(_requireContract(splitterMom_));
-        splitter = SplitterLikeV2(_requireContract(splitter_));
+        splitterMom = splitterMom_;
+        splitter = splitter_;
+        address configured = SplitterMomLike(splitterMom_).splitter();
+        require(configured == splitter_, "SplitterStopSpellV2/splitter-mismatch");
     }
 
     function done() external view override returns (bool) {
-        return splitter.hop() == type(uint256).max;
+        return SplitterLike(splitter).hop() == type(uint256).max;
     }
 
     function _emergencyActions() internal override {
-        splitterMom.stop();
+        SplitterMomLike(splitterMom).stop();
         emit Stop();
     }
 }

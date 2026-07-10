@@ -4,13 +4,12 @@ pragma solidity ^0.8.16;
 
 import {Test} from "forge-std/Test.sol";
 
-import {SingleClipBreakerSpellV2} from "../../src/clip-breaker/SingleClipBreakerSpellV2.sol";
-import {SingleDdmDisableSpellV2} from "../../src/ddm-disable/SingleDdmDisableSpellV2.sol";
+import {ClipBreakerSpellV2} from "../../src/clip-breaker/ClipBreakerSpellV2.sol";
+import {DdmDisableSpellV2} from "../../src/ddm-disable/DdmDisableSpellV2.sol";
 import {EmergencySpellBatchV2} from "../../src/EmergencySpellBatchV2.sol";
-import {EmergencySpellV2} from "../../src/EmergencySpellV2.sol";
-import {SingleLineWipeSpellV2} from "../../src/line-wipe/SingleLineWipeSpellV2.sol";
-import {FlowV2, SingleLitePsmHaltSpellV2} from "../../src/lite-psm-halt/SingleLitePsmHaltSpellV2.sol";
-import {SingleOsmStopSpellV2} from "../../src/osm-stop/SingleOsmStopSpellV2.sol";
+import {LineWipeSpellV2} from "../../src/line-wipe/LineWipeSpellV2.sol";
+import {Flow, LitePsmHaltSpellV2} from "../../src/lite-psm-halt/LitePsmHaltSpellV2.sol";
+import {OsmStopSpellV2} from "../../src/osm-stop/OsmStopSpellV2.sol";
 
 contract VatStateMockV2 {
     mapping(bytes32 => uint256) public line;
@@ -179,9 +178,9 @@ contract LitePsmMockV2 {
         ilk = ilk_;
     }
 
-    function halt(FlowV2 flow) external {
-        if (flow == FlowV2.SELL || flow == FlowV2.BOTH) tin = HALTED;
-        if (flow == FlowV2.BUY || flow == FlowV2.BOTH) tout = HALTED;
+    function halt(Flow flow) external {
+        if (flow == Flow.SELL || flow == Flow.BOTH) tin = HALTED;
+        if (flow == Flow.BUY || flow == Flow.BOTH) tout = HALTED;
     }
 }
 
@@ -193,7 +192,7 @@ contract LitePsmMomMockV2 {
         authorized[caller] = true;
     }
 
-    function halt(address psm, FlowV2 flow) external {
+    function halt(address psm, Flow flow) external {
         require(authorized[msg.sender], "LitePsmMom/not-authorized");
         lastCaller = msg.sender;
         LitePsmMockV2(psm).halt(flow);
@@ -221,11 +220,11 @@ contract CoreLeavesV2Test is Test {
     LitePsmMockV2 internal litePsm;
     LitePsmMomMockV2 internal litePsmMom;
 
-    SingleLineWipeSpellV2 internal lineSpell;
-    SingleClipBreakerSpellV2 internal clipSpell;
-    SingleOsmStopSpellV2 internal osmSpell;
-    SingleDdmDisableSpellV2 internal ddmSpell;
-    SingleLitePsmHaltSpellV2 internal litePsmSpell;
+    LineWipeSpellV2 internal lineSpell;
+    ClipBreakerSpellV2 internal clipSpell;
+    OsmStopSpellV2 internal osmSpell;
+    DdmDisableSpellV2 internal ddmSpell;
+    LitePsmHaltSpellV2 internal litePsmSpell;
 
     function setUp() public {
         pause = new ContractWithoutLeafInterfaceV2();
@@ -251,11 +250,11 @@ contract CoreLeavesV2Test is Test {
         litePsm = new LitePsmMockV2("LITE-PSM-USDC-A");
         litePsmMom = new LitePsmMomMockV2();
 
-        lineSpell = new SingleLineWipeSpellV2(address(lineMom), ILK);
-        clipSpell = new SingleClipBreakerSpellV2(address(clipperMom), address(clip), ILK);
-        osmSpell = new SingleOsmStopSpellV2(address(osmMom), address(osm), ILK);
-        ddmSpell = new SingleDdmDisableSpellV2(address(ddmMom), address(ddmPlan), "DIRECT-SPARK-DAI");
-        litePsmSpell = new SingleLitePsmHaltSpellV2(address(litePsmMom), address(litePsm), FlowV2.BOTH);
+        lineSpell = new LineWipeSpellV2(address(lineMom), ILK);
+        clipSpell = new ClipBreakerSpellV2(address(clipperMom), address(clip), ILK);
+        osmSpell = new OsmStopSpellV2(address(osmMom), address(osm), ILK);
+        ddmSpell = new DdmDisableSpellV2(address(ddmMom), address(ddmPlan), "DIRECT-SPARK-DAI");
+        litePsmSpell = new LitePsmHaltSpellV2(address(litePsmMom), address(litePsm), Flow.BOTH);
     }
 
     function testDescriptionsIdentifyExplicitSubjects() public view {
@@ -357,9 +356,7 @@ contract CoreLeavesV2Test is Test {
         osmMom.setOsm(ILK, address(replacement));
         osmMom.rely(address(osmSpell));
 
-        vm.expectRevert(
-            abi.encodeWithSelector(SingleOsmStopSpellV2.OsmMismatch.selector, address(osm), address(replacement))
-        );
+        vm.expectRevert("OsmStopSpellV2/osm-mismatch");
         osmSpell.schedule();
         assertFalse(osmSpell.done());
     }
@@ -367,12 +364,11 @@ contract CoreLeavesV2Test is Test {
     function testDoneRevertsForUnexpectedTargetInterfaces() public {
         ContractWithoutLeafInterfaceV2 invalid = new ContractWithoutLeafInterfaceV2();
 
-        SingleClipBreakerSpellV2 invalidClip = new SingleClipBreakerSpellV2(address(clipperMom), address(invalid), ILK);
-        SingleOsmStopSpellV2 invalidOsm = new SingleOsmStopSpellV2(address(osmMom), address(invalid), ILK);
-        SingleDdmDisableSpellV2 invalidDdm =
-            new SingleDdmDisableSpellV2(address(ddmMom), address(invalid), "DIRECT-SPARK-DAI");
+        ClipBreakerSpellV2 invalidClip = new ClipBreakerSpellV2(address(clipperMom), address(invalid), ILK);
+        OsmStopSpellV2 invalidOsm = new OsmStopSpellV2(address(osmMom), address(invalid), ILK);
+        DdmDisableSpellV2 invalidDdm = new DdmDisableSpellV2(address(ddmMom), address(invalid), "DIRECT-SPARK-DAI");
         vm.expectRevert();
-        new SingleLitePsmHaltSpellV2(address(litePsmMom), address(invalid), FlowV2.BUY);
+        new LitePsmHaltSpellV2(address(litePsmMom), address(invalid), Flow.BUY);
 
         vm.expectRevert();
         invalidClip.done();
@@ -383,52 +379,21 @@ contract CoreLeavesV2Test is Test {
     }
 
     function testLitePsmFlowVariants() public {
-        _assertLitePsmFlow(FlowV2.SELL);
-        _assertLitePsmFlow(FlowV2.BUY);
-        _assertLitePsmFlow(FlowV2.BOTH);
+        _assertLitePsmFlow(Flow.SELL);
+        _assertLitePsmFlow(Flow.BUY);
+        _assertLitePsmFlow(Flow.BOTH);
     }
 
-    function testConstructorsRejectAddressesWithoutCode() public {
-        address invalid = makeAddr("invalid");
-
-        vm.expectRevert(abi.encodeWithSelector(EmergencySpellV2.InvalidContract.selector, invalid));
-        new SingleLineWipeSpellV2(invalid, ILK);
-        vm.expectRevert(abi.encodeWithSelector(EmergencySpellV2.InvalidContract.selector, invalid));
-        new SingleClipBreakerSpellV2(address(clipperMom), invalid, ILK);
-        vm.expectRevert(abi.encodeWithSelector(EmergencySpellV2.InvalidContract.selector, invalid));
-        new SingleOsmStopSpellV2(address(osmMom), invalid, ILK);
-        vm.expectRevert(abi.encodeWithSelector(EmergencySpellV2.InvalidContract.selector, invalid));
-        new SingleDdmDisableSpellV2(address(ddmMom), invalid, "DIRECT-SPARK-DAI");
-        vm.expectRevert(abi.encodeWithSelector(EmergencySpellV2.InvalidContract.selector, invalid));
-        new SingleLitePsmHaltSpellV2(address(litePsmMom), invalid, FlowV2.BOTH);
-    }
-
-    function testLineConstructorRejectsInvalidDerivedAutoLine() public {
-        address invalid = makeAddr("invalid-auto-line");
-        BrokenLineMomMockV2 brokenLineMom = new BrokenLineMomMockV2(invalid);
-
-        vm.expectRevert(abi.encodeWithSelector(EmergencySpellV2.InvalidContract.selector, invalid));
-        new SingleLineWipeSpellV2(address(brokenLineMom), ILK);
-    }
-
-    function testLineConstructorRejectsInvalidAmbientVat() public {
-        address invalid = makeAddr("invalid-vat");
-        vm.mockCall(CHAINLOG, abi.encodeWithSignature("getAddress(bytes32)", MCD_VAT), abi.encode(invalid));
-
-        vm.expectRevert(abi.encodeWithSelector(EmergencySpellV2.InvalidContract.selector, invalid));
-        new SingleLineWipeSpellV2(address(lineMom), ILK);
-    }
-
-    function _assertLitePsmFlow(FlowV2 flow) internal {
+    function _assertLitePsmFlow(Flow flow) internal {
         LitePsmMockV2 psm = new LitePsmMockV2("LITE-PSM-USDC-A");
-        SingleLitePsmHaltSpellV2 spell = new SingleLitePsmHaltSpellV2(address(litePsmMom), address(psm), flow);
+        LitePsmHaltSpellV2 spell = new LitePsmHaltSpellV2(address(litePsmMom), address(psm), flow);
         litePsmMom.rely(address(spell));
 
         assertFalse(spell.done());
         spell.schedule();
         assertTrue(spell.done());
-        if (flow == FlowV2.SELL || flow == FlowV2.BOTH) assertEq(psm.tin(), psm.HALTED());
-        if (flow == FlowV2.BUY || flow == FlowV2.BOTH) assertEq(psm.tout(), psm.HALTED());
+        if (flow == Flow.SELL || flow == Flow.BOTH) assertEq(psm.tin(), psm.HALTED());
+        if (flow == Flow.BUY || flow == Flow.BOTH) assertEq(psm.tout(), psm.HALTED());
     }
 
     function _assertAllDone() internal view {

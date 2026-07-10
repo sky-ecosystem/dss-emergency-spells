@@ -5,25 +5,25 @@ pragma solidity ^0.8.16;
 import {EmergencySpellV2} from "../EmergencySpellV2.sol";
 import {DescriptionLibV2} from "../libraries/DescriptionLibV2.sol";
 
-interface DdmMomLikeV2 {
+interface DdmMomLike {
     function disable(address plan) external;
 }
 
-interface DdmPlanLikeV2 {
+interface DdmPlanLike {
     function active() external view returns (bool);
 }
 
 /// @notice Disables one explicitly selected Direct Deposit Module plan.
-contract SingleDdmDisableSpellV2 is EmergencySpellV2 {
-    DdmMomLikeV2 public immutable ddmMom;
-    DdmPlanLikeV2 public immutable plan;
+contract DdmDisableSpellV2 is EmergencySpellV2 {
+    address public immutable ddmMom;
+    address public immutable plan;
     bytes32 public immutable ilk;
 
     event Disable(address indexed plan);
 
     constructor(address ddmMom_, address plan_, bytes32 ilk_) {
-        ddmMom = DdmMomLikeV2(_requireContract(ddmMom_));
-        plan = DdmPlanLikeV2(_requireContract(plan_));
+        ddmMom = ddmMom_;
+        plan = plan_;
         ilk = ilk_;
     }
 
@@ -32,11 +32,11 @@ contract SingleDdmDisableSpellV2 is EmergencySpellV2 {
     }
 
     function done() external view override returns (bool) {
-        return !plan.active();
+        return !DdmPlanLike(plan).active();
     }
 
     function _emergencyActions() internal override {
-        ddmMom.disable(address(plan));
-        emit Disable(address(plan));
+        DdmMomLike(ddmMom).disable(plan);
+        emit Disable(plan);
     }
 }

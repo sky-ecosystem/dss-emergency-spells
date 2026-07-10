@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.16;
 
-interface ChainlogLikeV2 {
+interface ChainlogLike {
     function getAddress(bytes32 key) external view returns (address);
 }
 
-interface DssExecLikeV2 {
+interface DssExec {
     function action() external view returns (address);
     function cast() external;
     function description() external view returns (string memory);
@@ -22,7 +22,7 @@ interface DssExecLikeV2 {
     function tag() external view returns (bytes32);
 }
 
-interface DssActionLikeV2 {
+interface DssAction {
     function actions() external;
     function description() external view returns (string memory);
     function execute() external;
@@ -30,29 +30,27 @@ interface DssActionLikeV2 {
     function officeHours() external view returns (bool);
 }
 
-interface EmergencySpellLikeV2 is DssExecLikeV2, DssActionLikeV2 {
-    function description() external view override(DssExecLikeV2, DssActionLikeV2) returns (string memory);
-    function officeHours() external view override(DssExecLikeV2, DssActionLikeV2) returns (bool);
+interface DssEmergencySpellLike is DssExec, DssAction {
+    function description() external view override(DssExec, DssAction) returns (string memory);
+    function officeHours() external view override(DssExec, DssAction) returns (bool);
 }
 
 /// @notice Compatibility surface shared by V2 Emergency Spells.
 /// @dev Batch-eligible descendants must keep their execution paths free of normal storage reads and writes.
-abstract contract EmergencySpellV2 is EmergencySpellLikeV2 {
-    error InvalidContract(address target);
-
-    ChainlogLikeV2 internal constant _log = ChainlogLikeV2(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
+abstract contract EmergencySpellV2 is DssEmergencySpellLike {
+    ChainlogLike internal constant _log = ChainlogLike(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
 
     address public immutable override pause;
     address public constant override log = address(_log);
     uint256 public constant override eta = 0;
-    bytes public constant override sig = abi.encodeWithSelector(DssActionLikeV2.execute.selector);
+    bytes public constant override sig = abi.encodeWithSelector(DssAction.execute.selector);
     uint256 public constant override expiration = type(uint256).max;
     bool public constant override officeHours = false;
     address public immutable override action;
     uint256 internal immutable _nextCastTime = type(uint256).max;
 
     constructor() {
-        pause = _requireContract(_log.getAddress("MCD_PAUSE"));
+        pause = _log.getAddress("MCD_PAUSE");
         action = address(this);
     }
 
@@ -67,12 +65,6 @@ abstract contract EmergencySpellV2 is EmergencySpellLikeV2 {
     }
 
     function _emergencyActions() internal virtual;
-
-    /// @dev Rejects zero addresses, EOAs, and contracts still under construction.
-    function _requireContract(address target) internal view returns (address) {
-        if (target.code.length == 0) revert InvalidContract(target);
-        return target;
-    }
 
     function nextCastTime() external view override returns (uint256) {
         return _nextCastTime;

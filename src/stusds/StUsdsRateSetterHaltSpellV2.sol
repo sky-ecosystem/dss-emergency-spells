@@ -4,33 +4,40 @@ pragma solidity ^0.8.16;
 
 import {EmergencySpellV2} from "../EmergencySpellV2.sol";
 
-interface StUsdsHaltMomLikeV2 {
+interface StUsdsMomLike {
     function haltRateSetter(address rateSetter) external;
+    function stusds() external view returns (address);
 }
 
-interface StUsdsHaltRateSetterLikeV2 {
+interface StUsdsRateSetterLike {
     function bad() external view returns (uint8);
+    function stusds() external view returns (address);
 }
 
 contract StUsdsRateSetterHaltSpellV2 is EmergencySpellV2 {
     string public constant override description = "Emergency Spell | stUSDS | Halt Rate Setter";
 
-    StUsdsHaltMomLikeV2 public immutable stUsdsMom;
-    StUsdsHaltRateSetterLikeV2 public immutable rateSetter;
+    address public immutable stUsdsMom;
+    address public immutable rateSetter;
+    address public immutable stUsds;
 
     event HaltRateSetter(address indexed rateSetter);
 
     constructor(address stUsdsMom_, address rateSetter_) {
-        stUsdsMom = StUsdsHaltMomLikeV2(_requireContract(stUsdsMom_));
-        rateSetter = StUsdsHaltRateSetterLikeV2(_requireContract(rateSetter_));
+        stUsdsMom = stUsdsMom_;
+        rateSetter = rateSetter_;
+        address expected = StUsdsMomLike(stUsdsMom_).stusds();
+        address actual = StUsdsRateSetterLike(rateSetter_).stusds();
+        require(actual == expected, "StUsdsRateSetterHaltSpellV2/stusds-mismatch");
+        stUsds = expected;
     }
 
     function done() external view override returns (bool) {
-        return rateSetter.bad() == 1;
+        return StUsdsRateSetterLike(rateSetter).bad() == 1;
     }
 
     function _emergencyActions() internal override {
-        stUsdsMom.haltRateSetter(address(rateSetter));
-        emit HaltRateSetter(address(rateSetter));
+        StUsdsMomLike(stUsdsMom).haltRateSetter(rateSetter);
+        emit HaltRateSetter(rateSetter);
     }
 }

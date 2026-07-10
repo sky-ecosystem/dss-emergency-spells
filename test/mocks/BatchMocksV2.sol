@@ -22,7 +22,7 @@ contract BatchLeafV2 is EmergencySpellV2 {
     uint256 public immutable value;
 
     constructor(address target_, uint256 value_) {
-        target = BatchTargetV2(_requireContract(target_));
+        target = BatchTargetV2(target_);
         value = value_;
     }
 
