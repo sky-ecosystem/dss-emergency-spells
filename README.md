@@ -55,7 +55,7 @@ No V2 constructor uses generic zero-address or bytecode-presence checks as an id
 
 ## Deployment and publication
 
-Foundry deployment entrypoints and exact signatures are documented in [`script/README.md`](./script/README.md). Operational validation commands live under [`cli/`](./cli/):
+Foundry deployment entrypoints and exact signatures are documented in [`script/README.md`](./script/README.md). Operational validation commands are documented in the [`cli/` reference](./cli/README.md):
 
 - `emergency-spells validate-migration` reconciles every historical V1 address with its current migration status and any incident-ready V2 replacement;
 - `emergency-spells validate-manifest` enforces shared spell-interface readbacks, review state, subject/parameter binding, batch dependencies, chronology, and lifecycle rules without maintaining a concrete spell allowlist;

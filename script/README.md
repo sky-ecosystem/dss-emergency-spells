@@ -121,3 +121,5 @@ A successful deployment or factory event is not incident-response approval. The 
 Run the validator from a clean repository checkout at the record's exact signed `sourceCommit`. Before incident use, fetch and verify the latest canonical signed manifest commit and record it in the incident log. See [`deployments/README.md`](../deployments/README.md) for status transitions and the manual publication/revocation boundary.
 
 The CLI requires Python 3.12 or newer and has no Python package dependencies. It invokes `cast`, `forge`, and `git` as subprocesses; `CAST`, `FORGE`, and `GIT` can override those executable names when required by the environment.
+
+See the [`cli/` reference](../cli/README.md) for prerequisites, exit statuses, and examples for every command.
