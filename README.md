@@ -85,6 +85,8 @@ Foundry deployment entrypoints and exact signatures are documented in
 [`script/README.md`](./script/README.md). Operational validation commands live
 under [`cli/`](./cli/):
 
+- `validate-v1-migration.sh` reconciles every historical V1 address with its
+  current migration status and any incident-ready V2 replacement;
 - `validate-v2-manifest.sh` enforces the current artifact allowlist, review
   state, subject/parameter binding, batch dependencies, chronology, and
   lifecycle rules;
@@ -130,8 +132,12 @@ not part of the active V2 tree. Historical source remains available at the
 signed [`v1-final`](https://github.com/sky-ecosystem/dss-emergency-spells/tree/v1-final)
 tag (`45651a4ecee20b80e55d941d295dbdf6fa4ea5e6`). Mainnet V1 deployment history
 is retained in [`deployments/1/legacy-v1.json`](./deployments/1/legacy-v1.json).
-The presence of a historical record is not evidence that an address remains
-authoritative.
+Its current migration classification is tracked separately in
+[`deployments/1/v1-migration.json`](./deployments/1/v1-migration.json). The
+migration record marks all 49 historically active artifacts as waiting for a
+reviewed V2 replacement and all 25 historically deprecated artifacts as
+deprecated. The migration classification is a publication record, not proof
+that an address is the current Chief `hat` or ready for incident use.
 
 Audit reports are retained under [`audits/`](./audits/) and remain scoped to the
 source and components identified by each report. V2 changes require their own
