@@ -35,6 +35,12 @@ jobs:
       - name: Check Forge formatting
         run: forge fmt --check
 
+      - name: Validate V2 deployment tooling
+        run: |
+          for test_script in test/scripts/*.t.sh; do
+            "$test_script"
+          done
+
       - name: Run Forge tests
         run: |
           forge test -vvv

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 2,
+  "chainId": 1,
+  "architecture": "emergency-spells-v2",
+  "records": [
+    {
+      "contractName": "GlobalLineWipeSpellV2",
+      "kind": "registry-global",
+      "address": "0x0000000000000000000000000000000000000031",
+      "runtimeCodehash": "0x3333333333333333333333333333333333333333333333333333333333333333",
+      "sourceCommit": "1111111111111111111111111111111111111111",
+      "deployment": {
+        "transactionHash": "0x4444444444444444444444444444444444444444444444444444444444444444",
+        "blockNumber": 2,
+        "constructorArguments": "0x"
+      },
+      "immutableReadbacks": {},
+      "subjects": {},
+      "parameters": {},
+      "reviews": {
+        "directUse": { "status": "approved", "evidence": "review" },
+        "batchUse": { "status": "approved", "evidence": "review" }
+      },
+      "batchEligible": true,
+      "operationalStatus": "reviewed"
+    }
+  ]
+}

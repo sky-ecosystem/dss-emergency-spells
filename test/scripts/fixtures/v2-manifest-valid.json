@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 2,
+  "chainId": 1,
+  "architecture": "emergency-spells-v2",
+  "records": [
+    {
+      "contractName": "LineWipeSpellV2",
+      "kind": "leaf",
+      "address": "0x0000000000000000000000000000000000000011",
+      "runtimeCodehash": "0x1111111111111111111111111111111111111111111111111111111111111111",
+      "sourceCommit": "1111111111111111111111111111111111111111",
+      "deployment": {
+        "transactionHash": "0x2222222222222222222222222222222222222222222222222222222222222222",
+        "blockNumber": 1,
+        "constructorArguments": "0x"
+      },
+      "immutableReadbacks": {
+        "lineMom()(address)": "0x0000000000000000000000000000000000000021"
+      },
+      "subjects": {
+        "ilk": "ETH-A"
+      },
+      "parameters": {},
+      "reviews": {
+        "directUse": {
+          "status": "approved",
+          "evidence": "https://example.com/direct-review"
+        },
+        "batchUse": {
+          "status": "approved",
+          "evidence": "https://example.com/batch-review"
+        }
+      },
+      "batchEligible": true,
+      "operationalStatus": "incident-ready"
+    },
+    {
+      "contractName": "GlobalLineWipeSpellV2",
+      "kind": "registry-global",
+      "address": "0x0000000000000000000000000000000000000031",
+      "runtimeCodehash": "0x3333333333333333333333333333333333333333333333333333333333333333",
+      "sourceCommit": "1111111111111111111111111111111111111111",
+      "deployment": {
+        "transactionHash": "0x4444444444444444444444444444444444444444444444444444444444444444",
+        "blockNumber": 2,
+        "constructorArguments": "0x"
+      },
+      "immutableReadbacks": {},
+      "subjects": {
+        "registry": "IlkRegistry"
+      },
+      "parameters": {},
+      "reviews": {
+        "directUse": {
+          "status": "approved",
+          "evidence": "https://example.com/global-review"
+        },
+        "batchUse": {
+          "status": "not-applicable",
+          "evidence": "Registry globals are direct-use only."
+        }
+      },
+      "batchEligible": false,
+      "operationalStatus": "incident-ready"
+    },
+    {
+      "contractName": "OsmStopSpellV2",
+      "kind": "leaf",
+      "address": "0x0000000000000000000000000000000000000022",
+      "runtimeCodehash": "0x2222222222222222222222222222222222222222222222222222222222222222",
+      "sourceCommit": "1111111111111111111111111111111111111111",
+      "deployment": {
+        "transactionHash": "0x5555555555555555555555555555555555555555555555555555555555555555",
+        "blockNumber": 3,
+        "constructorArguments": "0x"
+      },
+      "immutableReadbacks": {
+        "osmMom()(address)": "0x0000000000000000000000000000000000000041"
+      },
+      "subjects": {
+        "ilk": "ETH-A"
+      },
+      "parameters": {},
+      "reviews": {
+        "directUse": {
+          "status": "approved",
+          "evidence": "https://example.com/direct-review-2"
+        },
+        "batchUse": {
+          "status": "approved",
+          "evidence": "https://example.com/batch-review-2"
+        }
+      },
+      "batchEligible": true,
+      "operationalStatus": "incident-ready"
+    },
+    {
+      "contractName": "EmergencySpellBatchV2",
+      "kind": "batch",
+      "address": "0x00000000000000000000000000000000000000b1",
+      "runtimeCodehash": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "sourceCommit": "1111111111111111111111111111111111111111",
+      "deployment": {
+        "transactionHash": "0x9999999999999999999999999999999999999999999999999999999999999999",
+        "blockNumber": 4,
+        "constructorArguments": "0x"
+      },
+      "immutableReadbacks": {
+        "configHash()(bytes32)": "0x66fbf5b80224f0df35fa2a524c580bc83ea780a0e2e0dda40366cf190f725300"
+      },
+      "subjects": {},
+      "parameters": {},
+      "reviews": {
+        "directUse": {
+          "status": "approved",
+          "evidence": "https://example.com/batch-direct-review"
+        },
+        "batchUse": {
+          "status": "not-applicable",
+          "evidence": "Batches are direct-use only."
+        }
+      },
+      "batchEligible": false,
+      "operationalStatus": "reviewed",
+      "batch": {
+        "label": "Incident batch",
+        "orderedLeaves": [
+          "0x0000000000000000000000000000000000000011",
+          "0x0000000000000000000000000000000000000022"
+        ],
+        "configHash": "0x66fbf5b80224f0df35fa2a524c580bc83ea780a0e2e0dda40366cf190f725300",
+        "factory": "0x00000000000000000000000000000000000000f1",
+        "deploymentMode": "create2",
+        "getterReadbacks": {
+          "label": "Incident batch",
+          "leaves": [
+            "0x0000000000000000000000000000000000000011",
+            "0x0000000000000000000000000000000000000022"
+          ],
+          "configHash": "0x66fbf5b80224f0df35fa2a524c580bc83ea780a0e2e0dda40366cf190f725300"
+        },
+        "factoryEventVerified": true,
+        "atomicSimulationEvidence": "https://example.com/atomic-simulation"
+      }
+    }
+  ]
+}
