@@ -178,7 +178,7 @@
       "operationalStatus": "incident-ready",
       "batch": {
         "label": "Incident batch",
-        "orderedLeaves": [
+        "leaves": [
           "0x0000000000000000000000000000000000000011",
           "0x0000000000000000000000000000000000000022"
         ],

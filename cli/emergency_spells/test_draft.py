@@ -271,7 +271,7 @@ class BatchDraftTests(unittest.TestCase):
             "factory_address": FACTORY,
             "transaction_hash": BATCH_TRANSACTION_HASH,
             "label": "Incident batch",
-            "ordered_leaves": [LEAF1, LEAF2],
+            "leaves": [LEAF1, LEAF2],
             "rpc_url": "mock://",
             "runner": runner or BatchDraftRunner(),
             "root": ROOT,
@@ -295,7 +295,7 @@ class BatchDraftTests(unittest.TestCase):
         self.assertEqual(record["address"], BATCH)
         self.assertEqual(record["sourceCommit"], SOURCE_COMMIT)
         self.assertEqual(record["deployment"]["constructorArguments"], "0xabcdef")
-        self.assertEqual(record["batch"]["orderedLeaves"], [LEAF1, LEAF2])
+        self.assertEqual(record["batch"]["leaves"], [LEAF1, LEAF2])
         self.assertNotIn("deploymentMode", record["batch"])
         self.assertEqual(record["batch"]["configHash"], CONFIG_HASH)
         self.assertTrue(record["batch"]["factoryEventVerified"])
@@ -332,10 +332,10 @@ class BatchDraftTests(unittest.TestCase):
 
         record = self.draft(
             runner,
-            ordered_leaves=[LEAF2, LEAF1],
+            leaves=[LEAF2, LEAF1],
         )
 
-        self.assertEqual(record["batch"]["orderedLeaves"], [LEAF2, LEAF1])
+        self.assertEqual(record["batch"]["leaves"], [LEAF2, LEAF1])
 
     def test_rejects_wrong_factory_call_event_and_leaf_codehash(self):
         runner = BatchDraftRunner()

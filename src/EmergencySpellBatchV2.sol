@@ -17,7 +17,7 @@ pragma solidity ^0.8.16;
 
 import {EmergencySpellLike, EmergencySpellV2} from "./EmergencySpellV2.sol";
 
-/// @notice Executes an ordered set of reviewed Emergency Spell leaves atomically through delegatecall.
+/// @notice Executes a unique list of reviewed Emergency Spell leaves atomically through delegatecall.
 /// @dev This contract uses normal storage and is direct-use only. It must never be selected as a batch leaf.
 contract EmergencySpellBatchV2 is EmergencySpellV2 {
     bytes32 public immutable configHash;

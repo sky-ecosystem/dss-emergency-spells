@@ -113,7 +113,7 @@ def _address_list(value, path):
 def _batch(batch, path):
     keys = {
         "label",
-        "orderedLeaves",
+        "leaves",
         "configHash",
         "factory",
         "getterReadbacks",
@@ -122,7 +122,7 @@ def _batch(batch, path):
     }
     _object(batch, path, keys)
     _require(_nonempty(batch["label"]), f"{path}.label", "must be a nonempty string")
-    _address_list(batch["orderedLeaves"], f"{path}.orderedLeaves")
+    _address_list(batch["leaves"], f"{path}.leaves")
     _require(
         _matches(batch["configHash"], BYTES32_RE),
         f"{path}.configHash",
@@ -312,9 +312,9 @@ def _record(record, chain_id, index):
         )
         _require(
             [x.lower() for x in readbacks["leaves"]]
-            == [x.lower() for x in batch["orderedLeaves"]],
+            == [x.lower() for x in batch["leaves"]],
             f"{path}.batch.getterReadbacks.leaves",
-            "does not match ordered leaves",
+            "does not match leaves",
         )
         _require(
             readbacks["configHash"] == batch["configHash"],
@@ -412,17 +412,17 @@ def validate_manifest(manifest):
             "factory was deployed after batch",
         )
         leaves = []
-        for leaf_address in record["batch"]["orderedLeaves"]:
+        for leaf_address in record["batch"]["leaves"]:
             leaf = by_address.get(leaf_address.lower())
             _require(
                 leaf is not None and leaf["kind"] == "leaf",
-                f"{path}.orderedLeaves",
+                f"{path}.leaves",
                 f"missing leaf {leaf_address}",
             )
             _require(
                 leaf["deployment"]["blockNumber"]
                 <= record["deployment"]["blockNumber"],
-                f"{path}.orderedLeaves",
+                f"{path}.leaves",
                 f"leaf {leaf_address} was deployed after batch",
             )
             leaves.append(leaf)
@@ -442,7 +442,7 @@ def validate_manifest(manifest):
                 )
                 _require(
                     ready,
-                    f"{path}.orderedLeaves",
+                    f"{path}.leaves",
                     f"leaf {leaf['address']} is not incident-ready and batch eligible",
                 )
     return by_address

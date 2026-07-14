@@ -28,7 +28,6 @@ Canonical flags use the names from [`deployments/v2.schema.json`](../deployments
 | `--v2-manifest`         | `--v2`        |
 | `--migration`           | `--mig`       |
 | `--transaction-hash`    | `--tx`        |
-| `--ordered-leaves`      | `--leaves`    |
 | `--parameters`          | `--params`    |
 | `--immutable-readbacks` | `--readbacks` |
 
@@ -113,7 +112,7 @@ Use `verify-batch` instead for a batch deployed through `EmergencySpellBatchFact
 
 Authenticate the factory and selected leaves before deployment, then calculate the configuration hash.
 
-Pass leaves as one quoted Foundry-style array in the exact reviewed execution order. Duplicate addresses are rejected; arbitrary unique order is accepted.
+Pass leaves as one quoted Foundry-style array. Duplicate addresses are rejected; any unique sequence is accepted and executed as supplied.
 
 ```sh
 export ETH_RPC_URL=https://eth-mainnet.example
@@ -125,7 +124,7 @@ cli/emergency-spells preflight-batch \
   --leaves '[0x0000000000000000000000000000000000000011,0x0000000000000000000000000000000000000022]'
 ```
 
-Pass the printed configuration hash to the batch deployment script without changing the factory, label, or leaf order.
+Pass the printed configuration hash to the batch deployment script without changing the factory, label, or supplied leaf sequence.
 
 ### `verify-batch`
 
@@ -147,7 +146,7 @@ The arguments must exactly match the published batch record.
 
 ### `inspect-batch`
 
-Read the batch description and ordered leaf list from chain, then read each leaf description. Inspection is one level deep and preserves execution order.
+Read the batch description and leaf list from chain, then read each leaf description. Inspection is one level deep and displays the supplied sequence.
 
 ```sh
 export ETH_RPC_URL=https://eth-mainnet.example

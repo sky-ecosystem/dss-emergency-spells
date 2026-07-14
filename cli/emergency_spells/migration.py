@@ -97,7 +97,7 @@ def _replacement_allowed(legacy_name, replacement, v2_by_address):
         return False
     return all(
         v2_by_address[leaf.lower()]["contractName"] in DIRECT_REPLACEMENTS[legacy_name]
-        for leaf in replacement["batch"]["orderedLeaves"]
+        for leaf in replacement["batch"]["leaves"]
     )
 
 

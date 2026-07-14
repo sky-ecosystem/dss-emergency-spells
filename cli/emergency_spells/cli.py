@@ -54,7 +54,7 @@ def _parser():
     _batch_arguments(batch, include_deployment=True)
 
     inspection = commands.add_parser(
-        "inspect-batch", help="show a deployed batch and its ordered leaves"
+        "inspect-batch", help="show a deployed batch and its leaves"
     )
     inspection.add_argument("--batch", required=True)
 
@@ -94,9 +94,7 @@ def _parser():
     )
     batch_draft.add_argument("--label", required=True)
     batch_draft.add_argument(
-        "--ordered-leaves",
         "--leaves",
-        dest="ordered_leaves",
         required=True,
         help="Foundry-style address array",
     )
@@ -114,9 +112,7 @@ def _batch_arguments(parser, include_deployment):
         )
     parser.add_argument("--label", required=True)
     parser.add_argument(
-        "--ordered-leaves",
         "--leaves",
-        dest="ordered_leaves",
         required=True,
         help="Foundry-style address array",
     )
@@ -225,7 +221,7 @@ def _execute(arguments, runner):
             factory_address=arguments.factory,
             transaction_hash=arguments.transaction_hash,
             label=arguments.label,
-            ordered_leaves=parse_leaves(arguments.ordered_leaves),
+            leaves=parse_leaves(arguments.leaves),
             rpc_url=require_rpc_url(),
             runner=runner,
             root=ROOT,
@@ -240,19 +236,19 @@ def _execute(arguments, runner):
         print(f"Validated V2 deployment: {arguments.address}")
         return
 
-    ordered_leaves = parse_leaves(arguments.ordered_leaves)
+    leaves = parse_leaves(arguments.leaves)
     if command == "preflight-batch":
         result = preflight_batch(
             manifest,
             arguments.factory,
             arguments.label,
-            ordered_leaves,
+            leaves,
             rpc_url,
             runner,
             ROOT,
         )
         print(
-            f"Validated V2 batch preflight: {len(ordered_leaves)} leaf/leaves"
+            f"Validated V2 batch preflight: {len(leaves)} leaf/leaves"
         )
         print(f"Config hash: {result['configHash']}")
         return
@@ -262,7 +258,7 @@ def _execute(arguments, runner):
         arguments.factory,
         arguments.transaction_hash,
         arguments.label,
-        ordered_leaves,
+        leaves,
         rpc_url,
         runner,
         ROOT,

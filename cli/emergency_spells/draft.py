@@ -194,28 +194,28 @@ def draft_batch(
     factory_address,
     transaction_hash,
     label,
-    ordered_leaves,
+    leaves,
     rpc_url,
     runner,
     root,
 ):
     _require(bool(label), "label", "must not be empty")
-    _require(bool(ordered_leaves), "orderedLeaves", "must not be empty")
+    _require(bool(leaves), "leaves", "must not be empty")
     _require(
         BYTES32_RE.fullmatch(transaction_hash) is not None,
         "transactionHash",
         "must be bytes32",
     )
 
-    normalized_leaves = [leaf.lower() for leaf in ordered_leaves]
+    normalized_leaves = [leaf.lower() for leaf in leaves]
     _require(
-        all(ADDRESS_RE.fullmatch(leaf) is not None for leaf in ordered_leaves),
-        "orderedLeaves",
+        all(ADDRESS_RE.fullmatch(leaf) is not None for leaf in leaves),
+        "leaves",
         "must contain addresses",
     )
     _require(
         len(normalized_leaves) == len(set(normalized_leaves)),
-        "orderedLeaves",
+        "leaves",
         "contains a duplicate leaf",
     )
 
@@ -229,11 +229,11 @@ def draft_batch(
         "record not found",
     )
     verify_deployment(manifest, factory_address, rpc_url, runner, root)
-    for leaf_address in ordered_leaves:
+    for leaf_address in leaves:
         leaf = by_address.get(leaf_address.lower())
         _require(
             leaf is not None and leaf["kind"] == "leaf",
-            "orderedLeaves",
+            "leaves",
             f"leaf record not found: {leaf_address}",
         )
         actual_codehash = runner.run(
@@ -241,19 +241,19 @@ def draft_batch(
         )
         _require(
             same_hex(actual_codehash, leaf["runtimeCodehash"]),
-            "orderedLeaves",
+            "leaves",
             f"runtime codehash mismatch for {leaf_address}",
         )
 
     constructor_arguments, config_hash = batch_configuration(
-        ordered_leaves, label, runner
+        leaves, label, runner
     )
     _require(
         BYTES32_RE.fullmatch(config_hash) is not None, "configHash", "must be bytes32"
     )
 
     expected_calldata = runner.run(
-        "cast", "calldata", "deploy(address[],string)", leaves_argument(ordered_leaves), label
+        "cast", "calldata", "deploy(address[],string)", leaves_argument(leaves), label
     )
     transaction = json_output(
         runner.run("cast", "tx", transaction_hash, "--rpc-url", rpc_url, "--json"),
@@ -291,7 +291,7 @@ def draft_batch(
     )
     _require(
         [leaf.lower() for leaf in getter_readbacks["leaves"]] == normalized_leaves,
-        "batch.orderedLeaves",
+        "batch.leaves",
         "getter readback mismatch",
     )
     _require(
@@ -333,7 +333,7 @@ def draft_batch(
         "operationalStatus": "deployed",
         "batch": {
             "label": label,
-            "orderedLeaves": ordered_leaves,
+            "leaves": leaves,
             "configHash": config_hash,
             "factory": factory_address,
             "getterReadbacks": {

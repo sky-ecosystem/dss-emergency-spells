@@ -10,7 +10,7 @@ V2 has three spell categories:
 
 - **Leaf spells** protect one explicit subject, optionally with one fixed immutable action parameter. They are the durable standby artifacts and can be approved for direct use, batch use, or both.
 - **Registry-global spells** act on the current contents of one authoritative live source. They are direct-use only and expose range execution for target isolation and gas management.
-- **Batch spells** execute an ordered list of reviewed leaves atomically through `delegatecall`. The batch is the single address elected as the Chief `hat`, so protected downstream calls still originate from the authorized address.
+- **Batch spells** execute a unique list of reviewed leaves atomically through `delegatecall` in the supplied sequence. The batch is the single address elected as the Chief `hat`, so protected downstream calls still originate from the authorized address.
 
 Fixed-list grouped spells and action-specific factories are not V2 categories. Concrete leaves and globals are deployed directly. The only reusable deployment factory is `EmergencySpellBatchFactoryV2`.
 
@@ -64,7 +64,7 @@ Foundry deployment entrypoints and exact signatures are documented in [`script/R
 - `emergency-spells verify-deployment` validates a direct deployment against this repository's signed `src/` checkout and live chain state;
 - `emergency-spells preflight-batch` authenticates the factory and selected leaves before deployment and prints the exact configuration hash;
 - `emergency-spells verify-batch` validates factory calldata and event, getters, runtime codehashes, and constructor encoding;
-- `emergency-spells inspect-batch` displays a deployed batch and its ordered leaf descriptions as an on-chain tree.
+- `emergency-spells inspect-batch` displays a deployed batch and its leaf descriptions as an on-chain tree.
 - `emergency-spells probe-registry` identifies failing registry-global entries and the ranges that can be executed atomically around them.
 
 The CLI requires Python 3.12 or newer and uses only the Python standard library. Live-chain commands read the RPC endpoint from `ETH_RPC_URL` and invoke `cast`, `forge`, and `git` directly.

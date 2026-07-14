@@ -45,13 +45,13 @@ contract EmergencySpellBatchFactoryV2Test is Test {
         assertEq(EmergencySpellBatchV2(deployed).configHash(), configHash);
     }
 
-    function testDeployPreservesArbitraryOrderAndCanRepeat() public {
+    function testDeployAcceptsAnyUniqueSequenceAndCanRepeat() public {
         address[] memory reversed = new address[](2);
         reversed[0] = selectedLeaves[1];
         reversed[1] = selectedLeaves[0];
 
-        address first = factory.deploy(reversed, "Ordered action");
-        address second = factory.deploy(reversed, "Ordered action");
+        address first = factory.deploy(reversed, "Combined action");
+        address second = factory.deploy(reversed, "Combined action");
 
         assertTrue(first != second);
         assertEq(EmergencySpellBatchV2(first).leaves(), reversed);

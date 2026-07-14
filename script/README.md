@@ -75,7 +75,7 @@ The convenience entrypoints use these fixed Chainlog keys:
 
 Use a convenience entrypoint only after every key it reads has been published in Chainlog. Otherwise, use the fully parameterized entrypoint; both paths deploy the same concrete contract constructor.
 
-Before broadcasting a batch, run the preflight with the exact reviewed factory, label, and ordered leaves. Record its configuration hash:
+Before broadcasting a batch, run the preflight with the exact reviewed factory, label, and unique leaves. Record its configuration hash:
 
 ```sh
 export ETH_RPC_URL=<rpc-url>
@@ -88,7 +88,7 @@ cli/emergency-spells preflight-batch \
 
 Pass the printed configuration hash as the final deployment-script argument. The script rejects a leaf/label configuration that differs from the reviewed preflight output.
 
-The factory uses `CREATE` and preserves the reviewed leaf order. Do not sort the leaves. Repeated deployment of the same configuration is allowed and produces a different address.
+The factory uses `CREATE`, accepts any unique leaf sequence, and executes the supplied sequence. No sorting is required. Repeated deployment of the same configuration is allowed and produces a different address.
 
 After a direct leaf, global, or factory deployment, generate a record draft from the deployment transaction:
 
@@ -137,7 +137,7 @@ Inspect a deployed batch and its leaves directly from chain:
 cli/emergency-spells inspect-batch --batch <batch>
 ```
 
-Inspection preserves execution order and displays every available description and address. An incomplete read produces a partial tree and exits nonzero. This command does not establish manifest publication, review status, or batch eligibility.
+Inspection displays every available description and address in the supplied sequence. An incomplete read produces a partial tree and exits nonzero. This command does not establish manifest publication, review status, or batch eligibility.
 
 A successful deployment or factory event is not incident-response approval. The manifest must contain the applicable review and structured simulation attestation. The validators bind that attestation to the configuration but do not replay or truth-test its external trace; reviewers must verify the evidence criteria in [`deployments/README.md`](../deployments/README.md).
 

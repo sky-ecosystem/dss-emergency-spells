@@ -56,7 +56,7 @@ class CliTests(unittest.TestCase):
                 "0xtx",
                 "--label",
                 "Incident batch",
-                "--ordered-leaves",
+                "--leaves",
                 "[0x1,0x2]",
             ]
         )
@@ -90,7 +90,7 @@ class CliTests(unittest.TestCase):
                 "0xtx",
                 "--label",
                 "Incident batch",
-                "--ordered-leaves",
+                "--leaves",
                 "[0x1,0x2]",
             ]
         )
@@ -111,7 +111,7 @@ class CliTests(unittest.TestCase):
         )
         self.assertEqual(vars(canonical), vars(aliases))
         self.assertEqual(canonical.transaction_hash, "0xtx")
-        self.assertEqual(canonical.ordered_leaves, "[0x1,0x2]")
+        self.assertEqual(canonical.leaves, "[0x1,0x2]")
 
         canonical = parser.parse_args(
             [
@@ -230,7 +230,7 @@ class CliTests(unittest.TestCase):
         self.assertEqual(error, "")
         self.assertEqual(json.loads(output), draft.return_value)
         self.assertEqual(
-            draft.call_args.kwargs["ordered_leaves"],
+            draft.call_args.kwargs["leaves"],
             [
                 "0x0000000000000000000000000000000000000011",
                 "0x0000000000000000000000000000000000000022",

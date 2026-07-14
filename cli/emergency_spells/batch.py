@@ -73,13 +73,13 @@ def preflight_batch(
     manifest,
     factory_address,
     label,
-    ordered_leaves,
+    leaves,
     rpc_url,
     runner,
     root,
 ):
     _require(bool(label), "label", "must not be empty")
-    _require(bool(ordered_leaves), "orderedLeaves", "must not be empty")
+    _require(bool(leaves), "leaves", "must not be empty")
     by_address = validate_manifest(manifest)
     factory = by_address.get(factory_address.lower())
     ready = (
@@ -92,13 +92,13 @@ def preflight_batch(
     _require(ready, "factory", "is not incident-ready batch infrastructure")
     verify_deployment(manifest, factory_address, rpc_url, runner, root)
 
-    normalized = [leaf.lower() for leaf in ordered_leaves]
+    normalized = [leaf.lower() for leaf in leaves]
     _require(
         len(normalized) == len(set(normalized)),
-        "orderedLeaves",
+        "leaves",
         "contains a duplicate leaf",
     )
-    for leaf_address in ordered_leaves:
+    for leaf_address in leaves:
         leaf = by_address.get(leaf_address.lower())
         eligible = (
             leaf is not None
@@ -110,17 +110,17 @@ def preflight_batch(
         )
         _require(
             eligible,
-            "orderedLeaves",
+            "leaves",
             f"{leaf_address} is not incident-ready for batch use",
         )
         codehash = runner.run("cast", "codehash", leaf_address, "--rpc-url", rpc_url)
         _require(
             same_hex(codehash, leaf["runtimeCodehash"]),
-            "orderedLeaves",
+            "leaves",
             f"runtime codehash mismatch for {leaf_address}",
         )
 
-    _encoded, config_hash = batch_configuration(ordered_leaves, label, runner)
+    _encoded, config_hash = batch_configuration(leaves, label, runner)
     return {"configHash": config_hash}
 
 
@@ -132,7 +132,7 @@ def _verify_batch_readbacks(
     _require(
         [leaf.lower() for leaf in readbacks["leaves"]]
         == [leaf.lower() for leaf in leaves],
-        "batch.orderedLeaves",
+        "batch.leaves",
         "getter readback mismatch",
     )
     _require(
@@ -157,7 +157,7 @@ def verify_batch(
     factory_address,
     transaction_hash,
     label,
-    ordered_leaves,
+    leaves,
     rpc_url,
     runner,
     root,
@@ -173,17 +173,17 @@ def verify_batch(
     )
     verify_deployment(manifest, factory_address, rpc_url, runner, root)
 
-    for leaf_address in ordered_leaves:
+    for leaf_address in leaves:
         leaf = by_address.get(leaf_address.lower())
         _require(
             leaf is not None and leaf["kind"] == "leaf",
-            "orderedLeaves",
+            "leaves",
             f"leaf record not found: {leaf_address}",
         )
         actual = runner.run("cast", "codehash", leaf_address, "--rpc-url", rpc_url)
         _require(
             same_hex(actual, leaf["runtimeCodehash"]),
-            "orderedLeaves",
+            "leaves",
             f"runtime codehash mismatch for {leaf_address}",
         )
 
@@ -196,13 +196,13 @@ def verify_batch(
         same_hex(record["deployment"]["transactionHash"], transaction_hash)
         and same_hex(batch["factory"], factory_address)
         and batch["label"] == label
-        and [leaf.lower() for leaf in batch["orderedLeaves"]]
-        == [leaf.lower() for leaf in ordered_leaves]
+        and [leaf.lower() for leaf in batch["leaves"]]
+        == [leaf.lower() for leaf in leaves]
         and batch["factoryEventVerified"]
     )
     _require(configuration_matches, "batch", "manifest configuration mismatch")
 
-    encoded, config_hash = batch_configuration(ordered_leaves, label, runner)
+    encoded, config_hash = batch_configuration(leaves, label, runner)
     _require(
         same_hex(record["deployment"]["constructorArguments"], encoded),
         "deployment.constructorArguments",
@@ -216,7 +216,7 @@ def verify_batch(
     _verify_batch_readbacks(
         record,
         batch_address,
-        ordered_leaves,
+        leaves,
         label,
         config_hash,
         rpc_url,
@@ -232,7 +232,7 @@ def verify_batch(
     )
 
     expected_input = runner.run(
-        "cast", "calldata", "deploy(address[],string)", leaves_argument(ordered_leaves), label
+        "cast", "calldata", "deploy(address[],string)", leaves_argument(leaves), label
     )
     transaction = json_output(
         runner.run("cast", "tx", transaction_hash, "--rpc-url", rpc_url, "--json"),

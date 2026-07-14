@@ -123,8 +123,8 @@ Under the suggested ProSec stewardship model, the direct-deployment flow would b
 ### Batch deployments
 
 1. Select only published, incident-ready, batch-eligible leaves with approved direct-use and batch-use evidence.
-2. Use `preflight-batch` with the exact factory, label, and ordered leaves.
-3. Preserve the reviewed leaf order. The factory uses `CREATE`, rejects duplicate leaves, and permits repeated deployment of the same configuration at a different address.
+2. Use `preflight-batch` with the exact factory, label, and unique leaves.
+3. The factory uses `CREATE`, accepts any unique leaf sequence, and permits repeated deployment of the same configuration at a different address. The batch executes the supplied sequence.
 4. Pass the exact preflight configuration hash to the deployment script and broadcast through the reviewed factory.
 5. Run `draft-batch`, complete the structured atomic-simulation evidence, and add the reviewed record to the manifest.
 6. Run `validate-manifest`, `verify-batch`, and `inspect-batch` before treating the batch as a governance candidate.
@@ -149,7 +149,7 @@ A maintenance pass can use the repository's existing controls:
 - `validate-manifest` for V2 schema and cross-record rules;
 - `validate-migration` for V1-to-V2 status and replacement bindings;
 - `verify-deployment` or `verify-batch` for deployment provenance and live readbacks;
-- `inspect-batch` for the current ordered leaf set and descriptions;
+- `inspect-batch` for the current leaf set and descriptions;
 - `probe-registry` to isolate registry-global entries that cannot execute successfully at a pinned block.
 
 The lifecycle described by the manifest is `deployed` → `reviewed` → `incident-ready`, with `revoked` and `superseded` preserving history. A status change should cite its evidence and arrive in a signed commit. If a leaf or factory is no longer suitable, ProSec should identify every incident-ready batch that depends on it and update the related statuses together, as required by the manifest validator.
@@ -172,13 +172,13 @@ This section is a preparation aid, not an incident command policy. The applicabl
 
 - For one incident-ready action, prefer the applicable leaf or registry-global spell directly.
 - For several leaf actions that must share one Chief-authorized address and execute atomically, preflight and verify the exact batch.
-- Inspect the proposed batch order and descriptions before governance handoff.
+- Inspect the proposed batch sequence and descriptions before governance handoff.
 - Simulate with the proposed spell or batch as the live Chief `hat`. For a batch, inspect the downstream caller, selected leaf effects, and atomic rollback behavior.
 - Record the simulation reference, chain, block, selected address, configuration, and known limitations.
 
 ### Execute and verify
 
-Governance Facilitators should coordinate the applicable Chief process and confirm the elected address. After execution, operators should check the transaction status, canonical Mom or protocol events, affected protocol state, and the spell's `done()` result where it can be read reliably. Batch executions also emit ordered `LeafExecuted` events; batch-eligible leaves do not emit their own wrapper events.
+Governance Facilitators should coordinate the applicable Chief process and confirm the elected address. After execution, operators should check the transaction status, canonical Mom or protocol events, affected protocol state, and the spell's `done()` result where it can be read reliably. Batch executions also emit indexed `LeafExecuted` events in the supplied sequence; batch-eligible leaves do not emit their own wrapper events.
 
 Registry-global calls remain atomic. If a full call reverts, run `probe-registry --spell <address>` to simulate every singleton range at one pinned block. Review the reported failure reasons and safe contiguous ranges before deciding whether partial mitigation is appropriate. Execute only the reviewed ranges, account for registry changes between transactions, and rerun the probe against current state. Reverted calls do not produce canonical queryable events; successful range transactions retain their action-specific success events. After incomplete range execution, `done() == false` is expected while an actionable covered entry remains unresolved and should be reconciled with the excluded indices and post-state checks.
 
