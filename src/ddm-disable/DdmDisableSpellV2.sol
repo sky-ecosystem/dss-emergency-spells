@@ -31,8 +31,6 @@ contract DdmDisableSpellV2 is EmergencySpellV2 {
     address public immutable plan;
     bytes32 public immutable ilk;
 
-    event Disable(address indexed plan);
-
     constructor(address ddmMom_, address plan_, bytes32 ilk_) {
         ddmMom = ddmMom_;
         plan = plan_;
@@ -49,6 +47,5 @@ contract DdmDisableSpellV2 is EmergencySpellV2 {
 
     function _emergencyActions() internal override {
         DdmMomLike(ddmMom).disable(plan);
-        emit Disable(plan);
     }
 }

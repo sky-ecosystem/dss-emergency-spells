@@ -41,8 +41,6 @@ contract LitePsmHaltSpellV2 is EmergencySpellV2 {
     Flow public immutable flow;
     bytes32 public immutable ilk;
 
-    event Halt(Flow flow);
-
     constructor(address litePsmMom_, address psm_, Flow flow_) {
         litePsmMom = litePsmMom_;
         psm = psm_;
@@ -63,7 +61,6 @@ contract LitePsmHaltSpellV2 is EmergencySpellV2 {
 
     function _emergencyActions() internal override {
         LitePsmMomLike(litePsmMom).halt(psm, flow);
-        emit Halt(flow);
     }
 
     function _flowToString(Flow flow_) internal pure returns (string memory) {

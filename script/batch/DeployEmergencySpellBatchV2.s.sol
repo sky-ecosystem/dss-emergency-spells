@@ -48,33 +48,4 @@ contract EmergencySpellBatchV2DeployScript is Script {
     {
         deployed = run(chainlog.getAddress("EMERGENCY_SPELL_BATCH_FAB"), leaves, label, expectedConfigHash);
     }
-
-    function runDeterministic(
-        address factory,
-        address[] calldata leaves,
-        string calldata label,
-        bytes32 expectedConfigHash
-    ) public returns (address deployed) {
-        require(
-            keccak256(abi.encode(leaves, label)) == expectedConfigHash,
-            "EmergencySpellBatchV2DeployScript/config-hash-mismatch"
-        );
-        vm.broadcast();
-        deployed = EmergencySpellBatchFactoryV2(factory).deployDeterministic(leaves, label);
-    }
-
-    function runDeterministic(address[] calldata leaves, string calldata label, bytes32 expectedConfigHash)
-        external
-        returns (address deployed)
-    {
-        deployed = runDeterministic(chainlog.getAddress("EMERGENCY_SPELL_BATCH_FAB"), leaves, label, expectedConfigHash);
-    }
-
-    function preview(address factory, address[] calldata leaves, string calldata label) public view returns (address) {
-        return EmergencySpellBatchFactoryV2(factory).previewDeterministicAddress(leaves, label);
-    }
-
-    function preview(address[] calldata leaves, string calldata label) external view returns (address) {
-        return preview(chainlog.getAddress("EMERGENCY_SPELL_BATCH_FAB"), leaves, label);
-    }
 }

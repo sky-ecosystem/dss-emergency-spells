@@ -75,21 +75,20 @@ The convenience entrypoints use these fixed Chainlog keys:
 
 Use a convenience entrypoint only after every key it reads has been published in Chainlog. Otherwise, use the fully parameterized entrypoint; both paths deploy the same concrete contract constructor.
 
-Before broadcasting a batch, run the preflight with the exact reviewed factory, label, mode, and ordered leaves. Record its configuration hash and, for `CREATE2`, its predicted address:
+Before broadcasting a batch, run the preflight with the exact reviewed factory, label, and ordered leaves. Record its configuration hash:
 
 ```sh
 export ETH_RPC_URL=<rpc-url>
 cli/emergency-spells preflight-batch \
   --manifest deployments/<chain-id>/v2.json \
   --factory <factory> \
-  --mode <create|create2> \
   --label <label> \
   --leaves '[<leaf>,<leaf>]'
 ```
 
 Pass the printed configuration hash as the final deployment-script argument. The script rejects a leaf/label configuration that differs from the reviewed preflight output.
 
-Use `CREATE2` only when the selected actions are order-independent and the leaf addresses have already been placed in strictly increasing order. Use `CREATE` when execution order is semantically meaningful; it preserves the reviewed order. Never sort a meaningful action sequence merely to make it deterministic.
+The factory uses `CREATE` and preserves the reviewed leaf order. Do not sort the leaves. Repeated deployment of the same configuration is allowed and produces a different address.
 
 After a direct leaf, global, or factory deployment, generate a record draft from the deployment transaction:
 
@@ -110,7 +109,6 @@ cli/emergency-spells draft-batch \
   --manifest deployments/<chain-id>/v2.json \
   --factory <factory> \
   --tx <deployment-tx> \
-  --mode <create|create2> \
   --label <label> \
   --leaves '[<leaf>,<leaf>]'
 ```
@@ -129,7 +127,6 @@ cli/emergency-spells verify-batch \
   --batch <batch> \
   --factory <factory> \
   --tx <deployment-tx> \
-  --mode <create|create2> \
   --label <label> \
   --leaves '[<leaf>,<leaf>]'
 ```

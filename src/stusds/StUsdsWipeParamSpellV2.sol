@@ -56,9 +56,6 @@ contract StUsdsWipeParamSpellV2 is EmergencySpellV2 {
     Param public immutable param;
     bytes32 public immutable ilk;
 
-    event ZeroCap();
-    event ZeroLine();
-
     constructor(address stUsdsMom_, address rateSetter_, address stUsds_, Param param_) {
         stUsdsMom = stUsdsMom_;
         rateSetter = rateSetter_;
@@ -90,11 +87,9 @@ contract StUsdsWipeParamSpellV2 is EmergencySpellV2 {
     function _emergencyActions() internal override {
         if (param == Param.LINE || param == Param.BOTH) {
             StUsdsMomLike(stUsdsMom).zeroLine(rateSetter);
-            emit ZeroLine();
         }
         if (param == Param.CAP || param == Param.BOTH) {
             StUsdsMomLike(stUsdsMom).zeroCap(rateSetter);
-            emit ZeroCap();
         }
     }
 

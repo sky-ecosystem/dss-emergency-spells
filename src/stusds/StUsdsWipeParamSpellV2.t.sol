@@ -106,9 +106,6 @@ contract StUsdsWipeParamSpellV2Test is Test {
     WipeParamRateSetterMockV2 internal rateSetter;
     WipeParamMomMockV2 internal stUsdsMom;
 
-    event ZeroCap();
-    event ZeroLine();
-
     function setUp() public {
         vat = new WipeParamVatMockV2();
         vm.mockCall(CHAINLOG, abi.encodeWithSignature("getAddress(bytes32)", MCD_PAUSE), abi.encode(makeAddr("pause")));
@@ -183,12 +180,6 @@ contract StUsdsWipeParamSpellV2Test is Test {
         assertEq(spell.ilk(), ILK);
         assertFalse(spell.done());
 
-        if (param == Param.BOTH) {
-            vm.expectEmit(false, false, false, false, address(spell));
-            emit ZeroLine();
-            vm.expectEmit(false, false, false, false, address(spell));
-            emit ZeroCap();
-        }
         spell.schedule();
         assertTrue(spell.done());
         _assertResult(param);

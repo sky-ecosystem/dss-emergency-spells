@@ -46,13 +46,11 @@ class FakeRunner:
         if command == "keccak":
             return (
                 EVENT
-                if arguments[1] == "BatchDeployed(address,bytes32,uint8)"
+                if arguments[1] == "BatchDeployed(address,bytes32)"
                 else CONFIG
             )
         if command == "calldata":
             return "0xdeadbeef"
-        if command == "create2":
-            return BATCH
         if command == "codehash":
             return {
                 LEAF1.lower(): "0x" + "11" * 32,
@@ -62,8 +60,6 @@ class FakeRunner:
             }[arguments[1].lower()]
         if command == "call":
             signature = arguments[2]
-            if signature == "previewDeterministicAddress(address[],string)(address)":
-                return BATCH
             return {
                 "label()(string)": '"Incident batch"',
                 "leaves()(address[])": f"[{LEAF1}, {LEAF2}]",
@@ -101,7 +97,7 @@ class FakeRunner:
                         {
                             "address": emitter,
                             "topics": [EVENT, "0x" + "0" * 24 + BATCH[2:], CONFIG],
-                            "data": "0x" + "0" * 63 + "1",
+                            "data": "0x",
                         }
                     ],
                 }
@@ -131,43 +127,25 @@ class InspectionRunner:
 
 
 class BatchPreflightTests(unittest.TestCase):
-    def test_accepts_create_order_and_predicts_create2(self):
-        create = preflight_batch(
+    def test_accepts_arbitrary_unique_order(self):
+        result = preflight_batch(
             MANIFEST,
             FACTORY,
-            "create",
             "Incident batch",
             [LEAF2, LEAF1],
             "mock://",
             FakeRunner(),
             ROOT,
         )
-        self.assertEqual(create, {"configHash": CONFIG})
-        create2 = preflight_batch(
-            MANIFEST,
-            FACTORY,
-            "create2",
-            "Incident batch",
-            [LEAF1, LEAF2],
-            "mock://",
-            FakeRunner(),
-            ROOT,
-        )
-        self.assertEqual(create2, {"configHash": CONFIG, "predictedBatch": BATCH})
+        self.assertEqual(result, {"configHash": CONFIG})
 
     def test_rejects_bad_selection(self):
-        cases = (
-            ("create2", "Incident batch", [LEAF2, LEAF1]),
-            ("create", "Incident batch", [GLOBAL]),
-            ("create", "", [LEAF1]),
-            ("create", "Incident batch", [LEAF1, LEAF1]),
-        )
-        for mode, label, leaves in cases:
+        cases = (("Incident batch", [GLOBAL]), ("", [LEAF1]), ("Incident batch", [LEAF1, LEAF1]))
+        for label, leaves in cases:
             with self.assertRaises(ValidationError):
                 preflight_batch(
                     MANIFEST,
                     FACTORY,
-                    mode,
                     label,
                     leaves,
                     "mock://",
@@ -257,7 +235,6 @@ class BatchVerificationTests(unittest.TestCase):
             BATCH,
             FACTORY,
             TX,
-            "create2",
             label,
             [LEAF1, LEAF2],
             "mock://",

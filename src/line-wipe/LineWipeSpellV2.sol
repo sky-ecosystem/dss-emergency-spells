@@ -43,8 +43,6 @@ contract LineWipeSpellV2 is EmergencySpellV2 {
     address public immutable vat;
     bytes32 public immutable ilk;
 
-    event Wipe();
-
     constructor(address lineMom_, bytes32 ilk_) {
         lineMom = lineMom_;
         autoLine = LineMomLike(lineMom_).autoLine();
@@ -64,6 +62,5 @@ contract LineWipeSpellV2 is EmergencySpellV2 {
 
     function _emergencyActions() internal override {
         LineMomLike(lineMom).wipe(ilk);
-        emit Wipe();
     }
 }

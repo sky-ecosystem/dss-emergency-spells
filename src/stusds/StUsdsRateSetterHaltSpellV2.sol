@@ -34,8 +34,6 @@ contract StUsdsRateSetterHaltSpellV2 is EmergencySpellV2 {
     address public immutable rateSetter;
     address public immutable stUsds;
 
-    event HaltRateSetter(address indexed rateSetter);
-
     constructor(address stUsdsMom_, address rateSetter_) {
         stUsdsMom = stUsdsMom_;
         rateSetter = rateSetter_;
@@ -51,6 +49,5 @@ contract StUsdsRateSetterHaltSpellV2 is EmergencySpellV2 {
 
     function _emergencyActions() internal override {
         StUsdsMomLike(stUsdsMom).haltRateSetter(rateSetter);
-        emit HaltRateSetter(rateSetter);
     }
 }

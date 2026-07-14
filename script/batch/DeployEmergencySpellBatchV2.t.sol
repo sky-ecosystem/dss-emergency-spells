@@ -25,14 +25,10 @@ contract DeployEmergencySpellBatchV2Test is Test {
         leaves[1] = address(0x22);
         EmergencySpellBatchV2DeployScript deployer = new EmergencySpellBatchV2DeployScript();
         bytes32 createHash = keccak256(abi.encode(leaves, "Create"));
-        bytes32 create2Hash = keccak256(abi.encode(leaves, "Create2"));
 
         address created = deployer.run(leaves, "Create", createHash);
-        address predicted = deployer.preview(leaves, "Create2");
-        address deterministic = deployer.runDeterministic(leaves, "Create2", create2Hash);
 
         assertEq(EmergencySpellBatchV2(created).leaves(), leaves);
-        assertEq(deterministic, predicted);
 
         vm.expectRevert("EmergencySpellBatchV2DeployScript/config-hash-mismatch");
         deployer.run(factory, leaves, "Wrong", createHash);

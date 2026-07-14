@@ -72,18 +72,12 @@ def inspect_batch(batch_address, rpc_url, runner):
 def preflight_batch(
     manifest,
     factory_address,
-    deployment_mode,
     label,
     ordered_leaves,
     rpc_url,
     runner,
     root,
 ):
-    _require(
-        deployment_mode in {"create", "create2"},
-        "deploymentMode",
-        "must be create or create2",
-    )
     _require(bool(label), "label", "must not be empty")
     _require(bool(ordered_leaves), "orderedLeaves", "must not be empty")
     by_address = validate_manifest(manifest)
@@ -104,12 +98,6 @@ def preflight_batch(
         "orderedLeaves",
         "contains a duplicate leaf",
     )
-    if deployment_mode == "create2":
-        _require(
-            normalized == sorted(normalized),
-            "orderedLeaves",
-            "must be strictly ordered for create2",
-        )
     for leaf_address in ordered_leaves:
         leaf = by_address.get(leaf_address.lower())
         eligible = (
@@ -133,19 +121,7 @@ def preflight_batch(
         )
 
     _encoded, config_hash = batch_configuration(ordered_leaves, label, runner)
-    result = {"configHash": config_hash}
-    if deployment_mode == "create2":
-        result["predictedBatch"] = runner.run(
-            "cast",
-            "call",
-            factory_address,
-            "previewDeterministicAddress(address[],string)(address)",
-            leaves_argument(ordered_leaves),
-            label,
-            "--rpc-url",
-            rpc_url,
-        )
-    return result
+    return {"configHash": config_hash}
 
 
 def _verify_batch_readbacks(
@@ -180,7 +156,6 @@ def verify_batch(
     batch_address,
     factory_address,
     transaction_hash,
-    deployment_mode,
     label,
     ordered_leaves,
     rpc_url,
@@ -220,7 +195,6 @@ def verify_batch(
     configuration_matches = (
         same_hex(record["deployment"]["transactionHash"], transaction_hash)
         and same_hex(batch["factory"], factory_address)
-        and batch["deploymentMode"] == deployment_mode
         and batch["label"] == label
         and [leaf.lower() for leaf in batch["orderedLeaves"]]
         == [leaf.lower() for leaf in ordered_leaves]
@@ -257,13 +231,8 @@ def verify_batch(
         "does not match deployed batch",
     )
 
-    function = (
-        "deployDeterministic(address[],string)"
-        if deployment_mode == "create2"
-        else "deploy(address[],string)"
-    )
     expected_input = runner.run(
-        "cast", "calldata", function, leaves_argument(ordered_leaves), label
+        "cast", "calldata", "deploy(address[],string)", leaves_argument(ordered_leaves), label
     )
     transaction = json_output(
         runner.run("cast", "tx", transaction_hash, "--rpc-url", rpc_url, "--json"),
@@ -309,35 +278,7 @@ def verify_batch(
         receipt,
         factory_address,
         config_hash,
-        deployment_mode,
         runner,
         batch_address,
     )
-
-    if deployment_mode == "create2":
-        creation_code = runner.run(
-            "forge",
-            "inspect",
-            "--root",
-            str(root),
-            "--force",
-            record["artifact"],
-            "bytecode",
-        )
-        init_code = "0x" + creation_code.removeprefix("0x") + encoded.removeprefix("0x")
-        predicted = runner.run(
-            "cast",
-            "create2",
-            "--deployer",
-            factory_address,
-            "--salt",
-            config_hash,
-            "--init-code",
-            init_code,
-        )
-        _require(
-            same_hex(predicted, batch_address),
-            "batch.address",
-            "independent CREATE2 prediction mismatch",
-        )
     return record

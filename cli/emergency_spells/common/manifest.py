@@ -116,14 +116,13 @@ def _batch(batch, path):
         "orderedLeaves",
         "configHash",
         "factory",
-        "deploymentMode",
         "getterReadbacks",
         "factoryEventVerified",
         "atomicSimulation",
     }
     _object(batch, path, keys)
     _require(_nonempty(batch["label"]), f"{path}.label", "must be a nonempty string")
-    leaves = _address_list(batch["orderedLeaves"], f"{path}.orderedLeaves")
+    _address_list(batch["orderedLeaves"], f"{path}.orderedLeaves")
     _require(
         _matches(batch["configHash"], BYTES32_RE),
         f"{path}.configHash",
@@ -132,17 +131,6 @@ def _batch(batch, path):
     _require(
         _matches(batch["factory"], ADDRESS_RE), f"{path}.factory", "must be an address"
     )
-    _require(
-        batch["deploymentMode"] in {"create", "create2"},
-        f"{path}.deploymentMode",
-        "must be create or create2",
-    )
-    if batch["deploymentMode"] == "create2":
-        _require(
-            leaves == sorted(leaves) and len(leaves) == len(set(leaves)),
-            f"{path}.orderedLeaves",
-            "must be strictly ordered for create2",
-        )
     readbacks = batch["getterReadbacks"]
     _object(readbacks, f"{path}.getterReadbacks", {"label", "leaves", "configHash"})
     _require(

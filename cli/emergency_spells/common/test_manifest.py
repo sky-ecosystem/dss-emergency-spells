@@ -78,6 +78,12 @@ class ManifestTests(unittest.TestCase):
         batch["batch"]["atomicSimulation"]["status"] = "pending"
         self.assert_invalid(data)
 
+    def test_rejects_obsolete_batch_deployment_mode(self):
+        data = fixture()
+        batch = next(record for record in data["records"] if record["kind"] == "batch")
+        batch["batch"]["deploymentMode"] = "create"
+        self.assert_invalid(data)
+
         data = fixture()
         batch = next(record for record in data["records"] if record["kind"] == "batch")
         batch["batch"]["getterReadbacks"]["label"] = "Wrong label"

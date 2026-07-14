@@ -200,13 +200,11 @@ class BatchDraftRunner:
         if command == "keccak":
             return (
                 EVENT_SIGNATURE
-                if arguments[1] == "BatchDeployed(address,bytes32,uint8)"
+                if arguments[1] == "BatchDeployed(address,bytes32)"
                 else CONFIG_HASH
             )
         if command == "calldata":
             return "0xdeadbeef"
-        if command == "create2":
-            return self.predicted
         if command == "codehash":
             return {
                 FACTORY.lower(): "0x" + "f1" * 32,
@@ -253,7 +251,7 @@ class BatchDraftRunner:
                                 "0x" + "0" * 24 + BATCH[2:],
                                 CONFIG_HASH,
                             ],
-                            "data": "0x" + str(self.event_mode).rjust(64, "0"),
+                            "data": "0x",
                         }
                     ],
                 }
@@ -272,7 +270,6 @@ class BatchDraftTests(unittest.TestCase):
             "manifest": self.manifest,
             "factory_address": FACTORY,
             "transaction_hash": BATCH_TRANSACTION_HASH,
-            "deployment_mode": "create2",
             "label": "Incident batch",
             "ordered_leaves": [LEAF1, LEAF2],
             "rpc_url": "mock://",
@@ -299,7 +296,7 @@ class BatchDraftTests(unittest.TestCase):
         self.assertEqual(record["sourceCommit"], SOURCE_COMMIT)
         self.assertEqual(record["deployment"]["constructorArguments"], "0xabcdef")
         self.assertEqual(record["batch"]["orderedLeaves"], [LEAF1, LEAF2])
-        self.assertEqual(record["batch"]["deploymentMode"], "create2")
+        self.assertNotIn("deploymentMode", record["batch"])
         self.assertEqual(record["batch"]["configHash"], CONFIG_HASH)
         self.assertTrue(record["batch"]["factoryEventVerified"])
         self.assertEqual(record["batch"]["atomicSimulation"]["reference"], "")
@@ -327,7 +324,7 @@ class BatchDraftTests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             validate_manifest(manifest)
 
-    def test_supports_create_without_deterministic_prediction(self):
+    def test_preserves_arbitrary_unique_order(self):
         runner = BatchDraftRunner()
         runner.event_mode = 0
         runner.predicted = "not-used"
@@ -335,14 +332,12 @@ class BatchDraftTests(unittest.TestCase):
 
         record = self.draft(
             runner,
-            deployment_mode="create",
             ordered_leaves=[LEAF2, LEAF1],
         )
 
-        self.assertEqual(record["batch"]["deploymentMode"], "create")
         self.assertEqual(record["batch"]["orderedLeaves"], [LEAF2, LEAF1])
 
-    def test_rejects_wrong_factory_call_event_and_prediction(self):
+    def test_rejects_wrong_factory_call_event_and_leaf_codehash(self):
         runner = BatchDraftRunner()
         runner.batch_calldata = "0xfeedface"
         with self.assertRaisesRegex(ValidationError, "calldata"):
@@ -351,11 +346,6 @@ class BatchDraftTests(unittest.TestCase):
         runner = BatchDraftRunner()
         runner.event_factory = "0x00000000000000000000000000000000000000f2"
         with self.assertRaisesRegex(ValidationError, "BatchDeployed"):
-            self.draft(runner)
-
-        runner = BatchDraftRunner()
-        runner.predicted = "0x00000000000000000000000000000000000000b2"
-        with self.assertRaisesRegex(ValidationError, "CREATE2"):
             self.draft(runner)
 
         runner = BatchDraftRunner()

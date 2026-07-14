@@ -35,8 +35,6 @@ contract StUsdsRateSetterDissBudSpellV2 is EmergencySpellV2 {
     address public immutable stUsds;
     address public immutable bud;
 
-    event DissRateSetterBud(address indexed rateSetter, address bud);
-
     constructor(address stUsdsMom_, address rateSetter_, address bud_) {
         stUsdsMom = stUsdsMom_;
         rateSetter = rateSetter_;
@@ -53,6 +51,5 @@ contract StUsdsRateSetterDissBudSpellV2 is EmergencySpellV2 {
 
     function _emergencyActions() internal override {
         StUsdsMomLike(stUsdsMom).dissRateSetterBud(rateSetter, bud);
-        emit DissRateSetterBud(rateSetter, bud);
     }
 }

@@ -34,8 +34,6 @@ contract ClipBreakerSpellV2 is EmergencySpellV2 {
     address public immutable clip;
     bytes32 public immutable ilk;
 
-    event SetBreaker(address indexed clip);
-
     constructor(address clipperMom_, address clip_, bytes32 ilk_) {
         clipperMom = clipperMom_;
         clip = clip_;
@@ -52,6 +50,5 @@ contract ClipBreakerSpellV2 is EmergencySpellV2 {
 
     function _emergencyActions() internal override {
         ClipperMomLike(clipperMom).setBreaker(clip, BREAKER_LEVEL, BREAKER_DELAY);
-        emit SetBreaker(clip);
     }
 }

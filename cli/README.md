@@ -28,7 +28,6 @@ Canonical flags use the names from [`deployments/v2.schema.json`](../deployments
 | `--v2-manifest`         | `--v2`        |
 | `--migration`           | `--mig`       |
 | `--transaction-hash`    | `--tx`        |
-| `--deployment-mode`     | `--mode`      |
 | `--ordered-leaves`      | `--leaves`    |
 | `--parameters`          | `--params`    |
 | `--immutable-readbacks` | `--readbacks` |
@@ -78,7 +77,7 @@ The draft intentionally has pending reviews with empty evidence and `operational
 
 ### `draft-batch`
 
-Generate a batch record from the factory transaction, the published factory and leaf records, the factory event, and live batch getter readbacks. The factory and leaves must already be present in the supplied manifest. For `create2`, the command also independently checks the deterministic address.
+Generate a batch record from the factory transaction, the published factory and leaf records, the factory event, and live batch getter readbacks. The factory and leaves must already be present in the supplied manifest.
 
 ```sh
 export ETH_RPC_URL=https://eth-mainnet.example
@@ -87,7 +86,6 @@ cli/emergency-spells draft-batch \
   --manifest deployments/1/v2.json \
   --factory 0x0000000000000000000000000000000000000001 \
   --tx 0x0000000000000000000000000000000000000000000000000000000000000003 \
-  --mode create2 \
   --label 'Incident batch' \
   --leaves '[0x0000000000000000000000000000000000000011,0x0000000000000000000000000000000000000022]' \
   > /tmp/incident-batch-record.json
@@ -113,9 +111,9 @@ Use `verify-batch` instead for a batch deployed through `EmergencySpellBatchFact
 
 ### `preflight-batch`
 
-Authenticate the factory and selected leaves before deployment, then calculate the configuration hash. `create2` additionally prints the predicted deterministic batch address.
+Authenticate the factory and selected leaves before deployment, then calculate the configuration hash.
 
-Pass leaves as one quoted Foundry-style array. Preserve reviewed execution order for `create`; use strictly increasing address order for `create2` only when the actions are order-independent.
+Pass leaves as one quoted Foundry-style array in the exact reviewed execution order. Duplicate addresses are rejected; arbitrary unique order is accepted.
 
 ```sh
 export ETH_RPC_URL=https://eth-mainnet.example
@@ -123,16 +121,15 @@ export ETH_RPC_URL=https://eth-mainnet.example
 cli/emergency-spells preflight-batch \
   --manifest deployments/1/v2.json \
   --factory 0x0000000000000000000000000000000000000001 \
-  --mode create2 \
   --label 'Incident batch' \
   --leaves '[0x0000000000000000000000000000000000000011,0x0000000000000000000000000000000000000022]'
 ```
 
-Pass the printed configuration hash to the batch deployment script without changing the factory, mode, label, or leaf order.
+Pass the printed configuration hash to the batch deployment script without changing the factory, label, or leaf order.
 
 ### `verify-batch`
 
-Verify the manifest configuration, factory deployment, selected leaf codehashes, constructor encoding, batch getters, factory call and event, receipt, and deterministic address when applicable.
+Verify the manifest configuration, factory deployment, selected leaf codehashes, constructor encoding, batch getters, factory call and event, and receipt.
 
 ```sh
 export ETH_RPC_URL=https://eth-mainnet.example
@@ -142,7 +139,6 @@ cli/emergency-spells verify-batch \
   --batch 0x0000000000000000000000000000000000000002 \
   --factory 0x0000000000000000000000000000000000000001 \
   --tx 0x0000000000000000000000000000000000000000000000000000000000000003 \
-  --mode create2 \
   --label 'Incident batch' \
   --leaves '[0x0000000000000000000000000000000000000011,0x0000000000000000000000000000000000000022]'
 ```

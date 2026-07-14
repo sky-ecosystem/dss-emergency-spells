@@ -55,7 +55,6 @@
         "orderedLeaves",
         "configHash",
         "factory",
-        "deploymentMode",
         "getterReadbacks",
         "factoryEventVerified",
         "atomicSimulation"
@@ -69,7 +68,6 @@
         },
         "configHash": { "$ref": "#/$defs/bytes32" },
         "factory": { "$ref": "#/$defs/address" },
-        "deploymentMode": { "enum": ["create", "create2"] },
         "getterReadbacks": {
           "type": "object",
           "additionalProperties": false,

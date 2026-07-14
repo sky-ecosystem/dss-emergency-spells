@@ -34,12 +34,10 @@ def batch_deployed_address(
     receipt,
     factory,
     config_hash,
-    deployment_mode,
     runner,
     expected_batch=None,
 ):
-    signature = runner.run("cast", "keccak", "BatchDeployed(address,bytes32,uint8)")
-    mode_data = "0x" + ("1" if deployment_mode == "create2" else "0").rjust(64, "0")
+    signature = runner.run("cast", "keccak", "BatchDeployed(address,bytes32)")
     expected_topic = (
         None
         if expected_batch is None
@@ -53,7 +51,7 @@ def batch_deployed_address(
             and len(topics) >= 3
             and same_hex(topics[0], signature)
             and same_hex(topics[2], config_hash)
-            and same_hex(log.get("data"), mode_data)
+            and same_hex(log.get("data"), "0x")
             and (expected_topic is None or same_hex(topics[1], expected_topic))
         ):
             matches.append(log)

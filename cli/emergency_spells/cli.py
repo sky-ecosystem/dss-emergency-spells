@@ -92,13 +92,6 @@ def _parser():
     batch_draft.add_argument(
         "--transaction-hash", "--tx", dest="transaction_hash", required=True
     )
-    batch_draft.add_argument(
-        "--deployment-mode",
-        "--mode",
-        dest="deployment_mode",
-        required=True,
-        choices=("create", "create2"),
-    )
     batch_draft.add_argument("--label", required=True)
     batch_draft.add_argument(
         "--ordered-leaves",
@@ -119,13 +112,6 @@ def _batch_arguments(parser, include_deployment):
         parser.add_argument(
             "--transaction-hash", "--tx", dest="transaction_hash", required=True
         )
-    parser.add_argument(
-        "--deployment-mode",
-        "--mode",
-        dest="deployment_mode",
-        required=True,
-        choices=("create", "create2"),
-    )
     parser.add_argument("--label", required=True)
     parser.add_argument(
         "--ordered-leaves",
@@ -238,7 +224,6 @@ def _execute(arguments, runner):
             manifest=load_json(arguments.manifest),
             factory_address=arguments.factory,
             transaction_hash=arguments.transaction_hash,
-            deployment_mode=arguments.deployment_mode,
             label=arguments.label,
             ordered_leaves=parse_leaves(arguments.ordered_leaves),
             rpc_url=require_rpc_url(),
@@ -260,7 +245,6 @@ def _execute(arguments, runner):
         result = preflight_batch(
             manifest,
             arguments.factory,
-            arguments.deployment_mode,
             arguments.label,
             ordered_leaves,
             rpc_url,
@@ -268,18 +252,15 @@ def _execute(arguments, runner):
             ROOT,
         )
         print(
-            f"Validated V2 batch preflight: {len(ordered_leaves)} leaf/leaves ({arguments.deployment_mode})"
+            f"Validated V2 batch preflight: {len(ordered_leaves)} leaf/leaves"
         )
         print(f"Config hash: {result['configHash']}")
-        if "predictedBatch" in result:
-            print(f"Predicted batch: {result['predictedBatch']}")
         return
     verify_batch(
         manifest,
         arguments.batch,
         arguments.factory,
         arguments.transaction_hash,
-        arguments.deployment_mode,
         arguments.label,
         ordered_leaves,
         rpc_url,

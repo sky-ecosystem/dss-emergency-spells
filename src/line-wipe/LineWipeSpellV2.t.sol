@@ -3,6 +3,7 @@
 pragma solidity ^0.8.16;
 
 import {Test} from "forge-std/Test.sol";
+import {Vm} from "forge-std/Vm.sol";
 
 import {EmergencySpellBatchV2} from "../EmergencySpellBatchV2.sol";
 import {LineWipeSpellV2} from "./LineWipeSpellV2.sol";
@@ -58,6 +59,8 @@ contract LineWipeMomMockV2 {
     mapping(address => bool) public authorized;
     address public lastCaller;
 
+    event Wiped(bytes32 indexed ilk, address indexed caller);
+
     constructor(address autoLine_, address vat_) {
         autoLine = autoLine_;
         vat = LineWipeVatMockV2(vat_);
@@ -72,6 +75,7 @@ contract LineWipeMomMockV2 {
         lastCaller = msg.sender;
         LineWipeAutoLineMockV2(autoLine).clear(ilk);
         vat.setLine(ilk, 0);
+        emit Wiped(ilk, msg.sender);
         return 0;
     }
 }
@@ -124,7 +128,9 @@ contract LineWipeSpellV2Test is Test {
 
     function testDirectExecutionIsRepeatable() public {
         lineMom.rely(address(spell));
+        vm.recordLogs();
         spell.schedule();
+        _assertOnlyDownstreamEvent(vm.getRecordedLogs(), address(spell));
         assertTrue(spell.done());
         spell.schedule();
         assertTrue(spell.done());
@@ -137,7 +143,15 @@ contract LineWipeSpellV2Test is Test {
         EmergencySpellBatchV2 batch = new EmergencySpellBatchV2(leaves, "Line wipe");
         lineMom.rely(address(batch));
 
+        vm.recordLogs();
         batch.schedule();
+        Vm.Log[] memory logs = vm.getRecordedLogs();
+        uint256 batchEvents;
+        for (uint256 i; i < logs.length; ++i) {
+            if (logs[i].emitter == address(batch)) ++batchEvents;
+        }
+        assertEq(batchEvents, 1);
+        _assertDownstreamEvent(logs);
 
         assertTrue(spell.done());
         assertTrue(batch.done());
@@ -157,5 +171,20 @@ contract LineWipeSpellV2Test is Test {
         LineWipeSpellV2 brokenSpell = new LineWipeSpellV2(address(brokenMom), ILK);
         vm.expectRevert();
         brokenSpell.done();
+    }
+
+    function _assertOnlyDownstreamEvent(Vm.Log[] memory logs, address leaf) internal {
+        for (uint256 i; i < logs.length; ++i) {
+            assertTrue(logs[i].emitter != leaf);
+        }
+        _assertDownstreamEvent(logs);
+    }
+
+    function _assertDownstreamEvent(Vm.Log[] memory logs) internal {
+        bytes32 signature = keccak256("Wiped(bytes32,address)");
+        for (uint256 i; i < logs.length; ++i) {
+            if (logs[i].emitter == address(lineMom) && logs[i].topics[0] == signature) return;
+        }
+        fail();
     }
 }

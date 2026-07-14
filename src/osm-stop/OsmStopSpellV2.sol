@@ -32,8 +32,6 @@ contract OsmStopSpellV2 is EmergencySpellV2 {
     address public immutable osm;
     bytes32 public immutable ilk;
 
-    event Stop(address indexed osm);
-
     constructor(address osmMom_, address osm_, bytes32 ilk_) {
         osmMom = osmMom_;
         osm = osm_;
@@ -53,6 +51,5 @@ contract OsmStopSpellV2 is EmergencySpellV2 {
         require(registered == osm, "OsmStopSpellV2/osm-mismatch");
 
         OsmMomLike(osmMom).stop(ilk);
-        emit Stop(osm);
     }
 }

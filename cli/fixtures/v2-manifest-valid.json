@@ -184,7 +184,6 @@
         ],
         "configHash": "0x66fbf5b80224f0df35fa2a524c580bc83ea780a0e2e0dda40366cf190f725300",
         "factory": "0x00000000000000000000000000000000000000f1",
-        "deploymentMode": "create2",
         "getterReadbacks": {
           "label": "Incident batch",
           "leaves": [

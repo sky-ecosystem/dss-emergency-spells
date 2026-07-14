@@ -32,8 +32,6 @@ contract SplitterStopSpellV2 is EmergencySpellV2 {
     address public immutable splitterMom;
     address public immutable splitter;
 
-    event Stop();
-
     constructor(address splitterMom_, address splitter_) {
         splitterMom = splitterMom_;
         splitter = splitter_;
@@ -47,6 +45,5 @@ contract SplitterStopSpellV2 is EmergencySpellV2 {
 
     function _emergencyActions() internal override {
         SplitterMomLike(splitterMom).stop();
-        emit Stop();
     }
 }

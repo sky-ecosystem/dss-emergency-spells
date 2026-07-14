@@ -193,18 +193,12 @@ def draft_batch(
     manifest,
     factory_address,
     transaction_hash,
-    deployment_mode,
     label,
     ordered_leaves,
     rpc_url,
     runner,
     root,
 ):
-    _require(
-        deployment_mode in {"create", "create2"},
-        "deploymentMode",
-        "must be create or create2",
-    )
     _require(bool(label), "label", "must not be empty")
     _require(bool(ordered_leaves), "orderedLeaves", "must not be empty")
     _require(
@@ -224,12 +218,6 @@ def draft_batch(
         "orderedLeaves",
         "contains a duplicate leaf",
     )
-    if deployment_mode == "create2":
-        _require(
-            normalized_leaves == sorted(normalized_leaves),
-            "orderedLeaves",
-            "must be strictly ordered for create2",
-        )
 
     by_address = validate_manifest(manifest)
     factory = by_address.get(factory_address.lower())
@@ -264,13 +252,8 @@ def draft_batch(
         BYTES32_RE.fullmatch(config_hash) is not None, "configHash", "must be bytes32"
     )
 
-    function = (
-        "deployDeterministic(address[],string)"
-        if deployment_mode == "create2"
-        else "deploy(address[],string)"
-    )
     expected_calldata = runner.run(
-        "cast", "calldata", function, leaves_argument(ordered_leaves), label
+        "cast", "calldata", "deploy(address[],string)", leaves_argument(ordered_leaves), label
     )
     transaction = json_output(
         runner.run("cast", "tx", transaction_hash, "--rpc-url", rpc_url, "--json"),
@@ -299,9 +282,7 @@ def draft_batch(
     )
     block_number = _positive_block(receipt.get("blockNumber"))
 
-    batch_address = batch_deployed_address(
-        receipt, factory_address, config_hash, deployment_mode, runner
-    )
+    batch_address = batch_deployed_address(receipt, factory_address, config_hash, runner)
     getter_readbacks = read_batch_getters(batch_address, rpc_url, runner)
     _require(
         getter_readbacks["label"] == label,
@@ -318,37 +299,6 @@ def draft_batch(
         "batch.configHash",
         "getter readback mismatch",
     )
-
-    if deployment_mode == "create2":
-        creation_code = runner.run(
-            "forge",
-            "inspect",
-            "--root",
-            str(root),
-            "--force",
-            BATCH_ARTIFACT,
-            "bytecode",
-        )
-        init_code = (
-            "0x"
-            + creation_code.removeprefix("0x")
-            + constructor_arguments.removeprefix("0x")
-        )
-        predicted = runner.run(
-            "cast",
-            "create2",
-            "--deployer",
-            factory_address,
-            "--salt",
-            config_hash,
-            "--init-code",
-            init_code,
-        )
-        _require(
-            same_hex(predicted, batch_address),
-            "batch.address",
-            "independent CREATE2 prediction mismatch",
-        )
 
     runtime_codehash = runner.run(
         "cast", "codehash", batch_address, "--rpc-url", rpc_url
@@ -386,7 +336,6 @@ def draft_batch(
             "orderedLeaves": ordered_leaves,
             "configHash": config_hash,
             "factory": factory_address,
-            "deploymentMode": deployment_mode,
             "getterReadbacks": {
                 "label": getter_readbacks["label"],
                 "leaves": getter_readbacks["leaves"],

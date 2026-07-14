@@ -54,8 +54,6 @@ class CliTests(unittest.TestCase):
                 "0xfactory",
                 "--transaction-hash",
                 "0xtx",
-                "--deployment-mode",
-                "create2",
                 "--label",
                 "Incident batch",
                 "--ordered-leaves",
@@ -73,8 +71,6 @@ class CliTests(unittest.TestCase):
                 "0xfactory",
                 "--tx",
                 "0xtx",
-                "--mode",
-                "create2",
                 "--label",
                 "Incident batch",
                 "--leaves",
@@ -92,8 +88,6 @@ class CliTests(unittest.TestCase):
                 "0xfactory",
                 "--transaction-hash",
                 "0xtx",
-                "--deployment-mode",
-                "create2",
                 "--label",
                 "Incident batch",
                 "--ordered-leaves",
@@ -109,8 +103,6 @@ class CliTests(unittest.TestCase):
                 "0xfactory",
                 "--tx",
                 "0xtx",
-                "--mode",
-                "create2",
                 "--label",
                 "Incident batch",
                 "--leaves",
@@ -119,7 +111,6 @@ class CliTests(unittest.TestCase):
         )
         self.assertEqual(vars(canonical), vars(aliases))
         self.assertEqual(canonical.transaction_hash, "0xtx")
-        self.assertEqual(canonical.deployment_mode, "create2")
         self.assertEqual(canonical.ordered_leaves, "[0x1,0x2]")
 
         canonical = parser.parse_args(
@@ -229,8 +220,6 @@ class CliTests(unittest.TestCase):
                     "0x00000000000000000000000000000000000000f1",
                     "--tx",
                     "0x" + "11" * 32,
-                    "--mode",
-                    "create2",
                     "--label",
                     "Incident batch",
                     "--leaves",
@@ -446,8 +435,6 @@ class CliTests(unittest.TestCase):
                     str(ROOT / "deployments/1/v2.json"),
                     "--factory",
                     "0x00000000000000000000000000000000000000f1",
-                    "--mode",
-                    "create",
                     "--label",
                     "Incident batch",
                     "--leaves",
@@ -457,7 +444,7 @@ class CliTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("Config hash", output)
         self.assertEqual(
-            preflight.call_args.args[4],
+            preflight.call_args.args[3],
             [
                 "0x0000000000000000000000000000000000000011",
                 "0x0000000000000000000000000000000000000022",

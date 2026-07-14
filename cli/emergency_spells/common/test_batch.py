@@ -19,7 +19,7 @@ class Runner:
         if command == "keccak":
             return (
                 EVENT_SIGNATURE
-                if arguments[1] == "BatchDeployed(address,bytes32,uint8)"
+                if arguments[1] == "BatchDeployed(address,bytes32)"
                 else CONFIG_HASH
             )
         if command == "call":
@@ -60,18 +60,18 @@ class BatchCommonTests(unittest.TestCase):
                         "0x" + "0" * 24 + BATCH[2:],
                         CONFIG_HASH,
                     ],
-                    "data": "0x" + "1".rjust(64, "0"),
+                    "data": "0x",
                 }
             ]
         }
 
         self.assertEqual(
-            batch_deployed_address(receipt, FACTORY, CONFIG_HASH, "create2", runner),
+            batch_deployed_address(receipt, FACTORY, CONFIG_HASH, runner),
             BATCH,
         )
         self.assertEqual(
             batch_deployed_address(
-                receipt, FACTORY, CONFIG_HASH, "create2", runner, BATCH
+                receipt, FACTORY, CONFIG_HASH, runner, BATCH
             ),
             BATCH,
         )
@@ -80,7 +80,6 @@ class BatchCommonTests(unittest.TestCase):
                 receipt,
                 FACTORY,
                 CONFIG_HASH,
-                "create2",
                 runner,
                 "0x00000000000000000000000000000000000000b2",
             )

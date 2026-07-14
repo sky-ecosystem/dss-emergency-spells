@@ -32,7 +32,7 @@ The 49 entries classified active in the signed V1 snapshot initially use the wai
 - batch preflight accepts only leaves whose operational status is `incident-ready`;
 - globals, batches, and infrastructure are direct-use only;
 - addresses are unique within a manifest;
-- batch records include their ordered leaves, factory, deployment mode, configuration hash, getter readbacks, event check, and atomic simulation attestation;
+- batch records include their ordered leaves, factory, configuration hash, getter readbacks, event check, and atomic simulation attestation;
 - every spell artifact identifies its declared contract under `src/` and records the shared `action()` and `pause()` interface readbacks;
 - adding a new concrete spell does not require changing the validator.
 
@@ -44,7 +44,7 @@ A V2 leaf or batch must not be treated as reviewed or incident-ready merely beca
 
 Deployment JSON is drafted by the CLI and incorporated into the manifest through review. The CLI does not update `v2.json` directly.
 
-1. Deploy the concrete spell or factory from the reviewed source commit. For a batch, preflight the exact factory, deployment mode, label, and ordered leaves before broadcasting.
+1. Deploy the concrete spell or factory from the reviewed source commit. For a batch, preflight the exact factory, label, and ordered leaves before broadcasting.
 2. Wait for the deployment transaction to succeed and retain its transaction hash.
 3. Run `draft-deployment` for a direct deployment or `draft-batch` for a factory-created batch. Redirect standard output to a temporary JSON file.
 4. Review the generated address, transaction, block, constructor arguments, runtime codehash, subjects, parameters, immutable readbacks, and, for batches, factory event and getter readbacks against the deployment evidence.

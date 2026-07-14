@@ -31,8 +31,6 @@ contract SPBEAMHaltSpellV2 is EmergencySpellV2 {
     address public immutable spbeamMom;
     address public immutable spbeam;
 
-    event Halt();
-
     constructor(address spbeamMom_, address spbeam_) {
         spbeamMom = spbeamMom_;
         spbeam = spbeam_;
@@ -44,6 +42,5 @@ contract SPBEAMHaltSpellV2 is EmergencySpellV2 {
 
     function _emergencyActions() internal override {
         SPBEAMMomLike(spbeamMom).halt(spbeam);
-        emit Halt();
     }
 }

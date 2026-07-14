@@ -67,7 +67,7 @@ The default should be to keep the Emergency Spell artifact outside the regular e
 | Publish stable shared infrastructure in Chainlog | Regular spell when governance chooses to publish it | Chainlog is protocol state. The batch factory may qualify; individual leaves, globals, and batches normally do not. |
 | Replace or reconfigure a protected protocol dependency | Regular spell when the dependency is governed | ProSec should then reassess and, where necessary, replace affected Emergency Spell deployments. |
 
-If a subject address is unavailable before the onboarding executive runs, engineering should still deliver the reviewed source, tests, script, expected configuration, and authority assumptions. ProSec can deploy through the fully parameterized entrypoint once the address exists. The handoff or release record should expose the resulting interval without incident-ready V2 coverage and keep the applicable deployment or migration status visibly pending until the artifact reaches the required lifecycle state. This does not establish a deadline or decide whether the module is formally delivered. If a deterministic or otherwise reliable address is available earlier, teams may coordinate predeployment, but this runbook does not require it.
+If a subject address is unavailable before the onboarding executive runs, engineering should still deliver the reviewed source, tests, script, expected configuration, and authority assumptions. ProSec can deploy through the fully parameterized entrypoint once the address exists. The handoff or release record should expose the resulting interval without incident-ready V2 coverage and keep the applicable deployment or migration status visibly pending until the artifact reaches the required lifecycle state. This does not establish a deadline or decide whether the module is formally delivered. If a reliable address is available earlier, teams may coordinate predeployment, but this runbook does not require it.
 
 ## Module delivery and handoff
 
@@ -123,8 +123,8 @@ Under the suggested ProSec stewardship model, the direct-deployment flow would b
 ### Batch deployments
 
 1. Select only published, incident-ready, batch-eligible leaves with approved direct-use and batch-use evidence.
-2. Use `preflight-batch` with the exact factory, mode, label, and ordered leaves.
-3. Use `CREATE` as the simpler general or incident-time path; it preserves the reviewed leaf order whether or not order is semantically meaningful. Reserve `CREATE2` for planned deterministic deployment of order-independent leaves already arranged in strictly increasing address order.
+2. Use `preflight-batch` with the exact factory, label, and ordered leaves.
+3. Preserve the reviewed leaf order. The factory uses `CREATE`, rejects duplicate leaves, and permits repeated deployment of the same configuration at a different address.
 4. Pass the exact preflight configuration hash to the deployment script and broadcast through the reviewed factory.
 5. Run `draft-batch`, complete the structured atomic-simulation evidence, and add the reviewed record to the manifest.
 6. Run `validate-manifest`, `verify-batch`, and `inspect-batch` before treating the batch as a governance candidate.
@@ -178,7 +178,7 @@ This section is a preparation aid, not an incident command policy. The applicabl
 
 ### Execute and verify
 
-Governance Facilitators should coordinate the applicable Chief process and confirm the elected address. After execution, operators should check the transaction status, emitted success events, affected protocol state, and the spell's `done()` result where it can be read reliably.
+Governance Facilitators should coordinate the applicable Chief process and confirm the elected address. After execution, operators should check the transaction status, canonical Mom or protocol events, affected protocol state, and the spell's `done()` result where it can be read reliably. Batch executions also emit ordered `LeafExecuted` events; batch-eligible leaves do not emit their own wrapper events.
 
 Registry-global calls remain atomic. If a full call reverts, run `probe-registry --spell <address>` to simulate every singleton range at one pinned block. Review the reported failure reasons and safe contiguous ranges before deciding whether partial mitigation is appropriate. Execute only the reviewed ranges, account for registry changes between transactions, and rerun the probe against current state. Reverted calls do not produce canonical queryable events; successful range transactions retain their action-specific success events. After incomplete range execution, `done() == false` is expected while an actionable covered entry remains unresolved and should be reconciled with the excluded indices and post-state checks.
 
