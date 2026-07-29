@@ -1,0 +1,6 @@
+#!/usr/bin/env python3
+
+from emergency_spells.cli import main
+
+
+raise SystemExit(main())

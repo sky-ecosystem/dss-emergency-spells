@@ -23,6 +23,18 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check Python lint
+        uses: astral-sh/ruff-action@v4.1.0
+        with:
+          version: "0.15.2"
+          args: check
+          src: cli/emergency_spells
+
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
@@ -34,6 +46,11 @@ jobs:
 
       - name: Check Forge formatting
         run: forge fmt --check
+
+      - name: Validate V2 deployment tooling
+        run: |
+          python -m compileall -q cli
+          python -m unittest discover -s cli/emergency_spells -t . -v
 
       - name: Run Forge tests
         run: |

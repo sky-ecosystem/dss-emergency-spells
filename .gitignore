@@ -10,14 +10,15 @@ script/input/**/*.json
 !script/input/**/template-*.json
 script/output/**/*.json
 
-# Docs
-docs/
-
 # Dotenv file
 .env
 
 # Local Git worktrees
 .worktrees/
+
+# Python cache
+__pycache__/
+*.py[cod]
 
 # Genhtml report
 *.html

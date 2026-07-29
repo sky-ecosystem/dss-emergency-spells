@@ -1,0 +1,89 @@
+import json
+import os
+import subprocess
+from pathlib import Path
+from typing import Any
+
+from .validation import ADDRESS_RE, DependencyError, ValidationError
+
+
+def parse_leaves(value: str) -> list[str]:
+    if not value.startswith("[") or not value.endswith("]"):
+        raise ValidationError("--leaves must be a bracketed address array")
+    body = value[1:-1].strip()
+    if not body:
+        raise ValidationError("--leaves must not be empty")
+    leaves = [leaf.strip() for leaf in body.split(",")]
+    if any(not leaf or not ADDRESS_RE.fullmatch(leaf) for leaf in leaves):
+        raise ValidationError("--leaves contains an invalid address")
+    return leaves
+
+
+def parse_string_array(value: str, option: str) -> list[str]:
+    try:
+        items = json.loads(value)
+    except json.JSONDecodeError as error:
+        raise ValidationError(f"{option} must be a JSON string array") from error
+    if not isinstance(items, list) or any(
+        not isinstance(item, str) or not item for item in items
+    ):
+        raise ValidationError(f"{option} must be a JSON string array")
+    if len(items) != len(set(items)):
+        raise ValidationError(f"{option} contains a duplicate value")
+    return items
+
+
+def require_rpc_url() -> str:
+    value = os.environ.get("ETH_RPC_URL", "")
+    if not value:
+        raise DependencyError("ETH_RPC_URL is required")
+    return value
+
+
+def load_json(path: str | Path) -> Any:
+    try:
+        with Path(path).open(encoding="utf-8") as handle:
+            return json.load(handle)
+    except (OSError, json.JSONDecodeError) as error:
+        raise ValidationError(f"cannot read JSON file {path}: {error}") from error
+
+
+class Runner:
+    def __init__(self, root: Path):
+        self.root = root
+
+    def run(self, tool: str, *arguments: str) -> str:
+        executable = os.environ.get(tool.upper(), tool)
+        try:
+            result = subprocess.run(
+                [executable, *arguments],
+                cwd=self.root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+        except FileNotFoundError as error:
+            raise DependencyError(f"{executable} is required") from error
+        except subprocess.CalledProcessError as error:
+            detail = (
+                error.stderr.strip()
+                or error.stdout.strip()
+                or f"exit {error.returncode}"
+            )
+            raise ValidationError(f"{tool} failed: {detail}") from error
+        return result.stdout.strip()
+
+
+def json_output(value, context):
+    try:
+        return json.loads(value)
+    except json.JSONDecodeError as error:
+        raise ValidationError(f"{context}: command returned invalid JSON") from error
+
+
+def same_hex(left, right):
+    return (
+        isinstance(left, str)
+        and isinstance(right, str)
+        and left.lower() == right.lower()
+    )
