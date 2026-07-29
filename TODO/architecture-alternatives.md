@@ -2,11 +2,13 @@
 
 ## Status
 
-This document records a deferred architecture decision for future implementation and review. It does not change the current contracts, authorize a deployment, establish incident readiness, or represent audit approval.
+This document frames an open architecture discussion. It does not record an approved decision, mandatory follow-up, roadmap commitment, implementation priority, deployment prerequisite, or audit requirement. The alternatives, assessment, and reconsideration conditions still require explicit engineering and operational agreement before they can guide implementation.
 
-## Decision to Preserve
+Within this document, normative language describes the consequences of adopting a candidate model. It does not require that model to be adopted.
 
-The current V2 direction should retain three distinct deployment and execution models:
+## Current Proposal for Discussion
+
+The current proposal is to retain three distinct deployment and execution models:
 
 - predeployed, reviewed single-target leaves for explicitly selected subjects;
 - separate `Global*` spells that resolve changing target sets through authoritative registries;
@@ -28,18 +30,18 @@ The alternatives should be evaluated against the operational and security proper
 | Deployment and audit burden | Each action-specific leaf is reviewed once for its supported parameters and storage-free execution path. Every batch still requires review of leaf eligibility, order, uniqueness, atomicity, configuration, and the deployed address. Registry-global spells remain separately reviewed because their live-set iteration has different failure modes. | Every fixed grouping or factory-generated shape expands the review surface. Reviewers either assess a growing catalog of fixed groups or assess a generator and then verify outputs that combine action logic and target selection. |
 | Publication | Predeployed leaves and globals can have stable addresses, bytecode, constructor readbacks, authority evidence, and deployment records before use. An on-demand batch still needs incident-time publication of its address, code identity, leaf order, label/configuration, and verification evidence. | A predeployed fixed group needs the same stable publication evidence but enlarges the public catalog. An incident-time generated group needs publication of its new address, code identity, complete action logic, target configuration, and verification evidence. |
 
-## Recommendation
+## Current Assessment
 
-Retain the selected V2 model while atomic batch composition remains a requirement. Both an on-demand V2 batch and an incident-time grouped spell require preflight, verification, and publication of a new electable artifact. V2 keeps that new artifact limited to composition metadata and batch execution over storage-free reviewed leaves. Grouped spells do not preserve that reusable review boundary: predeployed groups restore a fixed-list catalog, while incident-time generators also bind action logic and dynamic targets into the new artifact.
+If atomic batch composition remains a requirement, the current assessment favors retaining the selected V2 model. Both an on-demand V2 batch and an incident-time grouped spell require preflight, verification, and publication of a new electable artifact. V2 keeps that new artifact limited to composition metadata and batch execution over storage-free reviewed leaves. Grouped spells do not preserve that reusable review boundary: predeployed groups restore a fixed-list catalog, while incident-time generators also bind action logic and dynamic targets into the new artifact.
 
-This recommendation does not make every single-target leaf permanently current. Explicit targets still require operational review, and changing target populations should use a separately reviewed `Global*` spell only when an authoritative registry provides the relevant set and the global execution semantics are acceptable.
+This assessment does not make every single-target leaf permanently current. If the model is adopted, explicit targets would still require operational review, and changing target populations would use a separately reviewed `Global*` spell only when an authoritative registry provides the relevant set and the global execution semantics are acceptable.
 
-## Reconsideration Triggers
+## Factors That Could Change the Assessment
 
-Reassess this decision if any of the following changes:
+Revisit the current assessment if any of the following changes:
 
 - batching is removed as a requirement;
 - Chief authorization changes so multiple caller addresses can be authorized for one emergency action or multiple elected addresses can act together;
 - authoritative registries cover the relevant target sets well enough that incident-time fixed target selection is no longer needed.
 
-Any reconsideration should compare the new authority and registry model against the same incident-readiness, freshness, audit, deployment, and publication criteria. It should not treat this deferred recommendation as prior audit approval.
+Any future decision should compare the new authority and registry model against the same incident-readiness, freshness, audit, deployment, and publication criteria. This discussion does not provide prior approval for either alternative.

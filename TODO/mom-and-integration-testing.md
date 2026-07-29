@@ -2,13 +2,15 @@
 
 ## Status
 
-This document records a deferred contract-simplification, integration-testing, and Chief Keeper plan. None of the changes described here are implemented by this document. It does not change current contracts, tests, CI, keeper behavior, deployment procedures, incident-readiness classification, or audit status.
+This document frames an open discussion about contract simplification, integration testing, and Chief Keeper compatibility. It is not an approved design, mandatory follow-up, roadmap commitment, implementation priority, deployment prerequisite, or audit requirement. None of the changes described here are implemented by this document, and each topic still requires explicit engineering and operational agreement.
 
-## Decision
+Within this document, normative language describes constraints that would apply if the candidate approach were adopted. It does not require adoption.
 
-Future implementation should preserve `EmergencySpellV2.done()` in the compatibility ABI but define it once in the base contract as a pure function that always returns `false`. Concrete leaves, registry-global spells, and batches should remove their overrides. In particular, batches should stop aggregating leaf completion.
+## Candidate Direction
 
-Emergency spells should instead be classified by the exact, case-sensitive description prefix:
+One candidate direction would preserve `EmergencySpellV2.done()` in the compatibility ABI but define it once in the base contract as a pure function that always returns `false`. Under that approach, concrete leaves, registry-global spells, and batches would remove their overrides. In particular, batches would stop aggregating leaf completion.
+
+The same candidate approach would classify Emergency Spells by the exact, case-sensitive description prefix:
 
 ```text
 Emergency Spell:
@@ -18,7 +20,7 @@ Current V2 descriptions use strings beginning with `Emergency Spell |`. Migratio
 
 This change removes a generic current-state query that cannot reliably capture future regressions, newly enrolled registry entries, or the operational evidence needed after an emergency execution. The replacement is exact action-wiring tests, direct state assertions, existing action-specific events, and explicit operational verification.
 
-## Contract Changes
+## Potential Contract Changes
 
 ### Base compatibility behavior
 
@@ -56,7 +58,7 @@ Registry-global spells should retain their current per-entry execution-time post
 
 This work should not add equivalent postcondition reads to single-target leaves. Leaf integration tests and operators should verify state directly after execution.
 
-## Unit-Test Model
+## Candidate Unit-Test Model
 
 ### Leaves and standalone spells
 
@@ -103,7 +105,7 @@ Global suites should prove:
 
 Global tests should not use a completion predicate for partial progress. Direct per-entry state and emitted events are the evidence for a selected execution range.
 
-## RPC-Backed Integration Evidence
+## Candidate RPC-Backed Integration Evidence
 
 ### Boundary and dependency discovery
 
@@ -187,7 +189,7 @@ Keep the following evidence classes distinct:
 
 No successful test or verification stage should be described as audit approval by itself.
 
-## Contributor-Provided Tenderly State
+## Candidate Contributor-Provided Tenderly State
 
 Before mainnet onboarding, a contributor should:
 
@@ -203,7 +205,7 @@ Before mainnet onboarding, a contributor should:
 
 This repository should not receive the Admin RPC or Tenderly account credentials.
 
-## `/test-on-tenderly` Workflow
+## Candidate `/test-on-tenderly` Workflow
 
 ### Command
 
@@ -270,9 +272,9 @@ python3 -m unittest discover -s cli/emergency_spells -t . -v
 
 Trusted branch or internal CI may run the same complete integration suite against mainnet. External contributors should use `/test-on-tenderly --rpc-url` without receiving upstream secrets. Obsolete predicate matrices and `done()` truth-table jobs should be removed rather than carried into either CI path.
 
-## Chief Keeper Prerequisite
+## Potential Chief Keeper Dependency
 
-The always-false ABI behavior requires a coordinated change in `chief-keeper` before a V2 Emergency Spell can be treated as incident-ready or elected.
+If the always-false ABI behavior is adopted, it would require a coordinated change in `chief-keeper` before an affected V2 Emergency Spell could be treated as incident-ready or elected. This dependency is a consequence of the candidate design, not a requirement to adopt it.
 
 Regular spell classification and execution logic should remain unchanged. The keeper should classify an Emergency Spell only when `description()` begins with the exact, case-sensitive `Emergency Spell:` prefix. For that class it should:
 
@@ -339,7 +341,7 @@ Keeper tests should cover:
 - reelection of the same spell after an intervening hat;
 - transaction-sending shutdown when recovery is inconclusive.
 
-## Operational Implications
+## Implications of the Candidate Approach
 
 The design intentionally provides no:
 
@@ -356,7 +358,7 @@ Consequently:
 - global operations require verification of the selected registry range and must be rerun deliberately for later entries or regressions;
 - events support traceability but do not replace direct state reads.
 
-## Implementation Sequence
+## Possible Implementation Sequence
 
 ### Phase 1: Inventory and baselines
 
@@ -406,9 +408,9 @@ Consequently:
 - perform final mainnet address, bytecode, constructor, immutable, authority, and integration verification;
 - publish source review, compatibility, and deployment verification as distinct evidence.
 
-## Acceptance Criteria
+## Possible Acceptance Criteria
 
-The deferred work is complete only when:
+If this candidate approach is adopted, the resulting work could be considered complete when:
 
 - `done()` preserves its selector, calldata shape, and `bool` return signature and has one pure, always-false base implementation;
 - normalized ABI output, bindings, and fixtures explicitly reflect the JSON ABI `stateMutability` change from `view` to `pure`;
