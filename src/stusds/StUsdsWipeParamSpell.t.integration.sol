@@ -136,6 +136,20 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         _checkDoneWhenStUsdsMomIsNotWardInStUsdsRateSetter(Param.BOTH);
     }
 
+    // De-auth after successful wipe still reports done (outcomes-based)
+
+    function testDoneWhenDeauthAfterWipeCompleteCap() public {
+        _checkDoneWhenDeauthAfterWipeComplete(Param.CAP);
+    }
+
+    function testDoneWhenDeauthAfterWipeCompleteLine() public {
+        _checkDoneWhenDeauthAfterWipeComplete(Param.LINE);
+    }
+
+    function testDoneWhenDeauthAfterWipeCompleteBoth() public {
+        _checkDoneWhenDeauthAfterWipeComplete(Param.BOTH);
+    }
+
     // Revert with no Hat
 
     function testRevertSpellWhenItDoesNotHaveTheHatLine() public {
@@ -315,7 +329,7 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         vm.prank(pauseProxy);
         stUsds.deny(stUsdsMom);
 
-        assertTrue(spell.done(), "spell not done");
+        assertFalse(spell.done(), "spell unexpectedly done after de-auth");
     }
 
     function _checkDoneWhenStUsdsRateSetterIsNotWardInStUsds(Param param) internal {
@@ -325,7 +339,7 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         vm.prank(pauseProxy);
         stUsds.deny(address(stUsdsRateSetter));
 
-        assertTrue(spell.done(), "spell not done");
+        assertFalse(spell.done(), "spell unexpectedly done after de-auth");
     }
 
     function _checkDoneWhenStUsdsMomIsNotWardInStUsdsRateSetter(Param param) internal {
@@ -335,7 +349,35 @@ contract SingleLineOrCapWipeSpellTest is DssTest {
         vm.prank(pauseProxy);
         stUsdsRateSetter.deny(stUsdsMom);
 
-        assertTrue(spell.done(), "spell not done");
+        assertFalse(spell.done(), "spell unexpectedly done after de-auth");
+    }
+
+    function _checkDoneWhenDeauthAfterWipeComplete(Param param) internal {
+        StUsdsWipeParamSpell spell = StUsdsWipeParamSpell(factory.deploy(param));
+        bytes32 ilk = spell.stUsds().ilk();
+        (uint256 art, uint256 rate, uint256 spot,, uint256 dust) = spell.vat().ilks(ilk);
+
+        if (param == Param.CAP || param == Param.BOTH) {
+            stdstore.target(address(spell.stUsds())).sig("cap()").checked_write(uint256(0));
+            stdstore.target(address(spell.stUsdsRateSetter())).sig("maxCap()").checked_write(uint256(0));
+        }
+        if (param == Param.LINE || param == Param.BOTH) {
+            vm.mockCall(
+                address(spell.vat()),
+                abi.encodeWithSelector(VatLike.ilks.selector, ilk),
+                abi.encode(art, rate, spot, uint256(0), dust)
+            );
+            stdstore.target(address(spell.stUsds())).sig("line()").checked_write(uint256(0));
+            stdstore.target(address(spell.stUsdsRateSetter())).sig("maxLine()").checked_write(uint256(0));
+        }
+
+        assertTrue(spell.done(), "spell not done after wipe");
+
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.prank(pauseProxy);
+        stUsds.deny(stUsdsMom);
+
+        assertTrue(spell.done(), "spell not done after de-auth with wipe complete");
     }
 
     function _checkRevertSpellWhenItDoesNotHaveTheHat(Param param) internal {
