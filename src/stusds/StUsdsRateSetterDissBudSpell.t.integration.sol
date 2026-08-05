@@ -94,7 +94,7 @@ contract StUsdsRateSetterDissBudSpellTest is DssTest {
         vm.prank(pauseProxy);
         stUsds.deny(address(stUsdsRateSetter));
 
-        assertTrue(spell.done(), "spell not done");
+        assertFalse(spell.done(), "spell unexpectedly done after de-auth");
     }
 
     function testDoneWhenStUsdsMomIsNotWardInStUsdsRateSetter() public {
@@ -102,7 +102,18 @@ contract StUsdsRateSetterDissBudSpellTest is DssTest {
         vm.prank(pauseProxy);
         stUsdsRateSetter.deny(stUsdsMom);
 
-        assertTrue(spell.done(), "spell not done");
+        assertFalse(spell.done(), "spell unexpectedly done after de-auth");
+    }
+
+    function testDoneWhenDeauthAfterDissBudComplete() public {
+        stdstore.target(address(stUsdsRateSetter)).sig("buds(address)").with_key(bud).checked_write(uint256(0));
+        assertTrue(spell.done(), "spell not done after dissBud");
+
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.prank(pauseProxy);
+        stUsds.deny(address(stUsdsRateSetter));
+
+        assertTrue(spell.done(), "spell not done after de-auth with dissBud complete");
     }
 
     // Revert wards

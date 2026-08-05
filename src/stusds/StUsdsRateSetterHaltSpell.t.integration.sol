@@ -90,14 +90,24 @@ contract StUsdsRateSetterHaltSpellTest is DssTest {
         vm.prank(pauseProxy);
         stUsds.deny(address(stUsdsRateSetter));
 
-        assertTrue(spell.done(), "spell not done");
+        assertFalse(spell.done(), "spell unexpectedly done after de-auth");
     }
 
     function testDoneWhenStUsdsMomIsNotWardInStUsdsRateSetter() public {
         vm.prank(pauseProxy);
         stUsdsRateSetter.deny(stUsdsMom);
 
-        assertTrue(spell.done(), "spell not done");
+        assertFalse(spell.done(), "spell unexpectedly done after de-auth");
+    }
+
+    function testDoneWhenDeauthAfterHaltComplete() public {
+        stdstore.target(address(stUsdsRateSetter)).sig("bad()").checked_write(uint256(1));
+        assertTrue(spell.done(), "spell not done after halt");
+
+        vm.prank(pauseProxy);
+        stUsds.deny(address(stUsdsRateSetter));
+
+        assertTrue(spell.done(), "spell not done after de-auth with halt complete");
     }
 
     function testDoneWhenStUsdsToRateSetterWardReverts() public {
