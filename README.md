@@ -1,5 +1,8 @@
 # Maker Protocol Emergency Spells
 
+> [!IMPORTANT]
+> Emergency Spells v2 is under development. The v1 implementation is preserved at the [v1 tag](https://github.com/sky-ecosystem/dss-emergency-spells/tree/v1). No further v1 changes will be accepted; new changes must relate to v2. Development targets the [v2 branch](https://github.com/sky-ecosystem/dss-emergency-spells/tree/v2), with the draft implementation in [PR #33](https://github.com/sky-ecosystem/dss-emergency-spells/pull/33), which is not ready for review.
+
 Pre-deployed spells to allow MakerDAO Governance to react faster in case of emergencies.
 
 ## Motivation
