@@ -94,36 +94,30 @@ contract StUsdsWipeParamSpell is DssEmergencySpell {
     /**
      * @notice Returns whether the spell is done or not.
      * @dev Checks if the line or cap have been zeroed on the stUSDS.
-     *      The spell would revert if any of the following conditions holds:
+     *      Authorization (`wards`) is not treated as completion: de-authorizing mom/rateSetter
+     *      must not mark an incomplete wipe as done. Calls that revert are still treated as
+     *      "not a StUsds / RateSetter instance" (N/A → done).
+     *      Note: the spell would revert on cast if any of the following holds:
      *          1. stUsdsMom is not a ward of stUsds;
      *          2. stUsdsRateSetter is not a ward of stUsds;
      *          3. stUsdsMom is not a ward of stUsdsRateSetter.
      */
     function done() external view returns (bool) {
-        try stUsds.wards(address(stUsdsMom)) returns (uint256 ward) {
-            // Ignore StUsds instances that have not relied on StUsdsMom.
-            if (ward == 0) {
-                return true;
-            }
+        // Shape checks only — do not interpret ward==0 as success (false-complete after de-auth).
+        try stUsds.wards(address(stUsdsMom)) {
+            // Authorization state is irrelevant to completion; outcomes below decide.
         } catch {
             // If the call failed, it means the contract is most likely not a StUsds instance.
             return true;
         }
-        try stUsds.wards(address(stUsdsRateSetter)) returns (uint256 ward) {
-            // Ignore StUsds instances that have not relied on stUsdsRateSetter.
-            if (ward == 0) {
-                return true;
-            }
+        try stUsds.wards(address(stUsdsRateSetter)) {
+            // Authorization state is irrelevant to completion; outcomes below decide.
         } catch {
             // If the call failed, it means the contract is most likely not a StUsds instance.
             return true;
         }
-
-        try stUsdsRateSetter.wards(address(stUsdsMom)) returns (uint256 ward) {
-            // Ignore StUsdsRateSetter instances that have not relied on StUsdsMom.
-            if (ward == 0) {
-                return true;
-            }
+        try stUsdsRateSetter.wards(address(stUsdsMom)) {
+            // Authorization state is irrelevant to completion; outcomes below decide.
         } catch {
             // If the call failed, it means the contract is most likely not a RateSetter instance.
             return true;

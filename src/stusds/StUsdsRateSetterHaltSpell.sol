@@ -48,27 +48,24 @@ contract StUsdsRateSetterHaltSpell is DssEmergencySpell {
     /**
      * @notice Returns whether the spell is done or not.
      * @dev Checks if the bad has been set to 1 for the stUsdsRateSetter.
-     *      The spell would revert if any of the following conditions holds:
+     *      Authorization (`wards`) is not treated as completion: de-authorizing rateSetter/mom
+     *      must not mark an incomplete halt as done. Calls that revert are still treated as
+     *      "not a StUsds / RateSetter instance" (N/A → done).
+     *      Note: the spell would revert on cast if any of the following holds:
      *          1. stUsdsRateSetter is not ward on stUsds;
      *          2. stUsdsMom is not ward on stUsdsRateSetter.
-     *      In both cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
-        try stUsds.wards(address(stUsdsRateSetter)) returns (uint256 ward) {
-            // Ignore StUsds instances that have not relied on StUsdsRateSetter.
-            if (ward == 0) {
-                return true;
-            }
+        // Shape checks only — do not interpret ward==0 as success (false-complete after de-auth).
+        try stUsds.wards(address(stUsdsRateSetter)) {
+            // Authorization state is irrelevant to completion; outcomes below decide.
         } catch {
             // If the call failed, it means the contract is most likely not a StUsds instance.
             return true;
         }
 
-        try stUsdsRateSetter.wards(address(stUsdsMom)) returns (uint256 ward) {
-            // Ignore StUsdsRateSetter instances that have not relied on StUsdsMom.
-            if (ward == 0) {
-                return true;
-            }
+        try stUsdsRateSetter.wards(address(stUsdsMom)) {
+            // Authorization state is irrelevant to completion; outcomes below decide.
         } catch {
             // If the call failed, it means the contract is most likely not a RateSetter instance.
             return true;
