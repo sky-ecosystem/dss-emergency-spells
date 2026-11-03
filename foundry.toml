@@ -7,6 +7,8 @@ solc = '0.8.16'
 # Disables the optimizer, since gas cost is not a relevant factor.
 optimizer = false
 evm_version = "shanghai"
+# Disables isolation mode to preserve Foundry behaviour from V1 development
+isolate = false
 
 fs_permissions = [
     { access = "read", path = "./out/" },
