@@ -339,3 +339,14 @@ returned `true`.
 In other words, if `done() == true`, it means that the actions performed by the spell are not applicable.
 
 [spell-done]: https://github.com/makerdao/dss-exec-lib/blob/69b658f35d8618272cd139dfc18c5713caf6b96b/src/DssExec.sol#L43
+
+## Audits
+
+Audit reports are hosted on the auditors' public portfolio pages:
+
+| Auditor | Report | Date |
+| --- | --- | --- |
+| Cantina | [Sky: stUSDS Standby Spells](https://cantina.xyz/portfolio/5d6315f4-db70-4bed-afca-dec7bc65cd8f) | 2026-03-10 |
+| ChainSecurity | [DSS Emergency Spells](https://www.chainsecurity.com/security-audit/makerdao-dss-emergency-spells/) | 2025-04-25 |
+
+ChainSecurity reports are cumulative: each portfolio page hosts the latest version of the report, which covers all previously reviewed versions.
